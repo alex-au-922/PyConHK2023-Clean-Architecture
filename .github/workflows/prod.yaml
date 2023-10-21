@@ -46,7 +46,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.6.0
+          terraform_version: 1.6.1
       - name: Terraform Init
         run: |
           cd terraform
@@ -79,6 +79,10 @@ jobs:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.6.1
       - name: Download Plan
         uses: actions/download-artifact@v2
         with:
@@ -107,6 +111,10 @@ jobs:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.6.1
       - name: Download Plan
         uses: actions/download-artifact@v2
         with:
