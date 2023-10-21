@@ -1,7 +1,3 @@
-locals {
-  allowed_cidrs = split(",", var.allowed_cidrs_string)
-}
-
 resource "random_password" "opensearch_master_password" {
   length           = var.rds_config.main_user_password_length
   special          = true
@@ -109,7 +105,7 @@ resource "aws_opensearch_domain" "opensearch" {
     anonymous_auth_enabled         = false
     internal_user_database_enabled = true
     master_user_options {
-      master_user_name     = var.opensearch_config.master_user
+      master_user_name     = var.opensearch_config.main_username
       master_user_password = random_password.opensearch_master_password.result
     }
   }

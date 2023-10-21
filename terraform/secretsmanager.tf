@@ -15,3 +15,18 @@ module "rds_credentials" {
   )
   recovery_window_in_days = 0
 }
+
+module "rds_credentials" {
+  source      = "./modules/secretsmanager"
+  name        = "opensearch_credentials"
+  description = "Opensearch credentials"
+  secret_string = jsonencode(
+    {
+      "domain_name" : "${aws_opensearch_domain.opensearch.domain_name}",
+      "endpoint" : "https://${aws_opensearch_domain.opensearch.endpoint}",
+      "username" : "${var.opensearch_config.main_username}",
+      "password" : "${random_password.opensearch_master_password.result}"
+    }
+  )
+  recovery_window_in_days = 0
+}

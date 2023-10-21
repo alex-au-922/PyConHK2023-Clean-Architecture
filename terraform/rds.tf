@@ -1,7 +1,3 @@
-locals {
-  allowed_cidrs = split(",", var.allowed_cidrs_string)
-}
-
 resource "random_password" "db_master_password" {
   length           = var.rds_config.main_user_password_length
   special          = true
