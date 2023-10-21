@@ -111,7 +111,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: tfplan
-          path: terraform/tfplan
+          path: terraform
       - name: Terraform Apply
         run: |
           cd terraform
