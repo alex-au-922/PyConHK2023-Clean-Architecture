@@ -178,7 +178,6 @@ module "db_replica" {
   allocated_storage     = var.rds_config.allocated_storage.initial
   max_allocated_storage = var.rds_config.allocated_storage.max
 
-  db_name  = var.rds_config.main_database
   username = var.rds_config.main_username
   password = random_password.db_master_password.result
   port     = 5432
