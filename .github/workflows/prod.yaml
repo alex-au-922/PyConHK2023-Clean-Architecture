@@ -19,6 +19,8 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+      - name: Check caller identity
+        run: aws sts get-caller-identity
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -29,6 +31,8 @@ jobs:
         with:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+      - name: Check caller identity
+        run: aws sts get-caller-identity
       - name: List all secrets
         run: |
           aws secretsmanager list-secrets --region ${{ secrets.AWS_REGION }}
