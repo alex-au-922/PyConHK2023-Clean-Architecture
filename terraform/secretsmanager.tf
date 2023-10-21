@@ -16,7 +16,7 @@ module "rds_credentials" {
   recovery_window_in_days = 0
 }
 
-module "rds_credentials" {
+module "opensearch_credentials" {
   source      = "./modules/secretsmanager"
   name        = "opensearch_credentials"
   description = "Opensearch credentials"
