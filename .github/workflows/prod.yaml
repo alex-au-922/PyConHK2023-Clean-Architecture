@@ -34,8 +34,6 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    outputs:
-      plan_output: ${{ steps.plan.outputs.tfplan }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -58,7 +56,6 @@ jobs:
         run: |
           cd terraform
           terraform plan -out=tfplan
-          echo "tfplan=$(cat tfplan)" >> $GITHUB_OUTPUT
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
       - name: Save Plan
@@ -71,15 +68,18 @@ jobs:
     needs: terraform-plan
     runs-on: ubuntu-latest
     steps:
+      - name: Download Plan
+        uses: actions/download-artifact@v2
+        id: plan
+        with:
+          name: tfplan
       - name: Submit plan for approval
         uses: jbergknoff/github-action-wait-for-terraform-plan-approval@v1
         id: submit_plan
         with:
           command: submit
-          plan_contents: ${{ needs.terraform-plan.outputs.tfplan }}
-
+          plan_contents: ${{ steps.plan.outputs.artifacts.tfplan }}
       # Snip: send a Slack DM asking somebody to visit `steps.submit_plan.outputs.approval_prompt_url` to approve
-
       - name: Wait for approval
         uses: jbergknoff/github-action-wait-for-terraform-plan-approval@v1
         with:
