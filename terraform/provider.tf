@@ -1,7 +1,7 @@
 locals {
   tags = {
-    developer = var.developer_config.developer
-    contact   = var.developer_config.contact
+    developer = "alexau"
+    contact   = "alexuau922@gmail.com"
   }
 }
 
