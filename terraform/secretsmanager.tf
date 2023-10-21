@@ -1,6 +1,6 @@
 module "rds_credentials" {
   source      = "./modules/secretsmanager"
-  name        = "rds_credentials"
+  name        = "${var.rds_config.main_database}_rds_credentials"
   description = "RDS credentials"
   secret_string = jsonencode(
     {
@@ -18,7 +18,7 @@ module "rds_credentials" {
 
 module "opensearch_credentials" {
   source      = "./modules/secretsmanager"
-  name        = "opensearch_credentials"
+  name        = "${var.opensearch_config.domain_name}_opensearch_credentials"
   description = "Opensearch credentials"
   secret_string = jsonencode(
     {
