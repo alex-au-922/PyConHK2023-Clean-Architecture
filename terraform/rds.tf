@@ -151,4 +151,5 @@ module "db" {
   subnet_ids          = var.rds_config.publicly_accessible ? module.vpc.public_subnets : module.vpc.private_subnets
   publicly_accessible = var.rds_config.publicly_accessible
 
+  manage_master_user_password = random_password.db_master_password.result != ""
 }
