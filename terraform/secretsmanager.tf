@@ -9,7 +9,8 @@ module "rds_credentials" {
       "engine" : "${var.rds_config.engine.name}",
       "host" : "${module.db.db_instance_address}",
       "port" : "${module.db.db_instance_port}",
-      "dbInstanceIdentifier" : "${module.db.db_instance_identifier}"
+      "readerHost" : "${module.db_replica.db_instance_address}",
+      "readerPort" : "${module.db_replica.db_instance_port}",
     }
   )
   recovery_window_in_days = 0
