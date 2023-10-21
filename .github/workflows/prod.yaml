@@ -83,6 +83,10 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.6.1
+      - name: Terraform Init
+        run: |
+          cd terraform
+          terraform init
       - name: Download Plan
         uses: actions/download-artifact@v2
         with:
@@ -120,6 +124,10 @@ jobs:
         with:
           name: tfplan
           path: terraform
+      - name: Terraform Init
+        run: |
+          cd terraform
+          terraform init
       - name: Terraform Apply
         run: |
           cd terraform
