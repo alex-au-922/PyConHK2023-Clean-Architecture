@@ -78,7 +78,7 @@ jobs:
         id: submit_plan
         with:
           command: submit
-          plan_contents: ${{ steps.plan.outputs.artifacts.tfplan }}
+          plan_contents: Approve for the ${{ github.ref }} branch
       # Snip: send a Slack DM asking somebody to visit `steps.submit_plan.outputs.approval_prompt_url` to approve
       - name: Wait for approval
         uses: jbergknoff/github-action-wait-for-terraform-plan-approval@v1
