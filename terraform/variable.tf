@@ -48,7 +48,7 @@ variable "rds_config" {
   })
 }
 
-variable "allowed_cidrs" {
+variable "allowed_cidr" {
   description = "List of CIDRs to allow access to the resources, provided by Pipeline"
-  type        = list(string)
+  type        = string
 }

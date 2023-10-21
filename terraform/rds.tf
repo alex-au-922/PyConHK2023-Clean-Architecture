@@ -1,3 +1,7 @@
+locals {
+  allowed_cidrs = [var.allowed_cidr]
+}
+
 resource "random_password" "db_master_password" {
   length           = var.rds_config.main_user_password_length
   special          = true
@@ -31,7 +35,7 @@ module "db" {
       from_port   = 5432
       to_port     = 5432
       protocol    = "tcp"
-      cidr_blocks = var.allowed_cidrs
+      cidr_blocks = local.allowed_cidrs
     }
     lambda_access = {
       description = "Postgres"
