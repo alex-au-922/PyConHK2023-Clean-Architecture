@@ -28,12 +28,6 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Check caller identity
         run: aws sts get-caller-identity
-  terraform:
-    runs-on: ubuntu-latest
-    needs: assume-role
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -42,13 +36,9 @@ jobs:
         run: |
           cd terraform
           terraform init
-        env:
-          TF_ENV_AWS_ASSUME_ROLE_ARN: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
       - name: Terraform Plan
         id: plan
         run: |
           cd terraform
           terraform plan -out=tfplan
           echo "::set-output name=plan::$(cat tfplan)"
-        env:
-          TF_ENV_AWS_ASSUME_ROLE_ARN: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
