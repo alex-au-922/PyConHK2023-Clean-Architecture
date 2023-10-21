@@ -102,6 +102,7 @@ module "db" {
 
   multi_az = true
 
+
   identifier = var.rds_config.main_database
 
   engine               = var.rds_config.engine.name
@@ -139,6 +140,7 @@ module "db" {
 
   parameters = var.rds_config.parameters
 
+  db_subnet_group_name = "${var.rds_config.main_database}-db-subnet-group"
   # DB subnet group
   subnet_ids          = var.rds_config.publicly_accessible ? module.vpc.public_subnets : module.vpc.private_subnets
   publicly_accessible = var.rds_config.publicly_accessible
