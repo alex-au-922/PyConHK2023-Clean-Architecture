@@ -108,7 +108,7 @@ module "db" {
   engine_version       = var.rds_config.engine.version
   family               = "${var.rds_config.engine.name}${var.rds_config.engine.version}"
   major_engine_version = var.rds_config.engine.version
-  instance_class       = var.rds_config.instance[0].class
+  instance_class       = var.rds_config.instance.class
 
   allocated_storage     = var.rds_config.allocated_storage.initial
   max_allocated_storage = var.rds_config.allocated_storage.max
