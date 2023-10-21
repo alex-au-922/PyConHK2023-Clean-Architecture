@@ -48,6 +48,30 @@ variable "rds_config" {
   })
 }
 
+variable "opensearch_config" {
+  description = "Config for the OpenSearch"
+  type = object({
+    version                   = string
+    domain_name               = string
+    main_username             = string
+    main_user_password_length = number
+    instance = object({
+      type  = string
+      count = number
+    })
+    master_node = object({
+      type  = string
+      count = number
+    })
+    ebs = object({
+      volume_size = number
+      throughput  = number
+      volume_type = string
+    })
+    in_vpc = bool
+  })
+}
+
 variable "allowed_cidrs_string" {
   description = "List of CIDRs to allow access to the resources, provided by Pipeline"
   type        = string

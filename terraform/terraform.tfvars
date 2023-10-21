@@ -49,3 +49,24 @@ rds_config = {
   skip_final_snapshot = true
   publicly_accessible = true
 }
+
+opensearch_config = {
+  version     = "OpenSearch_2.9"
+  domain_name = "pyconhk2023"
+  instance = {
+    count = 1
+    type  = "t3.small.search"
+  }
+  master_node = {
+    count = 0
+    type  = "t3.small.search"
+  }
+  main_username             = "alexau_pyconhk2023"
+  main_user_password_length = 16
+  ebs = {
+    volume_type = "gp3"
+    volume_size = 30
+    throughput  = 125
+  }
+  in_vpc = true
+}
