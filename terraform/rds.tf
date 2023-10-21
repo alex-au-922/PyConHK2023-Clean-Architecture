@@ -178,18 +178,36 @@ module "db_replica" {
   allocated_storage     = var.rds_config.allocated_storage.initial
   max_allocated_storage = var.rds_config.allocated_storage.max
 
-  port = 5432
+  db_name  = var.rds_config.main_database
+  username = var.rds_config.main_username
+  password = random_password.db_master_password.result
+  port     = 5432
 
   multi_az               = false
   vpc_security_group_ids = [module.security_group.security_group_id]
 
-  maintenance_window              = var.rds_config.windows.maintenance
-  backup_window                   = var.rds_config.windows.backup
-  enabled_cloudwatch_logs_exports = var.rds_config.cloudwatch_logs_exports
+  maintenance_window = var.rds_config.windows.maintenance
+  backup_window      = var.rds_config.windows.backup
 
-  backup_retention_period = 0
-  skip_final_snapshot     = var.rds_config.skip_final_snapshot
-  deletion_protection     = false
-  storage_encrypted       = true
-  apply_immediately       = var.rds_config.apply_immediately
+  performance_insights_enabled          = var.rds_config.performance_insights.enabled
+  performance_insights_retention_period = var.rds_config.performance_insights.retention_period
+  create_monitoring_role                = var.rds_config.monitoring_interval > 0
+  monitoring_interval                   = var.rds_config.monitoring_interval
+  monitoring_role_name                  = "${var.rds_config.main_database}-replica-monitoring-role"
+  monitoring_role_use_name_prefix       = true
+  monitoring_role_description           = "Monitoring role for ${var.rds_config.main_database}"
+  enabled_cloudwatch_logs_exports       = var.rds_config.cloudwatch_logs_exports
+  parameters                            = var.rds_config.parameters
+
+  skip_final_snapshot = var.rds_config.skip_final_snapshot
+
+  storage_encrypted = true
+  apply_immediately = true
+
+  db_subnet_group_name = aws_db_subnet_group.postgresql_subnet_group.name
+  # DB subnet group
+  subnet_ids          = var.rds_config.publicly_accessible ? module.vpc.public_subnets : module.vpc.private_subnets
+  publicly_accessible = var.rds_config.publicly_accessible
+
+  manage_master_user_password = random_password.db_master_password.result == ""
 }
