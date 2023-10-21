@@ -12,7 +12,7 @@ permissions:
   id-token: write # This is required for requesting the JWT
   contents: read # This is required for actions/checkout
 jobs:
-  assume-role:
+  check-assume-role:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -21,13 +21,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1.7.0
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Check caller identity
         run: aws sts get-caller-identity
+  terraform-plan:
+    needs: check-assume-role
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -41,8 +56,74 @@ jobs:
         run: |
           cd terraform
           terraform plan -out=tfplan
+        env: TF_ENV_ALLOWED_CIDRS = ${{ secrets.allowed_cidrs }}
+      - name: Save Plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: tfplan
+          path: terraform/tfplan
+  terraform-manual-approve:
+    if: github.ref != 'refs/heads/main'
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: user1,user2,org-team1
+          minimum-approvals: 1
+          issue-title: "Deploying v1.3.5 to prod from staging"
+          issue-body: "Please approve or deny the deployment of version v1.3.5."
+          exclude-workflow-initiator-as-approver: false
+          additional-approved-words: ""
+          additional-denied-words: ""
+  terraform-apply-main:
+    if: github.ref == 'refs/heads/main'
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Download Plan
+        uses: actions/download-artifact@v2
+        with:
+          name: tfplan
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
         run: |
           cd terraform
           terraform apply -auto-approve tfplan
+        env: TF_ENV_ALLOWED_CIDRS = ${{ secrets.allowed_cidrs }}
+  terraform-apply-dev:
+    if: github.ref != 'refs/heads/main'
+    needs: terraform-manual-approve
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Download Plan
+        uses: actions/download-artifact@v2
+        with:
+          name: tfplan
+      - name: Terraform Apply
+        run: |
+          cd terraform
+          terraform apply -auto-approve tfplan
+        env: TF_ENV_ALLOWED_CIDRS = ${{ secrets.allowed_cidrs }}

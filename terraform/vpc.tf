@@ -7,4 +7,4 @@ module "vpc" {
   azs             = data.aws_availability_zones.available.names
   private_subnets = var.vpc_config.private_subnets
   public_subnets  = var.vpc_config.public_subnets
-}  
+}
