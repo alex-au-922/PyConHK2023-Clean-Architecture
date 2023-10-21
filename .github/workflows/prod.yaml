@@ -29,7 +29,7 @@ jobs:
       - name: Check caller identity
         run: aws sts get-caller-identity
   terraform-plan:
-    needs: check-assume-role
+    needs: [check-assume-role]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -65,7 +65,7 @@ jobs:
           path: terraform/tfplan
   terraform-apply-main:
     if: github.ref == 'refs/heads/main'
-    needs: terraform-plan
+    needs: [terraform-plan]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -91,7 +91,7 @@ jobs:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
   terraform-apply-dev:
     if: github.ref != 'refs/heads/main'
-    needs: [terraform-manual-approve, terraform-plan]
+    needs: [terraform-plan]
     environment:
       name: prod
     runs-on: ubuntu-latest
