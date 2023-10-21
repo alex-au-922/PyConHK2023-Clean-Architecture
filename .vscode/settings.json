@@ -1,0 +1,5 @@
+{
+  "terraform.experimentalFeatures.validateOnSave": true,
+  "editor.defaultFormatter": null,
+  "terraform.codelens.referenceCount": true
+}
