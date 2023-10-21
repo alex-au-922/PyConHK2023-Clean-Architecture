@@ -126,6 +126,8 @@ module "db" {
   password = random_password.db_master_password.result
   port     = 5432
 
+
+
   skip_final_snapshot = var.rds_config.skip_final_snapshot
 
   storage_encrypted = true
@@ -133,8 +135,9 @@ module "db" {
 
   vpc_security_group_ids = [aws_security_group.db_rds_security_group.id]
 
-  maintenance_window = var.rds_config.windows.maintenance
-  backup_window      = var.rds_config.windows.backup
+  maintenance_window      = var.rds_config.windows.maintenance
+  backup_window           = var.rds_config.windows.backup
+  backup_retention_period = var.rds_config.backup_retention_period
 
   performance_insights_enabled          = var.rds_config.performance_insights.enabled
   performance_insights_retention_period = var.rds_config.performance_insights.retention_period
@@ -143,8 +146,8 @@ module "db" {
   monitoring_role_name                  = "${var.rds_config.main_database}-monitoring-role"
   monitoring_role_use_name_prefix       = true
   monitoring_role_description           = "Monitoring role for ${var.rds_config.main_database}"
-
-  parameters = var.rds_config.parameters
+  enabled_cloudwatch_logs_exports       = var.rds_config.cloudwatch_logs_exports
+  parameters                            = var.rds_config.parameters
 
   db_subnet_group_name = aws_db_subnet_group.postgresql_subnet_group.name
   # DB subnet group
@@ -152,4 +155,41 @@ module "db" {
   publicly_accessible = var.rds_config.publicly_accessible
 
   manage_master_user_password = random_password.db_master_password.result == ""
+}
+
+################################################################################
+# Replica DB
+################################################################################
+
+module "db_replica" {
+  source = "terraform-aws-modules/rds/aws"
+
+  identifier = "${var.rds_config.main_database}-replica"
+
+  # Source database. For cross-region use db_instance_arn
+  replicate_source_db = module.db.db_instance_identifier
+
+  engine               = var.rds_config.engine.name
+  engine_version       = var.rds_config.engine.version
+  family               = "${var.rds_config.engine.name}${var.rds_config.engine.version}"
+  major_engine_version = var.rds_config.engine.version
+  instance_class       = var.rds_config.instance.class
+
+  allocated_storage     = var.rds_config.allocated_storage.initial
+  max_allocated_storage = var.rds_config.allocated_storage.max
+
+  port = 5432
+
+  multi_az               = false
+  vpc_security_group_ids = [module.security_group.security_group_id]
+
+  maintenance_window              = var.rds_config.windows.maintenance
+  backup_window                   = var.rds_config.windows.backup
+  enabled_cloudwatch_logs_exports = var.rds_config.cloudwatch_logs_exports
+
+  backup_retention_period = 0
+  skip_final_snapshot     = var.rds_config.skip_final_snapshot
+  deletion_protection     = false
+  storage_encrypted       = true
+  apply_immediately       = var.rds_config.apply_immediately
 }
