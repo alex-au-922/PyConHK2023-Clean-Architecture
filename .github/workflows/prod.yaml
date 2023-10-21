@@ -42,3 +42,5 @@ jobs:
           cd terraform
           terraform plan -out=tfplan
           echo "::set-output name=plan::$(cat tfplan)"
+        env:
+          developer_config: '{"developer": "${{ github.actor }}", "contact": "${{ env.CONTACT }}"}'
