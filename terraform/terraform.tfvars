@@ -1,8 +1,3 @@
-backend_s3_config = {
-  bucket = "terraform-state-pyconhk2023"
-  key    = "terraform.tfstate"
-}
-
 vpc_config = {
   name       = "pyconhk2023"
   cidr_block = "10.0.0.0/16"
