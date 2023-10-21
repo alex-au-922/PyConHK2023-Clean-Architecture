@@ -178,9 +178,7 @@ module "db_replica" {
   allocated_storage     = var.rds_config.allocated_storage.initial
   max_allocated_storage = var.rds_config.allocated_storage.max
 
-  username = var.rds_config.main_username
-  password = random_password.db_master_password.result
-  port     = 5432
+  port = 5432
 
   multi_az               = false
   vpc_security_group_ids = [aws_security_group.db_rds_security_group.id]
