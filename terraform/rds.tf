@@ -1,5 +1,5 @@
 locals {
-  allowed_cidrs = [var.allowed_cidr]
+  allowed_cidrs = split(",", var.allowed_cidrs_string)
 }
 
 resource "random_password" "db_master_password" {
