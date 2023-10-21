@@ -68,5 +68,5 @@ opensearch_config = {
     volume_size = 30
     throughput  = 125
   }
-  in_vpc = true
+  publicly_accessible = true
 }

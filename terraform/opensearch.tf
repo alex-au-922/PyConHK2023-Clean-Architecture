@@ -118,7 +118,10 @@ resource "aws_opensearch_domain" "opensearch" {
   }
 
   vpc_options {
-    subnet_ids         = module.vpc.public_subnets
+    subnet_ids = slice(var.opensearch_config.publicly_accessible ? module.vpc.public_subnets : module.vpc.private_subnets, 0, max(
+      var.opensearch_config.instance.count,
+      length(data.aws_availability_zones.available.names)
+    ))
     security_group_ids = [aws_security_group.opensearch_security_group.id]
   }
 

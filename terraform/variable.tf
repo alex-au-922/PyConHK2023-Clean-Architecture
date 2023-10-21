@@ -68,7 +68,7 @@ variable "opensearch_config" {
       throughput  = number
       volume_type = string
     })
-    in_vpc = bool
+    publicly_accessible = bool
   })
 }
 
