@@ -66,6 +66,8 @@ jobs:
   terraform-manual-approve:
     if: github.ref != 'refs/heads/main'
     needs: terraform-plan
+    environment:
+      name: dev
     runs-on: ubuntu-latest
     steps:
       - name: Download Plan
@@ -114,7 +116,9 @@ jobs:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
   terraform-apply-dev:
     if: github.ref != 'refs/heads/main'
-    needs: terraform-manual-approve
+    needs: [terraform-manual-approve, terraform-plan]
+    environment:
+      name: prod
     runs-on: ubuntu-latest
     permissions:
       id-token: write
