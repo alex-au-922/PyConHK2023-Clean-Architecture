@@ -184,7 +184,7 @@ module "db_replica" {
   port     = 5432
 
   multi_az               = false
-  vpc_security_group_ids = [module.security_group.security_group_id]
+  vpc_security_group_ids = [aws_security_group.db_rds_security_group.id]
 
   maintenance_window = var.rds_config.windows.maintenance
   backup_window      = var.rds_config.windows.backup
