@@ -15,14 +15,14 @@ module "db" {
   name           = var.rds_config.main_database
   engine         = var.rds_config.engine.name
   engine_version = var.rds_config.engine.version
-  instance_class = var.rds_config.instance_class
   instances = {
     for v in var.rds_config.instance : v.name => {
+      identifier     = v.name
       instance_class = v.class
     }
   }
 
-  vpc_id             = data.aws_vpc.vpc.id
+  vpc_id             = module.vpc.vpc_id
   availability_zones = data.aws_availability_zones.available.names
 
   #! Normally we would use the private subnets, but as I'm not in an enterprise environment,
@@ -42,7 +42,7 @@ module "db" {
       from_port   = 5432
       to_port     = 5432
       protocol    = "tcp"
-      cidr_blocks = [data.aws_vpc.vpc.cidr_block]
+      cidr_blocks = concat([module.vpc.vpc_cidr_block], module.vpc.vpc_secondary_cidr_blocks)
     }
   }
 
