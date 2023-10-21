@@ -22,7 +22,7 @@ rds_config = {
     class = "db.t4g.micro"
   },
   engine = {
-    name    = "postgresql",
+    name    = "postgres",
     version = "15",
   },
   multi_az = true
