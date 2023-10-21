@@ -37,27 +37,6 @@ data "aws_iam_policy_document" "opensearch_access_policies" {
     }
     actions   = ["es:*"]
     resources = ["arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/*"]
-    condition {
-      test     = "IpAddress"
-      variable = "aws:SourceIp"
-      values   = local.allowed_cidrs
-    }
-  }
-
-  statement {
-    effect = "Allow"
-    principals {
-      type = "Service"
-      identifiers = [
-        "lambda.amazonaws.com",
-        "s3.amazonaws.com",
-        "logs.amazonaws.com",
-        "es.amazonaws.com",
-        "ecs-tasks.amazonaws.com"
-      ]
-    }
-    actions   = ["es:*"]
-    resources = ["arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/*"]
   }
 }
 
