@@ -41,4 +41,8 @@ jobs:
         run: |
           cd terraform
           terraform plan -out=tfplan
-          echo "::set-output name=plan::$(cat tfplan)"
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cd terraform
+          terraform apply -auto-approve tfplan
