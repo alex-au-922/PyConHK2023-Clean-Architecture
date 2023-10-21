@@ -17,14 +17,12 @@ rds_config = {
   main_username             = "alexau_pyconhk2023",
   main_user_password_length = 16,
   main_database             = "pyconhk2023",
-  instance = [
-    {
-      name  = "pyconhk2023-main"
-      class = "db.t4g.medium"
-    }
-  ],
+  instance = {
+    name  = "pyconhk2023-main"
+    class = "db.t4g.micro"
+  },
   engine = {
-    name    = "aurora-postgresql",
+    name    = "postgresql",
     version = "15",
   },
   multi_az = true

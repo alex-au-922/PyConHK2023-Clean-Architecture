@@ -14,10 +14,10 @@ variable "rds_config" {
     main_username             = string
     main_user_password_length = number
     main_database             = string
-    instance = list(object({
+    instance = object({
       name  = string
       class = string
-    }))
+    })
     engine = object({
       name    = string
       version = string
