@@ -88,6 +88,11 @@ jobs:
           terraform apply -auto-approve
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
+      - name: Download Bastion Host Private Key
+        uses: actions/download-artifact@v2
+        with:
+          name: pyconhk2023-bastion.pem
+          path: terraform
   terraform-apply-dev:
     if: github.ref != 'refs/heads/main'
     needs: [terraform-plan]
@@ -120,3 +125,8 @@ jobs:
           terraform apply -auto-approve
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
+      - name: Download Bastion Host Private Key
+        uses: actions/download-artifact@v2
+        with:
+          name: pyconhk2023-bastion.pem
+          path: terraform
