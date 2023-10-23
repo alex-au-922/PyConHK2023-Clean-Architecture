@@ -45,7 +45,7 @@ data "aws_ami" "encrypted-ami" {
 }
 
 resource "aws_security_group" "bastion_host_security_group" {
-  name        = "${var.bastion_host_config.instance_name}-security-group"
+  name        = "${var.bastion_host_config.name}-security-group"
   description = "Security group for Bastion Host"
   vpc_id      = module.vpc.vpc_id
 
