@@ -55,14 +55,9 @@ jobs:
         id: plan
         run: |
           cd terraform
-          terraform plan -out=tfplan
+          terraform plan
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
-      - name: Save Plan
-        uses: actions/upload-artifact@v3
-        with:
-          name: tfplan
-          path: terraform/tfplan
   terraform-apply-main:
     if: github.ref == 'refs/heads/main'
     needs: [terraform-plan]
@@ -87,14 +82,10 @@ jobs:
         run: |
           cd terraform
           terraform init
-      - name: Download Plan
-        uses: actions/download-artifact@v2
-        with:
-          name: tfplan
       - name: Terraform Apply
         run: |
           cd terraform
-          terraform apply -auto-approve tfplan
+          terraform apply -auto-approve
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
   terraform-apply-dev:
@@ -119,11 +110,6 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.6.1
-      - name: Download Plan
-        uses: actions/download-artifact@v2
-        with:
-          name: tfplan
-          path: terraform
       - name: Terraform Init
         run: |
           cd terraform
@@ -131,6 +117,6 @@ jobs:
       - name: Terraform Apply
         run: |
           cd terraform
-          terraform apply -auto-approve tfplan
+          terraform apply -auto-approve
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}

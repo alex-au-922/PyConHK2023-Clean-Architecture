@@ -39,18 +39,18 @@ resource "aws_security_group" "bastion_host_security_group" {
   vpc_id      = module.vpc.vpc_id
 
   ingress {
-    description = "Allow access from Home"
+    description = "Allow SSH access from Home"
     from_port   = 22
     to_port     = 22
-    protocol    = "ssh"
+    protocol    = "tcp"
     cidr_blocks = local.allowed_cidrs
   }
 
   ingress {
-    description = "Allow access from VPC"
+    description = "Allow SSH access from VPC"
     from_port   = 22
     to_port     = 22
-    protocol    = "ssh"
+    protocol    = "tcp"
     cidr_blocks = concat([module.vpc.vpc_cidr_block], module.vpc.vpc_secondary_cidr_blocks)
   }
 }
