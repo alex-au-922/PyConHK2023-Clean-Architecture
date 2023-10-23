@@ -60,7 +60,11 @@ resource "aws_key_pair" "bastion_host_key_pair" {
   public_key = tls_private_key.rsa.public_key_openssh
 
   provisioner "local-exec" {
-    command = "echo '${tls_private_key.rsa.private_key_pem}' > ./terraform/${var.bastion_host_config.key_name}.pem"
+
+    command = <<EOF
+    echo '${tls_private_key.rsa.private_key_pem}' > ./${var.bastion_host_config.key_name}.pem
+    chmod 600 ./${var.bastion_host_config.key_name}.pem
+    EOF
   }
 }
 

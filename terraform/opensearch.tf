@@ -70,8 +70,9 @@ resource "aws_opensearch_domain" "opensearch" {
     instance_type  = var.opensearch_config.instance.type
     instance_count = var.opensearch_config.instance.count
 
+    zone_awareness_enabled = var.opensearch_config.instance_count > 1
     zone_awareness_config {
-      availability_zone_count = 3
+      availability_zone_count = length(data.aws_availability_zones.available.names)
     }
 
     dedicated_master_count   = var.opensearch_config.master_node.count
