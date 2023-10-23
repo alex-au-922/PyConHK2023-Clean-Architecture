@@ -55,15 +55,28 @@ resource "aws_security_group" "bastion_host_security_group" {
   }
 }
 
-module "bastion_host" {
-  source = "terraform-aws-modules/ec2-instance/aws"
+resource "aws_key_pair" "bastion_host_key_pair" {
+  key_name   = var.bastion_host_config.key_name
+  public_key = tls_private_key.rsa.public_key_openssh
+}
+resource "tls_private_key" "rsa" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+resource "local_file" "tf-key" {
+  content  = tls_private_key.rsa.private_key_pem
+  filename = "${var.bastion_host_config.key_name}.pem"
+}
+resource "aws_instance" "bastion_host" {
+  ami                         = aws_ami_copy.encrypted_ami.id
+  instance_type               = var.bastion_host_config.instance_type
+  associate_public_ip_address = true
+  vpc_security_group_ids = [
+    aws_security_group.bastion_host_security_group.id,
+    module.vpc.default_security_group_id,
+  ]
 
-  ami  = aws_ami_copy.encrypted_ami.id
-  name = var.bastion_host_config.name
+  key_name  = aws_key_pair.bastion_host_key_pair.key_name
+  subnet_id = module.vpc.public_subnets[0]
 
-  instance_type          = var.bastion_host_config.instance_type
-  key_name               = var.bastion_host_config.key_name
-  monitoring             = true
-  vpc_security_group_ids = [aws_security_group.bastion_host_security_group.id]
-  subnet_id              = module.vpc.public_subnets[0]
 }
