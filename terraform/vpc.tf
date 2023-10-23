@@ -57,7 +57,7 @@ resource "aws_security_group" "bastion_host_security_group" {
 
 resource "aws_key_pair" "bastion_host_key_pair" {
   key_name   = var.bastion_host_config.key_name
-  public_key = tls_private_key.rsa.public_key_pem
+  public_key = tls_private_key.rsa.public_key_openssh
 }
 resource "tls_private_key" "rsa" {
   algorithm = "RSA"
