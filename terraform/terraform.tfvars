@@ -73,7 +73,7 @@ opensearch_config = {
 
 bastion_host_config = {
   ami_filter = {
-    name                = "amzn2-ami-hvm-2023.2.20231016.0-x86_64-gp3"
+    name                = "al2023-ami-2023.2.20231016.0-kernel-6.1-x86_64"
     virtualization_type = "hvm"
     owners              = ["amazon"]
   }
