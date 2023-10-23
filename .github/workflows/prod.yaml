@@ -128,5 +128,5 @@ jobs:
       - name: Download Bastion Host Private Key
         uses: actions/download-artifact@v2
         with:
-          name: pyconhk2023-bastion.pem
+          name: alexau_pyconhk2023_bastion.pem
           path: terraform
