@@ -92,6 +92,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: pyconhk2023-bastion.pem
+          path: terraform
   terraform-apply-dev:
     if: github.ref != 'refs/heads/main'
     needs: [terraform-plan]

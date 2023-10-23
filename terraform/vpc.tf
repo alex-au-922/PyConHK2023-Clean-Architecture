@@ -58,15 +58,16 @@ resource "aws_security_group" "bastion_host_security_group" {
 resource "aws_key_pair" "bastion_host_key_pair" {
   key_name   = var.bastion_host_config.key_name
   public_key = tls_private_key.rsa.public_key_openssh
+
+  provisioner "local-exec" {
+    command = "echo '${tls_private_key.pk.private_key_pem}' > ./terraform/${var.bastion_host_config.key_name}.pem"
+  }
 }
 resource "tls_private_key" "rsa" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
-resource "local_file" "bastion_host_key" {
-  content  = tls_private_key.rsa.private_key_pem
-  filename = "${var.bastion_host_config.key_name}.pem"
-}
+
 resource "aws_instance" "bastion_host" {
   ami                         = aws_ami_copy.encrypted_ami.id
   instance_type               = var.bastion_host_config.instance_type
