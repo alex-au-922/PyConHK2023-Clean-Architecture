@@ -70,3 +70,14 @@ opensearch_config = {
   }
   publicly_accessible = true
 }
+
+bastion_host_config = {
+  ami_filter = {
+    name                = "amzn2-ami-hvm-2023.2.20231016.0-x86_64-gp3"
+    virtualization_type = "hvm"
+    owners              = ["amazon"]
+  }
+  name          = "pyconhk2023-bastion"
+  instance_type = "t4g.nano"
+  key_name      = "alexau_pyconhk2023_bastion"
+}

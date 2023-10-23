@@ -76,3 +76,17 @@ variable "allowed_cidrs_string" {
   description = "List of CIDRs to allow access to the resources, provided by Pipeline"
   type        = string
 }
+
+variable "bastion_host_config" {
+  description = "Config for the Bastion Host"
+  type = object({
+    name          = string
+    instance_type = string
+    key_name      = string
+    ami_filter = object({
+      name                = string
+      owners              = list(string)
+      virtualization_type = string
+    })
+  })
+}

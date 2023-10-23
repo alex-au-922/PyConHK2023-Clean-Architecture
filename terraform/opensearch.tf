@@ -10,7 +10,7 @@ resource "aws_security_group" "opensearch_security_group" {
   vpc_id      = module.vpc.vpc_id
 
   ingress {
-    description = "Allow access from CT"
+    description = "Allow access from Home"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
