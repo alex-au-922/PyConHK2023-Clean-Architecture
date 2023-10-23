@@ -99,11 +99,19 @@ resource "aws_security_group" "db_rds_security_group" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_db_subnet_group" "postgresql_subnet_group" {
   name       = "${var.rds_config.main_database}-db-subnet-group"
   subnet_ids = var.rds_config.publicly_accessible ? module.vpc.public_subnets : module.vpc.private_subnets
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 
@@ -159,6 +167,8 @@ module "db" {
   publicly_accessible = var.rds_config.publicly_accessible
 
   manage_master_user_password = random_password.db_master_password.result == ""
+
+  depends_on = [aws_db_subnet_group.postgresql_subnet_group]
 }
 
 # ################################################################################
@@ -210,4 +220,6 @@ module "db_replica" {
   publicly_accessible = var.rds_config.publicly_accessible
 
   manage_master_user_password = random_password.db_master_password.result == ""
+
+  depends_on = [module.db]
 }
