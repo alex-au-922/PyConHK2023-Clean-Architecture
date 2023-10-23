@@ -47,7 +47,7 @@ rds_config = {
   }
   monitoring_interval = 60
   skip_final_snapshot = true
-  publicly_accessible = true
+  publicly_accessible = false
 }
 
 opensearch_config = {
@@ -68,7 +68,7 @@ opensearch_config = {
     volume_size = 30
     throughput  = 125
   }
-  publicly_accessible = true
+  publicly_accessible = false
 }
 
 bastion_host_config = {

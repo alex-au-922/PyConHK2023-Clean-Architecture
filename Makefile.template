@@ -1,0 +1,17 @@
+OPENSEARCH_DOMAIN=<your opensearch domain>
+OPENSEARCH_PORT=443
+LOCAL_OPENSEARCH_PORT=9200
+RDS_DOMAIN=<your rds domain>
+RDS_PORT=5432
+LOCAL_RDS_PORT=5432
+PROXY_PORT=4444
+MONITOR_PORT=20000
+PEM_FILE=<your pem file>
+BASTION_HOST=<your bastion host>
+bastion_connection:
+	autossh -M $(MONITOR_PORT) -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" \
+		-o "ExitOnForwardFailure yes" \
+		-D $(PROXY_PORT) -i $(PEM_FILE) \
+		-N ec2-user@$(BASTION_HOST) \
+		-L $(LOCAL_RDS_PORT):$(RDS_DOMAIN):$(RDS_PORT) \
+		-L $(LOCAL_OPENSEARCH_PORT):$(OPENSEARCH_DOMAIN):$(OPENSEARCH_PORT)
