@@ -71,48 +71,45 @@ resource "random_password" "db_master_password" {
 # }
 
 
-resource "aws_security_group" "db_rds_security_group" {
-  name        = "${var.rds_config.main_database}-rds-security-group"
-  description = "Security group for RDS"
-  vpc_id      = module.vpc.vpc_id
+# resource "aws_security_group" "db_rds_security_group" {
+#   name        = "${var.rds_config.main_database}-rds-security-group"
+#   description = "Security group for RDS"
+#   vpc_id      = module.vpc.vpc_id
 
-  ingress {
-    description = "Home access"
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = local.allowed_cidrs
-  }
+#   ingress {
+#     description = "Home access"
+#     from_port   = 5432
+#     to_port     = 5432
+#     protocol    = "tcp"
+#     cidr_blocks = local.allowed_cidrs
+#   }
 
-  ingress {
-    description = "VPC access"
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = concat([module.vpc.vpc_cidr_block], module.vpc.vpc_secondary_cidr_blocks)
-  }
+#   ingress {
+#     description = "VPC access"
+#     from_port   = 5432
+#     to_port     = 5432
+#     protocol    = "tcp"
+#     cidr_blocks = concat([module.vpc.vpc_cidr_block], module.vpc.vpc_secondary_cidr_blocks)
+#   }
 
-  egress {
-    description = "Allow all outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#   egress {
+#     description = "Allow all outbound traffic"
+#     from_port   = 0
+#     to_port     = 0
+#     protocol    = "-1"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
 
-  lifecycle {
-    create_before_destroy = true
-  }
-}
+# }
 
-resource "aws_db_subnet_group" "postgresql_subnet_group" {
-  name       = "${var.rds_config.main_database}-db-subnet-group"
-  subnet_ids = var.rds_config.publicly_accessible ? module.vpc.public_subnets : module.vpc.private_subnets
+# resource "aws_db_subnet_group" "postgresql_subnet_group" {
+#   name       = "${var.rds_config.main_database}-db-subnet-group"
+#   subnet_ids = var.rds_config.publicly_accessible ? module.vpc.public_subnets : module.vpc.private_subnets
 
-  lifecycle {
-    create_before_destroy = true
-  }
-}
+#   lifecycle {
+#     create_before_destroy = true
+#   }
+# }
 
 
 # module "db" {
