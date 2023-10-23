@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v4.5.0
     hooks:
       - id: check-yaml
       - id: end-of-file-fixer
@@ -20,3 +20,106 @@ repos:
         entry: terraform fmt terraform
         pass_filenames: false
         always_run: true
+  - repo: https://github.com/psf/black
+    rev: 23.10.0
+    hooks:
+      - id: black
+  - repo: https://github.com/python-poetry/poetry
+    rev: 1.6.0
+    hooks:
+      # Data Embedding Handler
+      - id: poetry-check
+        name: poetry-check-data-embedding-handler
+        args: ["-C", "./backend/data_embedding_handler"]
+      - id: poetry-lock
+        name: poetry-lock-data-embedding-handler
+        args: ["-C", "./backend/data_embedding_handler"]
+      - id: poetry-export
+        name: poetry-export-data-embedding-handler
+        args:
+          [
+            "-C",
+            "./backend/data_embedding_handler",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "./backend/data_embedding_handler/requirements.txt",
+            "--without-hashes",
+          ]
+      - id: poetry-export
+        name: poetry-export-dev-data-embedding-handler
+        args:
+          [
+            "-C",
+            "./backend/data_embedding_handler",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "./backend/data_embedding_handler/requirements.txt",
+            "--without-hashes",
+            "--dev",
+          ]
+      # Data Ingestion Handler
+      - id: poetry-check
+        name: poetry-check-data-ingestion-handler
+        args: ["-C", "./backend/data_ingestion_handler"]
+      - id: poetry-lock
+        name: poetry-lock-data-ingestion-handler
+        args: ["-C", "./backend/data_ingestion_handler"]
+      - id: poetry-export
+        name: poetry-export-data-ingestion-handler
+        args:
+          [
+            "-C",
+            "./data_ingestion_handler",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "./data_ingestion_handler/requirements.txt",
+            "--without-hashes",
+          ]
+      - id: poetry-export
+        name: poetry-export-dev-data-ingestion-handler
+        args:
+          [
+            "-C",
+            "./data_ingestion_handler",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "./data_ingestion_handler/requirements.txt",
+            "--without-hashes",
+            "--dev",
+          ]
+      # Query Handler
+      - id: poetry-check
+        name: poetry-check-query-handler
+        args: ["-C", "./backend/query_handler"]
+      - id: poetry-lock
+        name: poetry-lock-query-handler
+        args: ["-C", "./backend/query_handler"]
+      - id: poetry-export
+        name: poetry-export-query-handler
+        args:
+          [
+            "-C",
+            "./query_handler",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "./query_handler/requirements.txt",
+            "--without-hashes",
+          ]
+      - id: poetry-export
+        name: poetry-export-dev-query-handler
+        args:
+          [
+            "-C",
+            "./query_handler",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "./query_handler/requirements.txt",
+            "--without-hashes",
+            "--dev",
+          ]

@@ -1,3 +1,4 @@
 data
 aws
 Makefile
+.venv
