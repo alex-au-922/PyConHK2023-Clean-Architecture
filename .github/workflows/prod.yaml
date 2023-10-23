@@ -125,6 +125,9 @@ jobs:
           terraform apply -auto-approve
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
+      - name: Show Bastion Host Private Key
+        run: |
+          ls -al terraform
       - name: Download Bastion Host Private Key
         uses: actions/download-artifact@v2
         with:

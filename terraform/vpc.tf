@@ -58,19 +58,19 @@ resource "aws_security_group" "bastion_host_security_group" {
 resource "aws_key_pair" "bastion_host_key_pair" {
   key_name   = var.bastion_host_config.key_name
   public_key = tls_private_key.rsa.public_key_openssh
-
-  provisioner "local-exec" {
-    when    = create
-    command = <<EOF
-    echo "${tls_private_key.rsa.private_key_pem}" > ${var.bastion_host_config.key_name}.pem
-    chmod 400 ${var.bastion_host_config.key_name}.pem
-    EOF
-  }
 }
 
 resource "tls_private_key" "rsa" {
   algorithm = "RSA"
   rsa_bits  = 4096
+}
+
+resource "local_file" "rsa" {
+  content  = tls_private_key.rsa.private_key_pem
+  filename = "${var.bastion_host_config.key_name}.pem"
+  provisioner "local-exec" {
+    command = "chmod 600 ${var.bastion_host_config.key_name}.pem"
+  }
 }
 
 resource "aws_instance" "bastion_host" {
