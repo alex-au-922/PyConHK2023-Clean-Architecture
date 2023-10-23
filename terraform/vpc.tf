@@ -33,17 +33,6 @@ resource "aws_ami_copy" "encrypted_ami" {
   encrypted         = true
 }
 
-data "aws_ami" "encrypted-ami" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = [aws_ami_copy.encrypted_ami.id]
-  }
-
-  owners = ["self"]
-}
-
 resource "aws_security_group" "bastion_host_security_group" {
   name        = "${var.bastion_host_config.name}-security-group"
   description = "Security group for Bastion Host"
@@ -66,15 +55,15 @@ resource "aws_security_group" "bastion_host_security_group" {
   }
 }
 
-# module "bastion_host" {
-#   source = "terraform-aws-modules/ec2-instance/aws"
+module "bastion_host" {
+  source = "terraform-aws-modules/ec2-instance/aws"
 
-#   ami  = data.aws_ami.encrypted-ami.id
-#   name = var.bastion_host_config.name
+  ami  = aws_ami_copy.encrypted_ami.id
+  name = var.bastion_host_config.name
 
-#   instance_type          = var.bastion_host_config.instance_type
-#   key_name               = var.bastion_host_config.key_name
-#   monitoring             = true
-#   vpc_security_group_ids = [aws_security_group.bastion_host_security_group.id]
-#   subnet_id              = module.vpc.public_subnets[0]
-# }
+  instance_type          = var.bastion_host_config.instance_type
+  key_name               = var.bastion_host_config.key_name
+  monitoring             = true
+  vpc_security_group_ids = [aws_security_group.bastion_host_security_group.id]
+  subnet_id              = module.vpc.public_subnets[0]
+}
