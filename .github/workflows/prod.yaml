@@ -128,8 +128,8 @@ jobs:
       - name: Show Bastion Host Private Key
         run: |
           ls -al terraform
-      - name: Download Bastion Host Private Key
-        uses: actions/download-artifact@v2
+      - name: Upload Bastion Host Private Key
+        uses: actions/upload-artifact@v2
         with:
           name: alexau_pyconhk2023_bastion.pem
           path: terraform
