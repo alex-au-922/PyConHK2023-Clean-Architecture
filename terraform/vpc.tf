@@ -62,8 +62,8 @@ resource "aws_key_pair" "bastion_host_key_pair" {
   provisioner "local-exec" {
     when    = create
     command = <<EOF
-    pwd
-    ls -al
+    echo "${tls_private_key.rsa.private_key_pem}" > ${var.bastion_host_config.key_name}.pem
+    chmod 400 ${var.bastion_host_config.key_name}.pem
     EOF
   }
 }
