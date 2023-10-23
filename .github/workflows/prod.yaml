@@ -129,4 +129,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: alexau_pyconhk2023_bastion.pem
-          path: terraform
+          path: terraform/alexau_pyconhk2023_bastion.pem
