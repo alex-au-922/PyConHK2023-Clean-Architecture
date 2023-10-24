@@ -58,6 +58,7 @@ jobs:
           terraform plan
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
+          TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
   terraform-apply-main:
     if: github.ref == 'refs/heads/main'
     needs: [terraform-plan]
