@@ -38,13 +38,22 @@ resource "aws_security_group" "bastion_host_security_group" {
   description = "Security group for Bastion Host"
   vpc_id      = module.vpc.vpc_id
 
+  # ingress {
+  #   description = "Allow SSH access from Home"
+  #   from_port   = 22
+  #   to_port     = 22
+  #   protocol    = "tcp"
+  #   cidr_blocks = local.allowed_cidrs
+  # }
+
   ingress {
-    description = "Allow SSH access from Home"
+    description = "Allow SSH access from Everywhere"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = local.allowed_cidrs
+    cidr_blocks = ["0.0.0.0/0"]
   }
+
 
   ingress {
     description = "Allow SSH access from VPC"
@@ -65,20 +74,7 @@ resource "aws_security_group" "bastion_host_security_group" {
 
 resource "aws_key_pair" "bastion_host_key_pair" {
   key_name   = var.bastion_host_config.key_name
-  public_key = tls_private_key.rsa.public_key_openssh
-}
-
-resource "tls_private_key" "rsa" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-resource "local_file" "rsa" {
-  content  = tls_private_key.rsa.private_key_pem
-  filename = "${var.bastion_host_config.key_name}.pem"
-  provisioner "local-exec" {
-    command = "chmod 600 ${var.bastion_host_config.key_name}.pem"
-  }
+  public_key = var.ssh_public_key
 }
 
 resource "aws_instance" "bastion_host" {

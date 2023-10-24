@@ -88,11 +88,7 @@ jobs:
           terraform apply -auto-approve
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
-      - name: Download Bastion Host Private Key
-        uses: actions/download-artifact@v2
-        with:
-          name: alexau_pyconhk2023_bastion.pem
-          path: terraform
+          TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
   terraform-apply-dev:
     if: github.ref != 'refs/heads/main'
     needs: [terraform-plan]
@@ -125,8 +121,4 @@ jobs:
           terraform apply -auto-approve
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
-      - name: Upload Bastion Host Private Key
-        uses: actions/upload-artifact@v2
-        with:
-          name: alexau_pyconhk2023_bastion.pem
-          path: terraform/alexau_pyconhk2023_bastion.pem
+          TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}

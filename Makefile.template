@@ -15,3 +15,5 @@ bastion_connection:
 		-N ec2-user@$(BASTION_HOST) \
 		-L $(LOCAL_RDS_PORT):$(RDS_DOMAIN):$(RDS_PORT) \
 		-L $(LOCAL_OPENSEARCH_PORT):$(OPENSEARCH_DOMAIN):$(OPENSEARCH_PORT)
+create_ssh_key:
+	ssh-keygen -t rsa -b 4096 -f $(PEM_FILE)

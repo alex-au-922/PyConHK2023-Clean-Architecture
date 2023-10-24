@@ -2,3 +2,4 @@ data
 aws
 Makefile
 .venv
+*.pem

@@ -90,3 +90,8 @@ variable "bastion_host_config" {
     })
   })
 }
+
+variable "ssh_public_key" {
+  description = "SSH Public Key, Provided by Pipeline"
+  type        = string
+}
