@@ -3,3 +3,4 @@ aws
 Makefile
 .venv
 *.pem
+notebooks

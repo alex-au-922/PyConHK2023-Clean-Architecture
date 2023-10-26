@@ -1,5 +1,6 @@
 {
   "terraform.experimentalFeatures.validateOnSave": false,
   "editor.defaultFormatter": null,
-  "terraform.codelens.referenceCount": true
+  "terraform.codelens.referenceCount": true,
+  "python.analysis.typeCheckingMode": "off"
 }
