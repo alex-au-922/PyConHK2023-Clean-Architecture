@@ -99,6 +99,9 @@ jobs:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
         continue-on-error: true
+      - name: Indicate plan status
+        if: ${{ steps.plan.outcome }} == 'failure'
+        run: exit 1
   terraform-apply-main:
     if: github.ref == 'refs/heads/main'
     needs: [terraform-plan]
