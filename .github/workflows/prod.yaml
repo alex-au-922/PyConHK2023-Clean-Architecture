@@ -25,7 +25,7 @@ jobs:
           python-version: 3.10.13
       - name: Setup dependencies
         run: |
-          cd artifacts/sentence_bert_onnx_transformation
+          cd artifacts/sentence_bert_onnx_transform
           pip install -r requirements.txt
       - name: Create Onnx Model Through Script
         run: |
