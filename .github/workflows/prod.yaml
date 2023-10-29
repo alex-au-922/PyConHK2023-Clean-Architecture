@@ -14,7 +14,7 @@ permissions:
   id-token: write # This is required for requesting the JWT
   contents: read # This is required for actions/checkout
 jobs:
-  check-embedding-handler-model-cache-exists:
+  check-model-cache-exists:
     runs-on: ubuntu-latest
     outputs:
       model_cache_exists: ${{ steps.model_cache_exists.outputs.model_cache_exists }}
@@ -33,10 +33,10 @@ jobs:
         run: |
           echo "MODEL_CACHE_EXISTS=${{ steps.check_model_cache_exists.outputs.cache-hit }}" >> $GITHUB_OUTPUT
           echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**') }})" >> $GITHUB_OUTPUT
-  create-embedding-handler-model:
-    needs: [check-embedding-handler-model-cache-exists]
+  create-model:
+    needs: [check-model-cache-exists]
     runs-on: ubuntu-latest
-    if: needs.check-embedding-handler-model-cache-exists.outputs.model_cache_exists != 'true'
+    if: needs.check-model-cache-exists.outputs.model_cache_exists != 'true'
     outputs:
       model_cache_key: ${{ steps.model_cache_key.outputs.model_cache_key }}
     steps:
@@ -55,8 +55,8 @@ jobs:
           cd artifacts/sentence_bert_onnx_transform
           python src/sentence_bert_onnx_transform.py \
             --model_name ${{ env.MODEL_NAME }} \
-            --output_model_path ../../backend/data_embedding_handler/models/${{ env.MODEL_NAME }}.onnx \
-            --output_tokenizer_path ../../backend/data_embedding_handler/models/${{ env.MODEL_NAME }}.tokenizer \
+            --output_model_path ../../models/${{ env.MODEL_NAME }}.onnx \
+            --output_tokenizer_path ../../models/${{ env.MODEL_NAME }}.tokenizer \
             --onnx-opset-version 13
       - name: Create Model Cache
         uses: actions/cache@v3
@@ -68,15 +68,11 @@ jobs:
         run: |
           echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**') }})" >> $GITHUB_OUTPUT
   build-push-embedding-handler-image:
-    needs:
-      [
-        create-embedding-handler-model,
-        check-embedding-handler-model-cache-exists,
-      ]
+    needs: [create-model, check-model-cache-exists]
     if: |
       always() &&
-      needs.check-embedding-handler-model-cache-exists.result == 'success' &&
-      (needs.create-embedding-handler-model.result == 'success' || needs.create-embedding-handler-model.result == 'skipped')
+      needs.check-model-cache-exists.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -90,23 +86,18 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Create Model Cache From Check
         id: read-cache-check
-        if: needs.check-embedding-handler-model-cache-exists.outputs.model_cache_exists == 'true'
+        if: needs.check-model-cache-exists.outputs.model_cache_exists == 'true'
         uses: actions/cache@v3
         with:
-          path: models
-          key: ${{ needs.check-embedding-handler-model-cache-exists.outputs.model_cache_key }}
+          path: backend/data_embedding_handler/models
+          key: ${{ needs.check-model-cache-exists.outputs.model_cache_key }}
       - name: Create Model Cache From Create
         id: read-cache-create
-        if: needs.create-embedding-handler-model.outputs.model_cache_key != ''
+        if: needs.create-model.outputs.model_cache_key != ''
         uses: actions/cache@v3
         with:
-          path: models
-          key: ${{ needs.create-embedding-handler-model.outputs.model_cache_key }}
-      - name: Check Model Cache Directory
-        run: |
-          ls -al models
-          cd models
-          pwd
+          path: backend/data_embedding_handler/models
+          key: ${{ needs.create-model.outputs.model_cache_key }}
       - name: Build Dockerfile
         id: build
         run: |
@@ -122,15 +113,15 @@ jobs:
   terraform-plan:
     needs:
       [
-        create-embedding-handler-model,
-        check-embedding-handler-model-cache-exists,
+        create-model,
+        check-model-cache-exists,
         build-push-embedding-handler-image,
       ]
     if: |
       always() &&
-      needs.check-embedding-handler-model-cache-exists.result == 'success' &&
-      needs.build-push-embedding-handler-image.result == 'success' &&
-      (needs.create-embedding-handler-model.result == 'success' || needs.create-embedding-handler-model.result == 'skipped')
+      needs.check-model-cache-exists.result == 'success' &&
+      needs.build-push-image.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -162,12 +153,12 @@ jobs:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
   terraform-apply-main:
-    needs: [terraform-plan, create-embedding-handler-model]
+    needs: [terraform-plan, create-model]
     if: |
       always() &&
       github.ref == 'refs/heads/main' &&
       needs.terraform-plan.result == 'success' &&
-      (needs.create-embedding-handler-model.result == 'success' || needs.create-embedding-handler-model.result == 'skipped')
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -199,12 +190,12 @@ jobs:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
   terraform-apply-dev:
-    needs: [terraform-plan, create-embedding-handler-model]
+    needs: [terraform-plan, create-model]
     if: |
       always() &&
       github.ref != 'refs/heads/main' &&
       needs.terraform-plan.result == 'success' &&
-      (needs.create-embedding-handler-model.result == 'success' || needs.create-embedding-handler-model.result == 'skipped')
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     environment:
       name: prod
     runs-on: ubuntu-latest
