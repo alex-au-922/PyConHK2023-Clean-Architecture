@@ -39,9 +39,6 @@ jobs:
     outputs:
       model_cache_key: ${{ steps.model_cache_key.outputs.model_cache_key }}
     steps:
-      - name: Output Model Cache Exists
-        run: |
-          echo ${{ needs.check-model-cache-exists.outputs.model_cache_exists }}
       - name: Checkout
         uses: actions/checkout@v3
       - name: Create Python
@@ -71,6 +68,10 @@ jobs:
           echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ hashFiles('**/models/**') }})" >> $GITHUB_OUTPUT
   terraform-plan:
     needs: [create-model, check-model-cache-exists]
+    if: |
+      always() &&
+      needs.check-model-cache-exists.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
