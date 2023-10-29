@@ -63,11 +63,11 @@ jobs:
         uses: actions/cache@v3
         with:
           path: models
-          key: ${{ runner.os }}-models-${{ hashFiles('**/models/**') }}
+          key: ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**') }}
       - name: Output Model Cache Key
         id: model_cache_key
         run: |
-          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ hashFiles('**/models/**') }})" >> $GITHUB_OUTPUT
+          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**') }})" >> $GITHUB_OUTPUT
   build-push-embedding-handler-image:
     needs: [create-model, check-model-cache-exists]
     if: |
@@ -85,12 +85,20 @@ jobs:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Create Model Cache
-        id: read-cache
+      - name: Create Model Cache From Check
+        id: read-cache-check
+        if: needs.check-model-cache-exists.outputs.model_cache_exists == 'true'
         uses: actions/cache@v3
         with:
           path: models
-          key: ${{ runner.os }}-models-${{ hashFiles('**/models/**') }}
+          key: ${{ needs.check-model-cache-exists.outputs.model_cache_key }}
+      - name: Create Model Cache From Create
+        id: read-cache-create
+        if: needs.create-model.outputs.model_cache_key != ''
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.create-model.outputs.model_cache_key }}
       - name: Build Dockerfile
         id: build
         run: |
@@ -104,10 +112,16 @@ jobs:
             .
           docker push "${AWS_ECR_REPOSITORY_URL}:$(git rev-parse --short HEAD)"
   terraform-plan:
-    needs: [create-model, check-model-cache-exists]
+    needs:
+      [
+        create-model,
+        check-model-cache-exists,
+        build-push-embedding-handler-image,
+      ]
     if: |
       always() &&
       needs.check-model-cache-exists.result == 'success' &&
+      needs.build-push-embedding-handler-image.result == 'success' &&
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
