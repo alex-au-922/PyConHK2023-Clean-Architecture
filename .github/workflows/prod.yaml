@@ -102,18 +102,18 @@ jobs:
         id: copy-cache
         run: |
           cp -r models/ backend/data_embedding_handler/models/
-      - name: Build Dockerfile
-        id: build
-        run: |
-          cd backend/data_embedding_handler
-          export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
-          export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
-          docker build -t "${AWS_ECR_REPOSITORY_URL}:$(git rev-parse --short HEAD)" \
-            --build-arg MODEL_PATH=models/${{ env.MODEL_NAME }}.onnx \
-            --build-arg TOKENIZER_PATH=models/${{ env.MODEL_NAME }}.tokenizer \
-            .
-          docker push "${AWS_ECR_REPOSITORY_URL}:$(git rev-parse --short HEAD)"
+      # - name: Build Dockerfile
+      #   id: build
+      #   run: |
+      #     cd backend/data_embedding_handler
+      #     export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+      #     export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+      #     aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
+      #     docker build -t "${AWS_ECR_REPOSITORY_URL}:$(git rev-parse --short HEAD)" \
+      #       --build-arg MODEL_PATH=models/${{ env.MODEL_NAME }}.onnx \
+      #       --build-arg TOKENIZER_PATH=models/${{ env.MODEL_NAME }}.tokenizer \
+      #       .
+      #     docker push "${AWS_ECR_REPOSITORY_URL}:$(git rev-parse --short HEAD)"
   terraform-plan:
     needs:
       [
