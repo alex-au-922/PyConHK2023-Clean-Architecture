@@ -108,7 +108,7 @@ jobs:
         id: login-ecr
         run: |
           export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
-          export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+          export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/pyconhk2023-data-embedding-handler
           aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
           echo "AWS_ECR_REPOSITORY_URL=${AWS_ECR_REPOSITORY_URL}" >> $GITHUB_OUTPUT
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
