@@ -19,6 +19,12 @@ repos:
         entry: terraform fmt terraform
         pass_filenames: false
         always_run: true
+      - id: terraform_validate
+        language: system
+        name: terraform_validate
+        entry: terraform validate -no-color
+        pass_filenames: false
+        always_run: true
   - repo: https://github.com/psf/black
     rev: 23.10.0
     hooks:

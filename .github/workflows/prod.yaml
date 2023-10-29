@@ -71,7 +71,7 @@ jobs:
         run: |
           echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ hashFiles('**/models/**') }})" >> $GITHUB_OUTPUT
   terraform-plan:
-    needs: [create-model]
+    needs: [create-model, check-model-cache-exists]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
