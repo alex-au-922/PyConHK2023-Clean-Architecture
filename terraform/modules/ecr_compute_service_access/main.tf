@@ -42,7 +42,7 @@ data "aws_iam_policy_document" "this" {
       type = "AWS"
       identifiers = [
         data.aws_caller_identity.current.account_id,
-        data.data.aws_caller_identity.current.arn,
+        var.caller_identity_arn,
       ]
     }
 

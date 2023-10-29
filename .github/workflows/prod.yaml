@@ -102,18 +102,31 @@ jobs:
         id: copy-cache
         run: |
           cp -r models/ backend/data_embedding_handler/models/
-      # - name: Build Dockerfile
-      #   id: build
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login ECR
+        id: login-ecr
+        run: |
+          export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+          export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
+          echo "AWS_ECR_REPOSITORY_URL=${AWS_ECR_REPOSITORY_URL}" >> $GITHUB_OUTPUT
+      - name: Build Dockerfile
+        uses: docker/build-push-action@v4
+        with:
+          context: backend/data_embedding_handler
+          load: true
+          tags: |
+            ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:$(git rev-parse --short HEAD)
+          build-args: |
+            MODEL_PATH=models/${{ env.MODEL_NAME }}.onnx
+            TOKENIZER_PATH=models/${{ env.MODEL_NAME }}.tokenizer
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      # - name: Push Docker Image
       #   run: |
-      #     cd backend/data_embedding_handler
-      #     export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
-      #     export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-      #     aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
-      #     docker build -t "${AWS_ECR_REPOSITORY_URL}:$(git rev-parse --short HEAD)" \
-      #       --build-arg MODEL_PATH=models/${{ env.MODEL_NAME }}.onnx \
-      #       --build-arg TOKENIZER_PATH=models/${{ env.MODEL_NAME }}.tokenizer \
-      #       .
-      #     docker push "${AWS_ECR_REPOSITORY_URL}:$(git rev-parse --short HEAD)"
+      #     docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:$(git rev-parse --short HEAD)
   terraform-plan:
     needs:
       [

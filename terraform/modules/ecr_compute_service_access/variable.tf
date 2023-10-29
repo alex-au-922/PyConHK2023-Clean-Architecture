@@ -27,3 +27,7 @@ variable "keep_images" {
   default     = 10
 }
 
+variable "caller_identity_arn" {
+  description = "The ARN of the caller identity"
+  type        = string
+}
