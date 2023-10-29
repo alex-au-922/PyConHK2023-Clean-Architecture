@@ -68,6 +68,41 @@ jobs:
         id: model_cache_key
         run: |
           echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ hashFiles('**/models/**') }})" >> $GITHUB_OUTPUT
+  build-push-embedding-handler-image:
+    needs: [create-model, check-model-cache-exists]
+    if: |
+      always() &&
+      needs.check-model-cache-exists.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        id: configure-aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Create Model Cache
+        id: read-cache
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ runner.os }}-models-${{ hashFiles('**/models/**') }}
+      - name: Build Dockerfile
+        id: build
+        run: |
+          cd backend/data_embedding_handler
+          export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+          export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
+          docker build -t "${AWS_ECR_REPOSITORY_URL}:$(git rev-parse --short HEAD)" \
+            --build-arg MODEL_PATH=../../models/${{ env.MODEL_NAME }}.onnx \
+            --build-arg TOKENIZER_PATH=../../models/${{ env.MODEL_NAME }}.tokenizer \
+            .
+          docker push "${AWS_ECR_REPOSITORY_URL}:$(git rev-parse --short HEAD)"
   terraform-plan:
     needs: [create-model, check-model-cache-exists]
     if: |
