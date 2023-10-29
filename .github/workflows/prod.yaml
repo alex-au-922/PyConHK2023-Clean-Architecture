@@ -14,6 +14,39 @@ permissions:
   id-token: write # This is required for requesting the JWT
   contents: read # This is required for actions/checkout
 jobs:
+  pip-build-data-ingestion-handler:
+    runs-on: ubuntu-latest
+    name: Build Pip Packages for Data Ingestion Handler
+    outputs:
+      data_ingestion_handler_cache_key: ${{ steps.cache_output.outputs.DATA_INGESTION_HANDLER_CACHE_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.13
+          cache: "pip"
+      - name: Store cache path
+        id: cache_path
+        uses: actions/cache@v3
+        with:
+          path: backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/data_ingestion_handler/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install dependencies for data ingestion handler
+        if: steps.cache_path.outputs.cache-hit != 'true'
+        id: install_dependencies
+        run: |
+          cd backend/data_ingestion_handler
+          python -m pip install -r requirements.txt -t python
+          zip -r pyconhk2023-data-ingestion-handler-layer.zip python
+          rm -rf python
+      - name: Output the cache key
+        id: cache_output
+        run: |
+          echo "DATA_INGESTION_HANDLER_CACHE_KEY=${{ runner.os }}-pip-${{ hashFiles('backend/data_ingestion_handler/requirements.txt') }}" >> $GITHUB_OUTPUT
   check-model-cache-exists:
     runs-on: ubuntu-latest
     outputs:
@@ -134,11 +167,13 @@ jobs:
         create-model,
         check-model-cache-exists,
         build-push-embedding-handler-image,
+        pip-build-data-ingestion-handler,
       ]
     if: |
       always() &&
       needs.check-model-cache-exists.result == 'success' &&
       needs.build-push-embedding-handler-image.result == 'success' &&
+      needs.pip-build-data-ingestion-handler.result == 'success' &&
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
@@ -152,6 +187,12 @@ jobs:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
+      - name: Download Pip Packages for Data Ingestion Handler
+        id: download_data_ingestion_handler
+        uses: actions/cache@v3
+        with:
+          path: backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/data_ingestion_handler/requirements.txt') }}
       - name: Setup Terraform
         id: setup-terraform
         uses: hashicorp/setup-terraform@v1

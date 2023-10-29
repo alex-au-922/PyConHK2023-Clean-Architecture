@@ -1,3 +1,5 @@
+timezone = "Asia/Hong_Kong"
+
 vpc_config = {
   name       = "pyconhk2023"
   cidr_block = "10.0.0.0/16"
@@ -110,5 +112,48 @@ s3_config = {
     name          = "alexau-pyconhk2023-data"
     versioning    = false
     force_destroy = true
+  }
+}
+
+lambda_config = {
+  log_retention_days = 30
+  data_ingestion_handler = {
+    name         = "pyconhk2023-data-ingestion-handler"
+    description  = "Data ingestion handler for PyCon HK 2023"
+    memory_size  = 128
+    timeout      = 60
+    runtime      = "python3.10"
+    source_path  = "backend/data_ingestion_handler/src"
+    package_type = "Zip"
+    layer_name   = "pyconhk2023-data-ingestion-handler-layer"
+    handler      = "app.handler"
+    function_url = false
+    in_vpc       = true
+  }
+  data_embedding_handler = {
+    name                 = "pyconhk2023-data-embedding-handler"
+    description          = "Data ingestion handler for PyCon HK 2023"
+    memory_size          = 128
+    timeout              = 60
+    runtime              = "python3.10"
+    package_type         = "Image"
+    image_config_command = ["app.handler"]
+    function_url         = false
+    in_vpc               = true
+  }
+}
+
+
+sqs_config = {
+  embedding_handler = {
+    name                       = "pyconhk2023-embedding-handler-queue"
+    delay_seconds              = 0
+    message_retention_seconds  = 1209600 # 14 days
+    receive_wait_time_seconds  = 0
+    visibility_timeout_seconds = 5 * 60 # 5 minutes
+    fifo_queue                 = false
+    redrive_policy = {
+      max_receive_count = 5
+    }
   }
 }

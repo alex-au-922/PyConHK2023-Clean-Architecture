@@ -1,3 +1,8 @@
+variable "timezone" {
+  description = "Timezone to use for the resources"
+  type        = string
+}
+
 variable "vpc_config" {
   description = "Config for the VPC"
   type = object({
@@ -123,6 +128,56 @@ variable "s3_config" {
       name          = string
       versioning    = bool
       force_destroy = bool
+    })
+  })
+}
+
+variable "lambda_config" {
+  description = "Config for the Lambda"
+  type = object({
+    log_retention_days = number
+    data_ingestion_handler = object({
+      name                           = string
+      description                    = string
+      memory_size                    = number
+      timeout                        = number
+      reserved_concurrent_executions = number
+      runtime                        = string
+      source_path                    = string
+      package_type                   = string
+      layer_name                     = string
+      handler                        = string
+      function_url                   = bool
+      in_vpc                         = bool
+    })
+    data_embedding_handler = object({
+      name                           = string
+      description                    = string
+      memory_size                    = number
+      timeout                        = number
+      reserved_concurrent_executions = number
+      runtime                        = string
+      package_type                   = string
+      image_config_command           = list(string)
+      function_url                   = bool
+      in_vpc                         = bool
+    })
+  })
+}
+
+variable "sqs_config" {
+  description = "Config for the SQS"
+  type = object({
+    embedding_handler = object({
+      name                       = string
+      delay_seconds              = number
+      message_retention_seconds  = number
+      receive_wait_time_seconds  = number
+      visibility_timeout_seconds = number
+      fifo_queue                 = bool
+      redrive_policy = object({
+        max_receive_count = number
+      })
     })
   })
 }

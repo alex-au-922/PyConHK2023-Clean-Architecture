@@ -90,3 +90,25 @@ resource "aws_instance" "bastion_host" {
   subnet_id = module.vpc.public_subnets[0]
 
 }
+
+resource "aws_security_group" "lambda_security_group" {
+  name        = "lambda-security-group"
+  description = "Security group for Lambda"
+  vpc_id      = module.vpc.vpc_id
+
+  ingress {
+    description = "Allow all access from VPC"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = concat([module.vpc.vpc_cidr_block], module.vpc.vpc_secondary_cidr_blocks)
+  }
+
+  egress {
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
