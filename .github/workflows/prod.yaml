@@ -75,18 +75,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
+        id: checkout
         uses: actions/checkout@v3
       - name: Configure AWS credentials
+        id: configure-aws
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Setup Terraform
+        id: setup-terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.6.1
       - name: Terraform Init
+        id: init
         run: |
           cd terraform
           terraform init
@@ -99,27 +103,35 @@ jobs:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
   terraform-apply-main:
-    if: github.ref == 'refs/heads/main'
-    needs: [terraform-plan]
+    needs: [terraform-plan, create-model]
+    if: |
+      github.ref == 'refs/heads/main' &&
+      needs.terraform-plan.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
+        id: checkout
         uses: actions/checkout@v3
       - name: Configure AWS credentials
+        id: configure-aws
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Setup Terraform
+        id: setup-terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.6.1
       - name: Terraform Init
+        id: init
         run: |
           cd terraform
           terraform init
       - name: Terraform Apply
+        id: apply
         run: |
           cd terraform
           terraform apply -auto-approve
@@ -127,29 +139,37 @@ jobs:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
   terraform-apply-dev:
-    if: github.ref != 'refs/heads/main'
-    needs: [terraform-plan]
+    needs: [terraform-plan, create-model]
+    if: |
+      github.ref != 'refs/heads/main' &&
+      needs.terraform-plan.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     environment:
       name: prod
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
+        id: checkout
         uses: actions/checkout@v3
       - name: Configure AWS credentials
+        id: configure-aws
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Setup Terraform
+        id: setup-terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.6.1
       - name: Terraform Init
+        id: init
         run: |
           cd terraform
           terraform init
       - name: Terraform Apply
+        id: apply
         run: |
           cd terraform
           terraform apply -auto-approve
