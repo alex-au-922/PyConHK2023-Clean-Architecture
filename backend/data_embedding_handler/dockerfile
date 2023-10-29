@@ -7,6 +7,6 @@ ARG MODEL_PATH
 ARG TOKENIZER_PATH
 
 COPY ${TOKENIZER_PATH} ./tokenizer
-# COPY ${MODEL_PATH} ./model
+COPY ${MODEL_PATH} ./model
 COPY --from=python-packages-builder ${LAMBDA_TASK_ROOT} ./
 COPY src/ .
