@@ -125,9 +125,9 @@ jobs:
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      # - name: Push Docker Image
-      #   run: |
-      #     docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:$(git rev-parse --short HEAD)
+      - name: Push Docker Image
+        run: |
+          docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
   terraform-plan:
     needs:
       [
