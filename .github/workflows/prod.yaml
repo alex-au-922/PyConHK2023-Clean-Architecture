@@ -120,7 +120,7 @@ jobs:
     if: |
       always() &&
       needs.check-model-cache-exists.result == 'success' &&
-      needs.build-push-image.result == 'success' &&
+      needs.build-push-embedding-handler-image.result == 'success' &&
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
