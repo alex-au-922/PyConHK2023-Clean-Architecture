@@ -12,8 +12,40 @@ permissions:
   id-token: write # This is required for requesting the JWT
   contents: read # This is required for actions/checkout
 jobs:
-  create-model:
+  check-model-cache-exists:
     runs-on: ubuntu-latest
+    outputs:
+      model_cache_exists: ${{ steps.model_cache_exists.outputs.model_cache_exists }}
+      model_cache_key: ${{ steps.model_cache_exists.outputs.model_cache_key }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Check Model Cache Exists
+        id: check_model_cache_exists
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ runner.os }}-models-${{ hashFiles('**/models/**') }}
+      - name: Output Model Cache Exists
+        id: model_cache_exists
+        run: |
+          if [ "${{ steps.check_model_cache_exists.outputs.cache-hit }}" == "true" ]; then
+            echo "MODEL_CACHE_EXISTS=true" >> $GITHUB_OUTPUT
+            echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ hashFiles('**/models/**') }})" >> $GITHUB_OUTPUT
+          else
+            echo "MODEL_CACHE_EXISTS=false" >> $GITHUB_OUTPUT
+            echo "MODEL_CACHE_KEY=null" >> $GITHUB_OUTPUT
+          fi
+  create-model:
+    needs: [check-model-cache-exists]
+    runs-on: ubuntu-latest
+    if: ${{ needs.check-model-cache-exists.outputs.model_cache_exists }} == 'false'
     outputs:
       model_cache_key: ${{ steps.model_cache_key.outputs.model_cache_key }}
     steps:
@@ -32,8 +64,8 @@ jobs:
           cd artifacts/sentence_bert_onnx_transform
           python src/sentence_bert_onnx_transform.py \
             --model_name sentence-transformers/all-MiniLM-L6-v2 \
-            --output_model_path ../../models/all_minilm_l6_v2.onnx
-            --output_tokenizer_path ../../models/all_minilm_l6_v2.tokenizer
+            --output_model_path ../../models/all_minilm_l6_v2.onnx \
+            --output_tokenizer_path ../../models/all_minilm_l6_v2.tokenizer \
             --onnx-opset-version 13
       - name: Create Model Cache
         uses: actions/cache@v3
