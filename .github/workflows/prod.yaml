@@ -22,7 +22,7 @@ jobs:
       - name: Create Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10
+          python-version: 3.10.13
       - name: Setup dependencies
         run: |
           cd artifacts/sentence_bert_onnx_transformation
