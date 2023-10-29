@@ -105,6 +105,7 @@ jobs:
   terraform-apply-main:
     needs: [terraform-plan, create-model]
     if: |
+      always() &&
       github.ref == 'refs/heads/main' &&
       needs.terraform-plan.result == 'success' &&
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
@@ -141,6 +142,7 @@ jobs:
   terraform-apply-dev:
     needs: [terraform-plan, create-model]
     if: |
+      always() &&
       github.ref != 'refs/heads/main' &&
       needs.terraform-plan.result == 'success' &&
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
