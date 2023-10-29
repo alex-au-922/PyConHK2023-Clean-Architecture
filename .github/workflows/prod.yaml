@@ -39,6 +39,9 @@ jobs:
     outputs:
       model_cache_key: ${{ steps.model_cache_key.outputs.model_cache_key }}
     steps:
+      - name: Output Model Cache Exists
+        run: |
+          echo ${{ needs.check-model-cache-exists.outputs.model_cache_exists }}
       - name: Checkout
         uses: actions/checkout@v3
       - name: Create Python
