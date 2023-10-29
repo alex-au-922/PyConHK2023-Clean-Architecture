@@ -35,7 +35,7 @@ jobs:
   create-model:
     needs: [check-model-cache-exists]
     runs-on: ubuntu-latest
-    if: ${{ needs.check-model-cache-exists.outputs.model_cache_exists }} != 'true'
+    if: needs.check-model-cache-exists.outputs.model_cache_exists != 'true'
     outputs:
       model_cache_key: ${{ steps.model_cache_key.outputs.model_cache_key }}
     steps:
@@ -98,9 +98,11 @@ jobs:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
         continue-on-error: true
-      - name: Indicate plan status
-        if: ${{ steps.plan.outcome }} == 'failure'
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
         run: exit 1
+
   terraform-apply-main:
     if: github.ref == 'refs/heads/main'
     needs: [terraform-plan]
