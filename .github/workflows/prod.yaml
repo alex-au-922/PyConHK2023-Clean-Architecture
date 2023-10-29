@@ -20,12 +20,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
-          role-session-name: ${{ github.actor }}
-          aws-region: ${{ secrets.AWS_REGION }}
       - name: Check Model Cache Exists
         id: check_model_cache_exists
         uses: actions/cache@v3
