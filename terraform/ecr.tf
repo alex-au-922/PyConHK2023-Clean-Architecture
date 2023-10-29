@@ -1,4 +1,4 @@
-module "data_embedding_handler_lambda" {
+module "data_embedding_handler_ecr" {
   source = "./modules/ecr_compute_service_access"
 
   name                = var.ecr_config.data_embedding_handler.name
@@ -9,7 +9,7 @@ module "data_embedding_handler_lambda" {
   caller_identity_arn = data.aws_caller_identity.current.arn
 }
 
-module "query_handler" {
+module "query_handler_ecr" {
   source = "./modules/ecr_compute_service_access"
 
   name                = var.ecr_config.query_handler.name

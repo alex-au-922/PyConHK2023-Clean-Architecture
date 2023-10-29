@@ -192,7 +192,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
-          key: ${{ runner.os }}-pip-${{ hashFiles('backend/data_ingestion_handler/requirements.txt') }}
+          key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
       - name: Setup Terraform
         id: setup-terraform
         uses: hashicorp/setup-terraform@v1
