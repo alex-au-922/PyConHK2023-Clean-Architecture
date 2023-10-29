@@ -1,0 +1,187 @@
+from contextlib import contextmanager
+from usecases import UpsertRawProductDetailsUseCase
+from entities import RawProductDetails
+import psycopg
+from typing import Optional, Sequence, overload, TypeVar, Iterator
+from typing_extensions import override
+import logging
+
+T = TypeVar("T")
+
+
+class PostgresUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
+    def __init__(
+        self,
+        connection_string: str,
+        raw_product_table_name: str,
+        upsert_batch_size: int,
+    ) -> None:
+        super().__init__()
+        self._connection_string = connection_string
+        self._raw_product_table_name = raw_product_table_name
+        self._upsert_batch_size = upsert_batch_size
+        self._conn: Optional[psycopg.Connection] = None
+
+    @overload
+    def upsert(self, raw_product_details: RawProductDetails) -> bool:
+        ...
+
+    @overload
+    def upsert(self, raw_product_details: Sequence[RawProductDetails]) -> list[bool]:
+        ...
+
+    @override
+    def upsert(
+        self, raw_product_details: RawProductDetails | Sequence[RawProductDetails]
+    ) -> bool | list[bool]:
+        if isinstance(raw_product_details, Sequence):
+            return self._upsert_batch(raw_product_details)
+        return self._upsert_single(raw_product_details)
+
+    def _raw_product_details_to_sql_tuple(
+        self, raw_product_details: RawProductDetails
+    ) -> tuple:
+        """Serialize RawProductDetails to tuple for SQL insertion"""
+        return (
+            raw_product_details.product_id,
+            raw_product_details.name,
+            raw_product_details.main_category,
+            raw_product_details.sub_category,
+            raw_product_details.image_url,
+            raw_product_details.ratings,
+            raw_product_details.discount_price,
+            raw_product_details.actual_price,
+            raw_product_details.modified_date,
+            raw_product_details.created_date,
+        )
+
+    @contextmanager
+    def _get_conn(self) -> Iterator[psycopg.Connection]:
+        if self._conn is None or self._conn.closed:
+            self._conn = psycopg.connect(self._connection_string)
+        yield self._conn
+
+    def _batch_generator(
+        self, data: Sequence[T], batch_size: int
+    ) -> Iterator[Sequence[T]]:
+        """Separate sequence of data into several batches based on batch sizes"""
+
+        for i in range(0, len(data), batch_size):
+            yield data[i : i + batch_size]
+
+    def _upsert_single(self, raw_product_details: RawProductDetails) -> bool:
+        """Upsert a single raw product to Postgres."""
+
+        try:
+            with self._get_conn() as conn, conn.cursor() as cur:
+                stmt = """
+                    INSERT INTO {table_name} (
+                        product_id,
+                        name,
+                        main_category,
+                        sub_category,
+                        image_url,
+                        ratings,
+                        discount_price,
+                        actual_price,
+                        modified_date,
+                        created_date
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    ) ON CONFLICT (product_id) DO UPDATE SET
+                        name = EXCLUDED.name,
+                        main_category = EXCLUDED.main_category,
+                        sub_category = EXCLUDED.sub_category,
+                        image_url = EXCLUDED.image_url,
+                        ratings = EXCLUDED.ratings,
+                        discount_price = EXCLUDED.discount_price,
+                        actual_price = EXCLUDED.actual_price,
+                        modified_date = EXCLUDED.modified_date
+                        created_date = EXCLUDED.created_date
+                    WHEN EXCLUDED.modified_date > {table_name}.modified_date
+                """.format(
+                    table_name=self._raw_product_table_name
+                )
+
+                cur.execute(
+                    stmt, self._raw_product_details_to_sql_tuple(raw_product_details)
+                )
+                conn.commit()
+                return True
+        except Exception:
+            logging.exception(
+                f"Error upserting raw product details {raw_product_details.product_id}!"
+            )
+            return False
+
+    def _upsert_batch(
+        self, raw_product_details: Sequence[RawProductDetails]
+    ) -> list[bool]:
+        """Upsert a batch of raw products to Postgres."""
+        successes: list[bool] = []
+        for raw_products_batch in self._batch_generator(
+            raw_product_details, self._upsert_batch_size
+        ):
+            try:
+                with self._get_conn() as conn, conn.cursor() as cur:
+                    stmt = """
+                        INSERT INTO {table_name} (
+                            product_id,
+                            name,
+                            main_category,
+                            sub_category,
+                            image_url,
+                            ratings,
+                            discount_price,
+                            actual_price,
+                            modified_date,
+                            created_date
+                        ) VALUES (
+                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                        ) ON CONFLICT (product_id) DO UPDATE SET
+                            name = EXCLUDED.name,
+                            main_category = EXCLUDED.main_category,
+                            sub_category = EXCLUDED.sub_category,
+                            image_url = EXCLUDED.image_url,
+                            ratings = EXCLUDED.ratings,
+                            discount_price = EXCLUDED.discount_price,
+                            actual_price = EXCLUDED.actual_price,
+                            modified_date = EXCLUDED.modified_date
+                            created_date = EXCLUDED.created_date
+                        WHEN EXCLUDED.modified_date > {table_name}.modified_date
+                    """.format(
+                        table_name=self._raw_product_table_name
+                    )
+
+                    cur.executemany(
+                        stmt,
+                        [
+                            self._raw_product_details_to_sql_tuple(
+                                embedded_product_detail
+                            )
+                            for embedded_product_detail in raw_products_batch
+                        ],
+                    )
+                    conn.commit()
+                    successes.extend([True] * len(raw_products_batch))
+            except Exception:
+                failed_product_ids = [
+                    raw_product_detail.product_id
+                    for raw_product_detail in raw_products_batch
+                ]
+                logging.exception(
+                    f"Error upserting raw product details {','.join(failed_product_ids)}!"
+                )
+                successes.extend([False] * len(raw_products_batch))
+        return successes
+
+    @override
+    def close(self) -> bool:
+        try:
+            if self._conn is None:
+                return True
+            self._conn.close()
+            return True
+        except Exception:
+            logging.exception("Error closing Postgres connection!")
+            return False

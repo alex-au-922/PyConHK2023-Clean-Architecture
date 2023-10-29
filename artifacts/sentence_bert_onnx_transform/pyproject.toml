@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "data-ingestion-handler"
+name = "sentence-bert-onnx-transform"
 version = "0.1.0"
 description = ""
 authors = ["alexau <alexaupyconhk2023aws@gmail.com>"]
@@ -7,11 +7,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-boto3-stubs = { extras = ["s3", "sqs"], version = "^1.28.73" }
-psycopg-binary = "^3.1.12"
+onnxruntime = "^1.16.1"
+onnx = "^1.15.0"
+torch = "^2.1.0"
+transformers = "^4.34.1"
 typing-extensions = "^4.8.0"
-aws-lambda-powertools = "^2.26.0"
-boto3 = "^1.28.73"
 
 
 [build-system]

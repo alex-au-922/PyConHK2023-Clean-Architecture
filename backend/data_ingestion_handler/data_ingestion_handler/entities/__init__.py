@@ -1,0 +1,1 @@
+from .raw_product_details import RawProductDetails

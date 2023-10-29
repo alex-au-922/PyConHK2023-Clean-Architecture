@@ -91,6 +91,42 @@ variable "bastion_host_config" {
   })
 }
 
+variable "ecr_config" {
+  description = "Config for the ECR"
+  type = object({
+    data_embedding_handler = object({
+      name          = string
+      image_mutable = bool
+      force_delete  = bool
+      scan_on_push  = bool
+      keep_images   = number
+    })
+    query_handler = object({
+      name          = string
+      image_mutable = bool
+      force_delete  = bool
+      scan_on_push  = bool
+      keep_images   = number
+    })
+  })
+}
+
+variable "s3_config" {
+  description = "Config for the S3"
+  type = object({
+    model_bucket = object({
+      name          = string
+      versioning    = bool
+      force_destroy = bool
+    })
+    data_bucket = object({
+      name          = string
+      versioning    = bool
+      force_destroy = bool
+    })
+  })
+}
+
 variable "ssh_public_key" {
   description = "SSH Public Key, Provided by Pipeline"
   type        = string

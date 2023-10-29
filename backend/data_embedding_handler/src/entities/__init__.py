@@ -1,0 +1,2 @@
+from .raw_product_details import RawProductDetails
+from .embedded_product_details import EmbeddedProductDetails

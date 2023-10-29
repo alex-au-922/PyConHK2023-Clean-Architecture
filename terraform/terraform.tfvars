@@ -81,3 +81,34 @@ bastion_host_config = {
   instance_type = "t4g.nano"
   key_name      = "alexau_pyconhk2023_bastion"
 }
+
+ecr_config = {
+  data_embedding_handler = {
+    name          = "pyconhk2023-data-embedding-handler"
+    image_mutable = false
+    force_delete  = true
+    scan_on_push  = true
+    keep_images   = 5
+  }
+  query_handler = {
+    name          = "pyconhk2023-query-handler"
+    image_mutable = false
+    force_delete  = true
+    scan_on_push  = true
+    keep_images   = 5
+  }
+}
+
+s3_config = {
+  model_bucket = {
+    name          = "alexau-pyconhk2023-models"
+    versioning    = false
+    force_destroy = true
+
+  }
+  data_bucket = {
+    name          = "alexau-pyconhk2023-data"
+    versioning    = false
+    force_destroy = true
+  }
+}

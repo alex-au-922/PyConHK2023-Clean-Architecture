@@ -26,6 +26,25 @@ repos:
   - repo: https://github.com/python-poetry/poetry
     rev: 1.6.0
     hooks:
+      # Artifacts - Sentence Bert Onnx Transformation
+      - id: poetry-check
+        name: poetry-check-artifacts-sentence-bert-onnx-transform
+        args: ["-C", "./artifacts/sentence_bert_onnx_transform"]
+      - id: poetry-lock
+        name: poetry-lock-artifacts-sentence-bert-onnx-transform
+        args: ["-C", "./artifacts/sentence_bert_onnx_transform"]
+      - id: poetry-export
+        name: poetry-export-artifacts-sentence-bert-onnx-transform
+        args:
+          [
+            "-C",
+            "./artifacts/sentence_bert_onnx_transform",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "./artifacts/sentence_bert_onnx_transform/requirements.txt",
+            "--without-hashes",
+          ]
       # Data Embedding Handler
       - id: poetry-check
         name: poetry-check-data-embedding-handler
