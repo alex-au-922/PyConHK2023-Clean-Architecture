@@ -157,3 +157,10 @@ sqs_config = {
     }
   }
 }
+
+eventbridge_config = {
+  data_ingestion_lambda_trigger = {
+    name                = "pyconhk2023-data-ingestion-lambda-trigger"
+    schedule_expression = "cron(0 * * * ? *)" # Every hour
+  }
+}

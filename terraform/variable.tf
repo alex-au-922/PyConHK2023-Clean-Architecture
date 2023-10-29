@@ -182,6 +182,16 @@ variable "sqs_config" {
   })
 }
 
+variable "eventbridge_config" {
+  description = "Config for the EventBridge"
+  type = object({
+    data_ingestion_lambda_trigger = object({
+      name                = string
+      schedule_expression = string
+    })
+  })
+}
+
 variable "ssh_public_key" {
   description = "SSH Public Key, Provided by Pipeline"
   type        = string
