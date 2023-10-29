@@ -89,19 +89,19 @@ jobs:
         if: needs.check-model-cache-exists.outputs.model_cache_exists == 'true'
         uses: actions/cache@v3
         with:
-          path: backend/data_embedding_handler/models
+          path: models
           key: ${{ needs.check-model-cache-exists.outputs.model_cache_key }}
       - name: Create Model Cache From Create
         id: read-cache-create
         if: needs.create-model.outputs.model_cache_key != ''
         uses: actions/cache@v3
         with:
-          path: backend/data_embedding_handler/models
+          path: models
           key: ${{ needs.create-model.outputs.model_cache_key }}
       - name: Check files in cache
         id: check-cache
         run: |
-          tree backend/data_embedding_handler/models
+          tree models
       - name: Build Dockerfile
         id: build
         run: |
