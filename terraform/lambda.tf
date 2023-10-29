@@ -143,6 +143,6 @@ module "data_embedding_handler_lambda" {
 
   depends_on = [
     module.data_embedding_handler_ecr,
-    data.aws_ecr_image.latest_updated_criteria_encoder_docker_image,
+    data.aws_ecr_image.latest_data_embedding_handler_lambda_docker_image,
   ]
 }
