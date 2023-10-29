@@ -98,10 +98,10 @@ jobs:
         with:
           path: models
           key: ${{ needs.create-model.outputs.model_cache_key }}
-      - name: Check files in cache
-        id: check-cache
+      - name: Copy Model Cache
+        id: copy-cache
         run: |
-          tree models
+          cp -r models/ backend/data_embedding_handler/models/
       - name: Build Dockerfile
         id: build
         run: |
