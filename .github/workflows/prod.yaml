@@ -137,30 +137,30 @@ jobs:
           cp -r models/ backend/data_embedding_handler/models/
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      # - name: Login ECR
-      #   id: login-ecr
-      #   run: |
-      #     export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
-      #     export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/pyconhk2023-data-embedding-handler
-      #     aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
-      #     echo "AWS_ECR_REPOSITORY_URL=${AWS_ECR_REPOSITORY_URL}" >> $GITHUB_OUTPUT
-      #     echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      # - name: Build Dockerfile
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: backend/data_embedding_handler
-      #     load: true
-      #     tags: |
-      #       ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
-      #     build-args: |
-      #       MODEL_PATH=models/${{ env.MODEL_NAME }}.onnx
-      #       TOKENIZER_PATH=models/${{ env.MODEL_NAME }}.tokenizer
-      #     push: false
-      #     cache-from: type=gha
-      #     cache-to: type=gha,mode=max
-      # - name: Push Docker Image
-      #   run: |
-      #     docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+      - name: Login ECR
+        id: login-ecr
+        run: |
+          export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+          export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/pyconhk2023-data-embedding-handler
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
+          echo "AWS_ECR_REPOSITORY_URL=${AWS_ECR_REPOSITORY_URL}" >> $GITHUB_OUTPUT
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Build Dockerfile
+        uses: docker/build-push-action@v4
+        with:
+          context: backend/data_embedding_handler
+          load: true
+          tags: |
+            ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+          build-args: |
+            MODEL_PATH=models/${{ env.MODEL_NAME }}.onnx
+            TOKENIZER_PATH=models/${{ env.MODEL_NAME }}.tokenizer
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Push Docker Image
+        run: |
+          docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
   terraform-plan:
     needs:
       [
