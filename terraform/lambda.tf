@@ -97,7 +97,7 @@ module "data_embedding_handler_lambda" {
   reserved_concurrent_executions = var.lambda_config.data_embedding_handler.reserved_concurrent_executions
 
   create_package = false
-  image_uri      = "${module.data_embedding_handler_ecr.repository_url}:${data.aws_ecr_image.latest_data_embedding_handler_lambda_docker_image.image_tags[0]}"
+  image_uri      = "${data.aws_ecr_repository.data_embedding_handler_ecr.repository_url}:${data.aws_ecr_image.latest_data_embedding_handler_lambda_docker_image.image_tags[0]}"
   package_type   = var.lambda_config.data_embedding_handler.package_type
 
   environment_variables = {
