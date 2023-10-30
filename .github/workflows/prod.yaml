@@ -212,7 +212,7 @@ jobs:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
   terraform-apply-main:
-    needs: [terraform-plan, create-model]
+    needs: [terraform-plan, create-model, pip-build-data-ingestion-handler]
     if: |
       always() &&
       github.ref == 'refs/heads/main' &&
@@ -255,7 +255,7 @@ jobs:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
   terraform-apply-dev:
-    needs: [terraform-plan, create-model]
+    needs: [terraform-plan, create-model, pip-build-data-ingestion-handler]
     if: |
       always() &&
       github.ref != 'refs/heads/main' &&
