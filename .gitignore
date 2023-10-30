@@ -3,3 +3,4 @@ Makefile
 .venv
 *.pem
 notebooks
+venv
