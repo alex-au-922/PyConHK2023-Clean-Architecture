@@ -193,10 +193,6 @@ jobs:
         with:
           path: backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
           key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
-      - name: Check Model Cache Directory
-        id: check_model_cache_directory
-        run: |
-          ls -al backend/data_ingestion_handler
       - name: Setup Terraform
         id: setup-terraform
         uses: hashicorp/setup-terraform@v1
