@@ -72,6 +72,10 @@ module "data_ingestion_handler_lambda" {
   attach_network_policy  = var.lambda_config.data_ingestion_handler.in_vpc
 }
 
+data "aws_ecr_repository" "data_embedding_handler_ecr" {
+  name = var.lambda_config.data_embedding_handler.name
+}
+
 data "aws_ecr_image" "latest_data_embedding_handler_lambda_docker_image" {
   repository_name = data.aws_ecr_repository.data_embedding_handler_ecr.name
   most_recent     = true
@@ -142,7 +146,6 @@ module "data_embedding_handler_lambda" {
   attach_network_policy  = var.lambda_config.data_ingestion_handler.in_vpc
 
   depends_on = [
-    module.data_embedding_handler_ecr,
     data.aws_ecr_image.latest_data_embedding_handler_lambda_docker_image,
   ]
 }
