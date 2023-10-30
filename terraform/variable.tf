@@ -101,17 +101,9 @@ variable "ecr_config" {
   type = object({
     data_embedding_handler = object({
       name          = string
-      image_mutable = bool
-      force_delete  = bool
-      scan_on_push  = bool
-      keep_images   = number
     })
     query_handler = object({
       name          = string
-      image_mutable = bool
-      force_delete  = bool
-      scan_on_push  = bool
-      keep_images   = number
     })
   })
 }

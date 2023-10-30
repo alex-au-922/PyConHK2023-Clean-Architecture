@@ -87,17 +87,9 @@ bastion_host_config = {
 ecr_config = {
   data_embedding_handler = {
     name          = "pyconhk2023-data-embedding-handler"
-    image_mutable = false
-    force_delete  = true
-    scan_on_push  = true
-    keep_images   = 5
   }
   query_handler = {
     name          = "pyconhk2023-query-handler"
-    image_mutable = false
-    force_delete  = true
-    scan_on_push  = true
-    keep_images   = 5
   }
 }
 
