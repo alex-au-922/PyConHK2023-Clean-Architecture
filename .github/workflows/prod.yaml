@@ -230,6 +230,12 @@ jobs:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
+      - name: Download Pip Packages for Data Ingestion Handler
+        id: download_data_ingestion_handler
+        uses: actions/cache@v3
+        with:
+          path: backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
+          key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
       - name: Setup Terraform
         id: setup-terraform
         uses: hashicorp/setup-terraform@v1
@@ -269,6 +275,12 @@ jobs:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
+      - name: Download Pip Packages for Data Ingestion Handler
+        id: download_data_ingestion_handler
+        uses: actions/cache@v3
+        with:
+          path: backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
+          key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
       - name: Setup Terraform
         id: setup-terraform
         uses: hashicorp/setup-terraform@v1
