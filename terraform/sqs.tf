@@ -36,23 +36,23 @@ module "embedding_handler_queue" {
         }
       ]
     }
-    lambda = {
-      sid     = "DataEmbeddingLambdaConsume"
-      effect  = "Allow"
-      actions = ["SQS:ReceiveMessage", "SQS:DeleteMessage", "SQS:GetQueueAttributes"]
-      principals = [
-        {
-          type        = "Service"
-          identifiers = ["lambda.amazonaws.com"]
-        }
-      ]
-      conditions = [
-        {
-          test     = "ArnEquals"
-          variable = "aws:SourceArn"
-          values   = [module.data_embedding_handler_lambda.lambda_function_arn]
-        }
-      ]
-    }
+    # lambda = {
+    #   sid     = "DataEmbeddingLambdaConsume"
+    #   effect  = "Allow"
+    #   actions = ["SQS:ReceiveMessage", "SQS:DeleteMessage", "SQS:GetQueueAttributes"]
+    #   principals = [
+    #     {
+    #       type        = "Service"
+    #       identifiers = ["lambda.amazonaws.com"]
+    #     }
+    #   ]
+    #   conditions = [
+    #     {
+    #       test     = "ArnEquals"
+    #       variable = "aws:SourceArn"
+    #       values   = [module.data_embedding_handler_lambda.lambda_function_arn]
+    #     }
+    #   ]
+    # }
   }
 }
