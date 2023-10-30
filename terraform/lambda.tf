@@ -7,9 +7,9 @@ locals {
 }
 
 resource "aws_lambda_layer_version" "data_ingestion_handler_lambda_layer" {
-  filename            = "${trimsuffix(var.lambda_config.data_ingestion_handler.source_path, "/")}/${var.lambda_config.data_ingestion_handler.layer_name}.zip"
+  filename            = "${trimsuffix(var.lambda_config.data_ingestion_handler.layer_path, "/")}/${var.lambda_config.data_ingestion_handler.layer_name}.zip"
   layer_name          = var.lambda_config.data_ingestion_handler.layer_name
-  source_code_hash    = filebase64sha256("${trimsuffix(var.lambda_config.data_ingestion_handler.source_path, "/")}/${var.lambda_config.data_ingestion_handler.layer_name}.zip")
+  source_code_hash    = filebase64sha256("${trimsuffix(var.lambda_config.data_ingestion_handler.layer_path, "/")}/${var.lambda_config.data_ingestion_handler.layer_name}.zip")
   compatible_runtimes = [var.lambda_config.data_ingestion_handler.runtime]
 }
 

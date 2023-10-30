@@ -145,6 +145,7 @@ variable "lambda_config" {
       runtime                        = string
       source_path                    = string
       package_type                   = string
+      layer_path                     = string
       layer_name                     = string
       handler                        = string
       function_url                   = bool

@@ -31,7 +31,7 @@ jobs:
         id: cache_path
         uses: actions/cache@v3
         with:
-          path: backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
+          path: backend/data_ingestion_handler/src/pyconhk2023-data-ingestion-handler-layer.zip
           key: ${{ runner.os }}-pip-${{ hashFiles('backend/data_ingestion_handler/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-

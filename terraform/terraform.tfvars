@@ -126,6 +126,7 @@ lambda_config = {
     runtime      = "python3.10"
     source_path  = "backend/data_ingestion_handler/src"
     package_type = "Zip"
+    layer_path   = "backend/data_ingestion_handler/"
     layer_name   = "pyconhk2023-data-ingestion-handler-layer"
     handler      = "app.handler"
     function_url = false
