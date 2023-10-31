@@ -126,7 +126,7 @@ lambda_config = {
     source_path  = "backend/data_ingestion_handler/src"
     package_type = "Zip"
     layer_name   = "pyconhk2023-data-ingestion-handler-layer"
-    handler      = "app.handler"
+    handler      = "deployment.lambda.lambda_function.handler"
     function_url = false
     in_vpc       = true
   }
@@ -137,7 +137,7 @@ lambda_config = {
     timeout              = 60
     runtime              = "python3.10"
     package_type         = "Image"
-    image_config_command = ["app.handler"]
+    image_config_command = ["deployment.lambda.lambda_function.handler"]
     function_url         = false
     in_vpc               = true
   }
