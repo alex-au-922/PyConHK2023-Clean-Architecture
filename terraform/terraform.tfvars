@@ -86,18 +86,10 @@ bastion_host_config = {
 
 ecr_config = {
   data_embedding_handler = {
-    name          = "pyconhk2023-data-embedding-handler"
-    image_mutable = false
-    force_delete  = true
-    scan_on_push  = true
-    keep_images   = 5
+    name = "pyconhk2023-data-embedding-handler"
   }
   query_handler = {
-    name          = "pyconhk2023-query-handler"
-    image_mutable = false
-    force_delete  = true
-    scan_on_push  = true
-    keep_images   = 5
+    name = "pyconhk2023-query-handler"
   }
 }
 
@@ -118,28 +110,31 @@ s3_config = {
 lambda_config = {
   log_retention_days = 30
   data_ingestion_handler = {
-    name         = "pyconhk2023-data-ingestion-handler"
-    description  = "Data ingestion handler for PyCon HK 2023"
-    memory_size  = 128
-    timeout      = 60
-    runtime      = "python3.10"
-    source_path  = "backend/data_ingestion_handler/src"
-    package_type = "Zip"
-    layer_name   = "pyconhk2023-data-ingestion-handler-layer"
-    handler      = "deployment.lambda.lambda_function.handler"
-    function_url = false
-    in_vpc       = true
+    name                           = "pyconhk2023-data-ingestion-handler"
+    description                    = "Data ingestion handler for PyCon HK 2023"
+    memory_size                    = 128
+    timeout                        = 60
+    reserved_concurrent_executions = -1
+    runtime                        = "python3.10"
+    source_path                    = "../backend/data_ingestion_handler/src/"
+    package_type                   = "Zip"
+    layer_path                     = "../backend/data_ingestion_handler/"
+    layer_name                     = "pyconhk2023-data-ingestion-handler-layer"
+    handler                        = "deployment.lambda.lambda_function.handler"
+    function_url                   = false
+    in_vpc                         = true
   }
   data_embedding_handler = {
-    name                 = "pyconhk2023-data-embedding-handler"
-    description          = "Data ingestion handler for PyCon HK 2023"
-    memory_size          = 128
-    timeout              = 60
-    runtime              = "python3.10"
-    package_type         = "Image"
-    image_config_command = ["deployment.lambda.lambda_function.handler"]
-    function_url         = false
-    in_vpc               = true
+    name                           = "pyconhk2023-data-embedding-handler"
+    description                    = "Data ingestion handler for PyCon HK 2023"
+    memory_size                    = 128
+    timeout                        = 60
+    reserved_concurrent_executions = -1
+    runtime                        = "python3.10"
+    package_type                   = "Image"
+    image_config_command           = ["deployment.lambda.lambda_function.handler"]
+    function_url                   = false
+    in_vpc                         = true
   }
 }
 

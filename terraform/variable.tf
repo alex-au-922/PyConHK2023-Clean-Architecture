@@ -100,18 +100,10 @@ variable "ecr_config" {
   description = "Config for the ECR"
   type = object({
     data_embedding_handler = object({
-      name          = string
-      image_mutable = bool
-      force_delete  = bool
-      scan_on_push  = bool
-      keep_images   = number
+      name = string
     })
     query_handler = object({
-      name          = string
-      image_mutable = bool
-      force_delete  = bool
-      scan_on_push  = bool
-      keep_images   = number
+      name = string
     })
   })
 }
@@ -145,6 +137,7 @@ variable "lambda_config" {
       runtime                        = string
       source_path                    = string
       package_type                   = string
+      layer_path                     = string
       layer_name                     = string
       handler                        = string
       function_url                   = bool

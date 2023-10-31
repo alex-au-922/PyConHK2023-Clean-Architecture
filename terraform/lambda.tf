@@ -7,9 +7,9 @@ locals {
 }
 
 resource "aws_lambda_layer_version" "data_ingestion_handler_lambda_layer" {
-  filename            = "${trimsuffix(var.lambda_config.data_ingestion_handler.source_path, "/")}/${var.lambda_config.data_ingestion_handler.layer_name}.zip"
+  filename            = "${trimsuffix(var.lambda_config.data_ingestion_handler.layer_path, "/")}/${var.lambda_config.data_ingestion_handler.layer_name}.zip"
   layer_name          = var.lambda_config.data_ingestion_handler.layer_name
-  source_code_hash    = filebase64sha256("${trimsuffix(var.lambda_config.data_ingestion_handler.source_path, "/")}/${var.lambda_config.data_ingestion_handler.layer_name}.zip")
+  source_code_hash    = filebase64sha256("${trimsuffix(var.lambda_config.data_ingestion_handler.layer_path, "/")}/${var.lambda_config.data_ingestion_handler.layer_name}.zip")
   compatible_runtimes = [var.lambda_config.data_ingestion_handler.runtime]
 }
 
@@ -29,7 +29,7 @@ module "data_ingestion_handler_lambda" {
   memory_size                    = var.lambda_config.data_ingestion_handler.memory_size
   reserved_concurrent_executions = var.lambda_config.data_ingestion_handler.reserved_concurrent_executions
 
-  package_type = var.lambda_config.data_embedding_handler.package_type
+  package_type = var.lambda_config.data_ingestion_handler.package_type
   source_path  = var.lambda_config.data_ingestion_handler.source_path
   layers       = [aws_lambda_layer_version.data_ingestion_handler_lambda_layer.arn]
 
@@ -72,8 +72,12 @@ module "data_ingestion_handler_lambda" {
   attach_network_policy  = var.lambda_config.data_ingestion_handler.in_vpc
 }
 
+data "aws_ecr_repository" "data_embedding_handler_ecr" {
+  name = var.lambda_config.data_embedding_handler.name
+}
+
 data "aws_ecr_image" "latest_data_embedding_handler_lambda_docker_image" {
-  repository_name = module.data_embedding_handler_ecr.repository_name
+  repository_name = data.aws_ecr_repository.data_embedding_handler_ecr.name
   most_recent     = true
 }
 
@@ -93,7 +97,7 @@ module "data_embedding_handler_lambda" {
   reserved_concurrent_executions = var.lambda_config.data_embedding_handler.reserved_concurrent_executions
 
   create_package = false
-  image_uri      = "${module.data_embedding_handler_ecr.repository_url}:${data.aws_ecr_image.latest_data_embedding_handler_lambda_docker_image.image_tags[0]}"
+  image_uri      = "${data.aws_ecr_repository.data_embedding_handler_ecr.repository_url}:${data.aws_ecr_image.latest_data_embedding_handler_lambda_docker_image.image_tags[0]}"
   package_type   = var.lambda_config.data_embedding_handler.package_type
 
   environment_variables = {
@@ -142,7 +146,6 @@ module "data_embedding_handler_lambda" {
   attach_network_policy  = var.lambda_config.data_ingestion_handler.in_vpc
 
   depends_on = [
-    module.data_embedding_handler_ecr,
     data.aws_ecr_image.latest_data_embedding_handler_lambda_docker_image,
   ]
 }
