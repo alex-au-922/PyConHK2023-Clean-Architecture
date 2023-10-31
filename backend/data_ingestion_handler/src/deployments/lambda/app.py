@@ -14,6 +14,7 @@ import json
 from aws_lambda_powertools.logging import Logger, utils as log_utils
 from aws_lambda_powertools.utilities.typing import LambdaContext
 import csv
+import re
 
 logger = Logger(level=ProjectConfig.LOG_LEVEL)
 log_utils.copy_config_to_registered_loggers(
@@ -150,17 +151,24 @@ def handler(event: dict, context: LambdaContext) -> dict:
             f"Reading raw product details from {AWSS3Config.SAMPLE_DATA_KEY}..."
         )
 
-        for row in csv.DictReader(response["Body"].read().decode("utf-8").splitlines()):
+        INDIAN_RUPEE_TO_HKD_EXCHANGE_RATE = 0.094
+
+        for index, row in enumerate(
+            csv.DictReader(response["Body"].read().decode("utf-8").splitlines()),
+            start=1,
+        ):
             raw_product_details.append(
                 RawProductDetails(
-                    product_id=row["product_id"],
+                    product_id=str(index).zfill(10),
                     name=row["name"],
                     main_category=row["main_category"],
                     sub_category=row["sub_category"],
                     image_url=row["image"],
                     ratings=float(row["ratings"]),
-                    discount_price=float(row["discount_price"]),
-                    actual_price=float(row["actual_price"]),
+                    discount_price=float(re.sub("\D+", "", row["discount_price"]))
+                    * INDIAN_RUPEE_TO_HKD_EXCHANGE_RATE,
+                    actual_price=float(re.sub("\D+", "", row["actual_price"]))
+                    * INDIAN_RUPEE_TO_HKD_EXCHANGE_RATE,
                     modified_date=lambda_invoke_time,
                     created_date=datetime.now(),
                 )
