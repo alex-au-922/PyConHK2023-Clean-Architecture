@@ -45,7 +45,6 @@ jobs:
           cd backend/data_ingestion_handler
           sed -i 's/psycopg2-binary//g' requirements.txt
           python -m pip install -r requirements.txt -t python
-          mv layer/* python
           zip -r pyconhk2023-data-ingestion-handler-layer.zip python
           rm -rf python
       - name: Output the cache key
