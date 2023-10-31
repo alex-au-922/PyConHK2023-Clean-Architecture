@@ -303,26 +303,22 @@ jobs:
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
-  # ci_preparation:
-  #   needs: [terraform-apply-main, terraform-apply-dev, create-model]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
-  #         role-session-name: ${{ github.actor }}
-  #         aws-region: ${{ secrets.AWS_REGION }}
-  #     - name: Retrieve Model Cache Key
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: models
-  #         key: ${{ needs.create-model.outputs.model_cache_key }}
-  #     - name: Push Model to S3
-  #       run: |
-  #         aws s3 cp models/ s3://alexau-pyconhk2023-models/ --recursive
-  #     - name: Push Data to S3
-  #       run: |
-  #         aws s3 cp data/ s3://alexau-pyconhk2023-data/ --recursive
+  ci_preparation:
+    needs: [terraform-apply-main, terraform-apply-dev]
+    if: |
+      always() &&
+      (needs.terraform-apply-main.result == 'success' || needs.terraform-apply-main.result == 'skipped') &&
+      (needs.terraform-apply-dev.result == 'success' || needs.terraform-apply-dev.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Push Data to S3
+        run: |
+          aws s3 cp data/ s3://alexau-pyconhk2023-data/ --recursive
