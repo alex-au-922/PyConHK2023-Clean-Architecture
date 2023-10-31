@@ -128,7 +128,9 @@ def pipeline_upsert_raw_products(
 
 @logger.inject_lambda_context(log_event=ProjectConfig.LOG_SOURCE_EVENT)
 def handler(event: dict, context: LambdaContext) -> dict:
+    logger.info("Initializing postgres client...")
     init_postgres_upsert_raw_product_details_client()
+    logger.info("Initializing SQS client...")
     init_sqs_upsert_raw_product_details_client()
 
     lambda_invoke_time = datetime.now()
