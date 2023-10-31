@@ -31,9 +31,12 @@ s3_client = boto3.client("s3")
 def get_secrets_manager_secrets(secret_name: str) -> dict[str, str]:
     """Get secrets from AWS Secrets Manager"""
 
+    logger.info(f"Fetching secrets from {secret_name}...")
     secrets_manager_client = boto3.client("secretsmanager")
     response = secrets_manager_client.get_secret_value(SecretId=secret_name)
+    logger.info(f"Fetched secrets from {secret_name}! Loading secrets into memory...")
     result: dict[str, str] = json.loads(response["SecretString"])
+    logger.info(f"Loaded secrets from {secret_name} into memory!")
     return result
 
 
@@ -43,9 +46,11 @@ def init_postgres_upsert_raw_product_details_client() -> None:
     if postgres_upsert_raw_product_details_client is not None:
         return
 
+    logger.info("Fetching postgres secrets...")
     postgres_secrets = get_secrets_manager_secrets(
         secret_name=PostgresConfig.SECRETS_MANAGER_NAME
     )
+    logger.info("Fetched postgres secrets!")
 
     connection_string = f"postgresql://{postgres_secrets['username']}:{postgres_secrets['password']}@{postgres_secrets['host']}:{postgres_secrets['port']}/{PostgresConfig.POSTGRES_DB}"
 
