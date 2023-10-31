@@ -157,22 +157,26 @@ def handler(event: dict, context: LambdaContext) -> dict:
             csv.DictReader(response["Body"].read().decode("utf-8").splitlines()),
             start=1,
         ):
-            raw_product_details.append(
-                RawProductDetails(
-                    product_id=str(index).zfill(10),
-                    name=row["name"],
-                    main_category=row["main_category"],
-                    sub_category=row["sub_category"],
-                    image_url=row["image"],
-                    ratings=float(row["ratings"]),
-                    discount_price=float(re.sub("\D+", "", row["discount_price"]))
-                    * INDIAN_RUPEE_TO_HKD_EXCHANGE_RATE,
-                    actual_price=float(re.sub("\D+", "", row["actual_price"]))
-                    * INDIAN_RUPEE_TO_HKD_EXCHANGE_RATE,
-                    modified_date=lambda_invoke_time,
-                    created_date=datetime.now(),
+            try:
+                raw_product_details.append(
+                    RawProductDetails(
+                        product_id=str(index).zfill(10),
+                        name=row["name"],
+                        main_category=row["main_category"],
+                        sub_category=row["sub_category"],
+                        image_url=row["image"],
+                        ratings=float(row["ratings"]),
+                        discount_price=float(re.sub(r"\D+", "", row["discount_price"]))
+                        * INDIAN_RUPEE_TO_HKD_EXCHANGE_RATE,
+                        actual_price=float(re.sub(r"\D+", "", row["actual_price"]))
+                        * INDIAN_RUPEE_TO_HKD_EXCHANGE_RATE,
+                        modified_date=lambda_invoke_time,
+                        created_date=datetime.now(),
+                    )
                 )
-            )
+            except Exception as e:
+                logger.error(row)
+                raise e
 
         logger.info(f"Found {len(raw_product_details)} raw product details!")
 
