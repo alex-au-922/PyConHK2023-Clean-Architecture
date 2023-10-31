@@ -8,18 +8,18 @@ class ProjectConfig:
 
 class PostgresConfig:
     POSTGRES_HOST = str(os.environ.get("POSTGRES_HOST"))
-    POSTGRES_PORT = int(os.environ.get("POSTGRES_PORT"), 5432)
+    POSTGRES_PORT = int(os.environ.get("POSTGRES_PORT", 5432))
     POSTGRES_USER = str(os.environ.get("POSTGRES_USER"))
     POSTGRES_PASSWORD = str(os.environ.get("POSTGRES_PASSWORD"))
     POSTGRES_DB = str(os.environ.get("POSTGRES_DB"))
     SECRETS_MANAGER_NAME = str(os.environ.get("POSTGRES_SECRETS_MANAGER_NAME"))
     RAW_PRODUCT_TABLE_NAME = str(os.environ.get("POSTGRES_RAW_PRODUCT_TABLE_NAME"))
-    UPSERT_BATCH_SIZE = int(os.environ.get("POSTGRES_UPSERT_BATCH_SIZE"), 1000)
+    UPSERT_BATCH_SIZE = int(os.environ.get("POSTGRES_UPSERT_BATCH_SIZE", 1000))
 
 
 class AWSSQSConfig:
     SUBSCRIBED_QUEUE_URL = str(os.environ.get("AWS_SQS_SUBSCRIBED_QUEUE_URL"))
-    UPSERT_BATCH_SIZE = int(os.environ.get("AWS_SQS_UPSERT_BATCH_SIZE"), 1000)
+    UPSERT_BATCH_SIZE = int(os.environ.get("AWS_SQS_UPSERT_BATCH_SIZE", 1000))
 
 
 class AWSS3Config:
