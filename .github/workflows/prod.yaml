@@ -39,6 +39,7 @@ jobs:
         if: steps.cache_path.outputs.cache-hit != 'true'
         id: install_dependencies
         run: |
+          cd backend/data_ingestion_handler
           mkdir layer
           cd layer
           pip install aws-psycopg2 -t .
