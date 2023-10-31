@@ -8,6 +8,7 @@ module "vpc" {
   private_subnets    = var.vpc_config.private_subnets
   public_subnets     = var.vpc_config.public_subnets
   enable_nat_gateway = true
+  single_nat_gateway = true
 }
 
 data "aws_ami" "ami" {

@@ -31,12 +31,9 @@ s3_client = boto3.client("s3")
 def get_secrets_manager_secrets(secret_name: str) -> dict[str, str]:
     """Get secrets from AWS Secrets Manager"""
 
-    logger.info(f"Fetching secrets from {secret_name}...")
     secrets_manager_client = boto3.client("secretsmanager")
     response = secrets_manager_client.get_secret_value(SecretId=secret_name)
-    logger.info(f"Fetched secrets from {secret_name}! Loading secrets into memory...")
     result: dict[str, str] = json.loads(response["SecretString"])
-    logger.info(f"Loaded secrets from {secret_name} into memory!")
     return result
 
 
@@ -46,11 +43,9 @@ def init_postgres_upsert_raw_product_details_client() -> None:
     if postgres_upsert_raw_product_details_client is not None:
         return
 
-    logger.info("Fetching postgres secrets...")
     postgres_secrets = get_secrets_manager_secrets(
         secret_name=PostgresConfig.SECRETS_MANAGER_NAME
     )
-    logger.info("Fetched postgres secrets!")
 
     connection_string = f"postgresql://{postgres_secrets['username']}:{postgres_secrets['password']}@{postgres_secrets['host']}:{postgres_secrets['port']}/{PostgresConfig.POSTGRES_DB}"
 
@@ -133,31 +128,27 @@ def pipeline_upsert_raw_products(
 
 @logger.inject_lambda_context(log_event=ProjectConfig.LOG_SOURCE_EVENT)
 def handler(event: dict, context: LambdaContext) -> dict:
-    logger.info("Initializing postgres client...")
     init_postgres_upsert_raw_product_details_client()
-    logger.info("Initializing SQS client...")
     init_sqs_upsert_raw_product_details_client()
 
     lambda_invoke_time = datetime.now()
 
     try:
-        logger.info("Fetching sample data from S3...")
-
         response = s3_client.get_object(
             Bucket=AWSS3Config.SAMPLE_DATA_BUCKET_NAME,
             Key=AWSS3Config.SAMPLE_DATA_KEY,
         )
-
-        logger.info("Fetched sample data from S3!")
 
         if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
             raise Exception(
                 f"Found error status code {response['ResponseMetadata']['HTTPStatusCode']}!"
             )
 
-        logger.info("Parsing sample data...")
-
         raw_product_details: list[RawProductDetails] = []
+
+        logger.info(
+            f"Reading raw product details from {AWSS3Config.SAMPLE_DATA_KEY}..."
+        )
 
         for row in csv.DictReader(response["Body"].read().decode("utf-8").splitlines()):
             raw_product_details.append(
