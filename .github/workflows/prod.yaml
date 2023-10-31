@@ -33,7 +33,7 @@ jobs:
         with:
           path: |
             backend/data_ingestion_handler/src/psycopg2
-            backend/data_ingestion_handler/requirements.txt
+            backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
           key: ${{ runner.os }}-pip-${{ hashFiles('backend/data_ingestion_handler/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
@@ -199,7 +199,7 @@ jobs:
         with:
           path: |
             backend/data_ingestion_handler/src/psycopg2
-            backend/data_ingestion_handler/requirements.txt
+            backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
           key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
       - name: Setup Terraform
         id: setup-terraform
@@ -244,7 +244,7 @@ jobs:
         with:
           path: |
             backend/data_ingestion_handler/src/psycopg2
-            backend/data_ingestion_handler/requirements.txt
+            backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
           key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
       - name: Setup Terraform
         id: setup-terraform
@@ -291,7 +291,7 @@ jobs:
         with:
           path: |
             backend/data_ingestion_handler/src/psycopg2
-            backend/data_ingestion_handler/requirements.txt
+            backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
           key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
       - name: Setup Terraform
         id: setup-terraform
