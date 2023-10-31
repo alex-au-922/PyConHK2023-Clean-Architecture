@@ -34,9 +34,17 @@ module "data_ingestion_handler_lambda" {
   layers       = [aws_lambda_layer_version.data_ingestion_handler_lambda_layer.arn]
 
   environment_variables = {
-    LOG_LEVEL        = "INFO"
-    LOG_SOURCE_EVENT = true
-    TZ               = "${var.timezone}"
+    LOG_LEVEL                       = "INFO"
+    LOG_SOURCE_EVENT                = true
+    POSTGRES_SECRETS_MANAGER_NAME   = module.rds_credentials.secretsmanager_secret_name
+    POSTGRES_DB                     = var.rds_config.main_database
+    POSTGRES_RAW_PRODUCT_TABLE_NAME = var.rds_table_config.raw_products.name
+    POSTGRES_UPSERT_BATCH_SIZE      = 5
+    AWS_SQS_SUBSCRIBED_QUEUE_URL    = module.embedding_handler_queue.queue_url
+    AWS_SQS_UPSERT_BATCH_SIZE       = 10
+    AWS_S3_SAMPLE_DATA_BUCKET_NAME  = module.data_bucket.bucket
+    AWS_S3_SAMPLE_DATA_KEY          = "sample_data.csv"
+    TZ                              = "${var.timezone}"
   }
 
   create_role                       = true
@@ -101,9 +109,21 @@ module "data_embedding_handler_lambda" {
   package_type   = var.lambda_config.data_embedding_handler.package_type
 
   environment_variables = {
-    LOG_LEVEL        = "INFO"
-    LOG_SOURCE_EVENT = true
-    TZ               = "${var.timezone}"
+    LOG_LEVEL                            = "INFO"
+    LOG_SOURCE_EVENT                     = true
+    ONNX_MODEL_PATH                      = "model"
+    TOKENIZER_PATH                       = "tokenizer"
+    POSTGRES_SECRETS_MANAGER_NAME        = module.rds_credentials.secretsmanager_secret_name
+    POSTGRES_DB                          = var.rds_config.main_database
+    POSTGRES_RAW_PRODUCT_TABLE_NAME      = var.rds_table_config.raw_products.name
+    POSTGRES_EMBEDDED_PRODUCT_TABLE_NAME = var.rds_table_config.embedded_products.name
+    POSTGRES_FETCH_BATCH_SIZE            = 1000
+    POSTGRES_UPSERT_BATCH_SIZE           = 5
+    OPENSEARCH_SECRETS_MANAGER_NAME      = module.opensearch_credentials.secretsmanager_secret_name
+    OPENSEARCH_INDEX_NAME                = var.opensearch_index_config.index.embedded_products.name
+    OPENSEARCH_TIMEOUT                   = var.opensearch_index_config.timeout
+    AWS_SQS_SUBSCRIBED_QUEUE_URL         = module.embedding_handler_queue.queue_url
+    TZ                                   = "${var.timezone}"
   }
 
 

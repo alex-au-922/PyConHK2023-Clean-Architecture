@@ -52,6 +52,15 @@ rds_config = {
   publicly_accessible = false
 }
 
+rds_table_config = {
+  raw_products = {
+    name = "raw_products"
+  }
+  embedded_products = {
+    name = "embedded_products"
+  }
+}
+
 opensearch_config = {
   version     = "OpenSearch_2.9"
   domain_name = "pyconhk2023"
@@ -71,6 +80,15 @@ opensearch_config = {
     throughput  = 125
   }
   publicly_accessible = false
+}
+
+opensearch_index_config = {
+  index = {
+    embedded_products = {
+      name = "embedded_products"
+    }
+  }
+  timeout = 30
 }
 
 bastion_host_config = {

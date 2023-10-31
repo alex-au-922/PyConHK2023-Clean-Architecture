@@ -53,6 +53,18 @@ variable "rds_config" {
   })
 }
 
+variable "rds_table_config" {
+  description = "Config for the RDS Table"
+  type = object({
+    raw_products = object({
+      name = string
+    })
+    embedded_products = object({
+      name = string
+    })
+  })
+}
+
 variable "opensearch_config" {
   description = "Config for the OpenSearch"
   type = object({
@@ -75,6 +87,19 @@ variable "opensearch_config" {
     })
     publicly_accessible = bool
   })
+}
+
+variable "opensearch_index_config" {
+  description = "Config for the OpenSearch Index"
+  type = object({
+    index = object({
+      embedded_products = object({
+        name = string
+      })
+    })
+    timeout = number
+  })
+
 }
 
 variable "allowed_cidrs_string" {
