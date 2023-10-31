@@ -13,12 +13,20 @@ T = TypeVar("T")
 class PostgresUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
     def __init__(
         self,
-        connection_string: str,
+        host: str,
+        port: int,
+        username: str,
+        password: str,
+        database: str,
         raw_product_table_name: str,
         upsert_batch_size: int,
     ) -> None:
         super().__init__()
-        self._connection_string = connection_string
+        self._host = host
+        self._port = port
+        self._username = username
+        self._password = password
+        self._database = database
         self._raw_product_table_name = raw_product_table_name
         self._upsert_batch_size = upsert_batch_size
         self._conn: Optional[connection] = None
@@ -59,7 +67,13 @@ class PostgresUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
     @contextmanager
     def _get_conn(self) -> Iterator[connection]:
         if self._conn is None or self._conn.closed:
-            self._conn = psycopg2.connect(self._connection_string)
+            self._conn = psycopg2.connect(
+                database=self._database,
+                user=self._username,
+                password=self._password,
+                host=self._host,
+                port=self._port,
+            )
         yield self._conn
 
     def _batch_generator(
