@@ -162,6 +162,8 @@ def handler(event: dict, context: LambdaContext) -> dict:
                 )
             )
 
+        logger.info(f"Found {len(raw_product_details)} raw product details!")
+
         upsert_results = pipeline_upsert_raw_products(raw_product_details)
 
         if not all(upsert_results):
