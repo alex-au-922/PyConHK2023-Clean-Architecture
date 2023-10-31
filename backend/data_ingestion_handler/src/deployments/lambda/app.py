@@ -134,15 +134,21 @@ def handler(event: dict, context: LambdaContext) -> dict:
     lambda_invoke_time = datetime.now()
 
     try:
+        logger.info("Fetching sample data from S3...")
+
         response = s3_client.get_object(
             Bucket=AWSS3Config.SAMPLE_DATA_BUCKET_NAME,
             Key=AWSS3Config.SAMPLE_DATA_KEY,
         )
 
+        logger.info("Fetched sample data from S3!")
+
         if response["ResponseMetadata"]["HTTPStatusCode"] != 200:
             raise Exception(
                 f"Found error status code {response['ResponseMetadata']['HTTPStatusCode']}!"
             )
+
+        logger.info("Parsing sample data...")
 
         raw_product_details: list[RawProductDetails] = []
 

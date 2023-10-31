@@ -61,6 +61,11 @@ module "data_ingestion_handler_lambda" {
       actions   = ["sqs:SendMessage", "sqs:GetQueueAttributes"],
       resources = [module.embedding_handler_queue.queue_arn]
     },
+    s3 = {
+      effect    = "Allow",
+      actions   = ["s3:GetObject"],
+      resources = ["${module.data_bucket.s3_bucket_arn}/*"]
+    },
     secret_manager = {
       effect    = "Allow",
       actions   = ["secretsmanager:GetSecretValue"]
