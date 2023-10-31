@@ -121,7 +121,7 @@ lambda_config = {
     layer_path                     = "../backend/data_ingestion_handler/"
     layer_name                     = "pyconhk2023-data-ingestion-handler-layer"
     handler                        = "deployment.lambda.lambda_function.handler"
-    function_url                   = false
+    function_url                   = true
     in_vpc                         = true
   }
   data_embedding_handler = {
