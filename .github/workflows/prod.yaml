@@ -31,7 +31,9 @@ jobs:
         id: cache_path
         uses: actions/cache@v3
         with:
-          path: backend/data_ingestion_handler
+          path: |
+            backend/data_ingestion_handler/src/psycopg2
+            backend/data_ingestion_handler/requirements.txt
           key: ${{ runner.os }}-pip-${{ hashFiles('backend/data_ingestion_handler/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
@@ -195,7 +197,9 @@ jobs:
         id: download_data_ingestion_handler
         uses: actions/cache@v3
         with:
-          path: backend/data_ingestion_handler
+          path: |
+            backend/data_ingestion_handler/src/psycopg2
+            backend/data_ingestion_handler/requirements.txt
           key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
       - name: Setup Terraform
         id: setup-terraform
@@ -238,7 +242,9 @@ jobs:
         id: download_data_ingestion_handler
         uses: actions/cache@v3
         with:
-          path: backend/data_ingestion_handler
+          path: |
+            backend/data_ingestion_handler/src/psycopg2
+            backend/data_ingestion_handler/requirements.txt
           key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
       - name: Setup Terraform
         id: setup-terraform
@@ -283,7 +289,9 @@ jobs:
         id: download_data_ingestion_handler
         uses: actions/cache@v3
         with:
-          path: backend/data_ingestion_handler
+          path: |
+            backend/data_ingestion_handler/src/psycopg2
+            backend/data_ingestion_handler/requirements.txt
           key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
       - name: Setup Terraform
         id: setup-terraform
