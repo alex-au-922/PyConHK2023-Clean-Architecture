@@ -31,7 +31,7 @@ jobs:
         id: cache_path
         uses: actions/cache@v3
         with:
-          path: backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
+          path: backend/data_ingestion_handler
           key: ${{ runner.os }}-pip-${{ hashFiles('backend/data_ingestion_handler/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
@@ -39,14 +39,14 @@ jobs:
         if: steps.cache_path.outputs.cache-hit != 'true'
         id: install_dependencies
         run: |
+          git clone https://github.com/jkehler/awslambda-psycopg2.git
+          cp -r awslambda-psycopg2/psycopg2-3.9 backend/data_ingestion_handler/src/psycopg2
+          mv backend/data_ingestion_handler/src/psycopg2/_psycopg.cpython-39-x86_64-linux-gnu.so backend/data_ingestion_handler/src/psycopg2/_psycopg.so
           cd backend/data_ingestion_handler
-          mkdir layer
-          cd layer
-          pip install aws-psycopg2 -t .
-          cd ..
-          python -m pip install -r requirements.txt -t python/lib/python3.10/site-packages
-          mv layer/* python/lib/python3.10/site-packages
-          zip -r pyconhk2023-data-ingestion-handler-layer.zip python/lib/python3.10/site-packages
+          sed -i 's/psycopg2-binary//g' requirements.txt
+          python -m pip install -r requirements.txt -t python
+          mv layer/* python
+          zip -r pyconhk2023-data-ingestion-handler-layer.zip python
           rm -rf python
       - name: Output the cache key
         id: cache_output
@@ -192,11 +192,11 @@ jobs:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Download Pip Packages for Data Ingestion Handler
+      - name: Download new directory for Data Ingestion Handler
         id: download_data_ingestion_handler
         uses: actions/cache@v3
         with:
-          path: backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
+          path: backend/data_ingestion_handler
           key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
       - name: Setup Terraform
         id: setup-terraform
@@ -235,11 +235,11 @@ jobs:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Download Pip Packages for Data Ingestion Handler
+      - name: Download new directory for Data Ingestion Handler
         id: download_data_ingestion_handler
         uses: actions/cache@v3
         with:
-          path: backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
+          path: backend/data_ingestion_handler
           key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
       - name: Setup Terraform
         id: setup-terraform
@@ -280,11 +280,11 @@ jobs:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Download Pip Packages for Data Ingestion Handler
+      - name: Download new directory for Data Ingestion Handler
         id: download_data_ingestion_handler
         uses: actions/cache@v3
         with:
-          path: backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
+          path: backend/data_ingestion_handler
           key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
       - name: Setup Terraform
         id: setup-terraform
