@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: 3.10.13
           cache: "pip"
-      - name: Store cache path
+      - name: Store requirements cache path
         id: cache_path
         uses: actions/cache@v3
         with:
@@ -39,9 +39,13 @@ jobs:
         if: steps.cache_path.outputs.cache-hit != 'true'
         id: install_dependencies
         run: |
-          cd backend/data_ingestion_handler
-          python -m pip install -r requirements.txt -t python
-          zip -r pyconhk2023-data-ingestion-handler-layer.zip python
+          mkdir layer
+          cd layer
+          pip install aws-psycopg2 -t .
+          cd ..
+          python -m pip install -r requirements.txt -t python/lib/python3.10/site-packages
+          mv layer/* python/lib/python3.10/site-packages
+          zip -r pyconhk2023-data-ingestion-handler-layer.zip python/lib/python3.10/site-packages
           rm -rf python
       - name: Output the cache key
         id: cache_output

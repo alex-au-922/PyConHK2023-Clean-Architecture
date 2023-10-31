@@ -1,7 +1,8 @@
 from contextlib import contextmanager
 from usecases import UpsertRawProductDetailsUseCase
 from entities import RawProductDetails
-import psycopg
+import psycopg2
+from psycopg2.extensions import connection
 from typing import Optional, Sequence, overload, TypeVar, Iterator
 from typing_extensions import override
 import logging
@@ -20,7 +21,7 @@ class PostgresUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
         self._connection_string = connection_string
         self._raw_product_table_name = raw_product_table_name
         self._upsert_batch_size = upsert_batch_size
-        self._conn: Optional[psycopg.Connection] = None
+        self._conn: Optional[connection] = None
 
     @overload
     def upsert(self, raw_product_details: RawProductDetails) -> bool:
@@ -56,9 +57,9 @@ class PostgresUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
         )
 
     @contextmanager
-    def _get_conn(self) -> Iterator[psycopg.Connection]:
+    def _get_conn(self) -> Iterator[connection]:
         if self._conn is None or self._conn.closed:
-            self._conn = psycopg.connect(self._connection_string)
+            self._conn = psycopg2.connect(self._connection_string)
         yield self._conn
 
     def _batch_generator(

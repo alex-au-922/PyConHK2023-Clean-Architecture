@@ -25,17 +25,17 @@ validation = ["fastjsonschema (>=2.14.5,<3.0.0)"]
 
 [[package]]
 name = "boto3"
-version = "1.28.73"
+version = "1.28.74"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "boto3-1.28.73-py3-none-any.whl", hash = "sha256:bbe377a288b6b12b526fae3b3d743318c6868626cf67e1e97f104345a5194b1e"},
-    {file = "boto3-1.28.73.tar.gz", hash = "sha256:a61cf96f7e196b1450afdf4856b7ea0e58080752e687b0011157be96934489be"},
+    {file = "boto3-1.28.74-py3-none-any.whl", hash = "sha256:a12619d23d50523bdfa6bd2d0c124a9567a5434ec63e47df71c3e88fc9d482f6"},
+    {file = "boto3-1.28.74.tar.gz", hash = "sha256:c4d89ff98cf53e1e74ed8c1c1bb13a7bd7d909e1c0d9ad25792ccfe2cb1575bc"},
 ]
 
 [package.dependencies]
-botocore = ">=1.31.73,<1.32.0"
+botocore = ">=1.31.74,<1.32.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.7.0,<0.8.0"
 
@@ -44,13 +44,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "boto3-stubs"
-version = "1.28.73"
-description = "Type annotations for boto3 1.28.73 generated with mypy-boto3-builder 7.19.0"
+version = "1.28.74"
+description = "Type annotations for boto3 1.28.74 generated with mypy-boto3-builder 7.19.1"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "boto3-stubs-1.28.73.tar.gz", hash = "sha256:71b22543f9b89289d037a65521aa3725338c359bbf827292a4c472d5908ee02a"},
-    {file = "boto3_stubs-1.28.73-py3-none-any.whl", hash = "sha256:03b00c43c63f3681fcbe3fb7b0af7b6377eeae42c569b553e4de96898a1c7d6b"},
+    {file = "boto3-stubs-1.28.74.tar.gz", hash = "sha256:38456889d2afe8f6c929fd8c789ae5d1c12b656d7e37ca300c54c04dc7c3bfd0"},
+    {file = "boto3_stubs-1.28.74-py3-none-any.whl", hash = "sha256:b9e1eed21497812c96af362f8b05665f3e193c1e23de2ca9b6fb9ec1b2f15580"},
 ]
 
 [package.dependencies]
@@ -99,7 +99,7 @@ batch = ["mypy-boto3-batch (>=1.28.0,<1.29.0)"]
 bedrock = ["mypy-boto3-bedrock (>=1.28.0,<1.29.0)"]
 bedrock-runtime = ["mypy-boto3-bedrock-runtime (>=1.28.0,<1.29.0)"]
 billingconductor = ["mypy-boto3-billingconductor (>=1.28.0,<1.29.0)"]
-boto3 = ["boto3 (==1.28.73)", "botocore (==1.31.73)"]
+boto3 = ["boto3 (==1.28.74)", "botocore (==1.31.74)"]
 braket = ["mypy-boto3-braket (>=1.28.0,<1.29.0)"]
 budgets = ["mypy-boto3-budgets (>=1.28.0,<1.29.0)"]
 ce = ["mypy-boto3-ce (>=1.28.0,<1.29.0)"]
@@ -425,13 +425,13 @@ xray = ["mypy-boto3-xray (>=1.28.0,<1.29.0)"]
 
 [[package]]
 name = "botocore"
-version = "1.31.73"
+version = "1.31.74"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.31.73-py3-none-any.whl", hash = "sha256:6e9caaa7205e0c0505f4868a4053e96eaf3f4b6bce0368a46970a8efeeacb492"},
-    {file = "botocore-1.31.73.tar.gz", hash = "sha256:5334c22d5a3f4643931896137c57b2496fef005b039d87d8740e7a28eb31519d"},
+    {file = "botocore-1.31.74-py3-none-any.whl", hash = "sha256:3eef070a8d8c4240aad07e5c89395002b140af213bcfc4dcd1d441e3ee4b3bee"},
+    {file = "botocore-1.31.74.tar.gz", hash = "sha256:2549ca7dc0f9227d8692a56a133c1346642efb38736c7c3f1330724d937ad6ec"},
 ]
 
 [package.dependencies]
@@ -444,17 +444,20 @@ crt = ["awscrt (==0.16.26)"]
 
 [[package]]
 name = "botocore-stubs"
-version = "1.31.73"
+version = "1.31.74"
 description = "Type annotations and code completion for botocore"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "botocore_stubs-1.31.73-py3-none-any.whl", hash = "sha256:16f083026136318f6967559433711081340d1ae4ee32d742f36d38c2e292fd6a"},
-    {file = "botocore_stubs-1.31.73.tar.gz", hash = "sha256:a301defa58dd4f99e1629f748eb01f16238fb6c036ee42f98475309c89518600"},
+    {file = "botocore_stubs-1.31.74-py3-none-any.whl", hash = "sha256:b3ec5d17fae457a81b92e6d2cbdef6806dc8ee65ec21cf49aa33111df3ad5afd"},
+    {file = "botocore_stubs-1.31.74.tar.gz", hash = "sha256:c6ea6bc58a8b1018ba78c92d09390500a927cfd96d3ede830d0bd29dc8231fb2"},
 ]
 
 [package.dependencies]
 types-awscrt = "*"
+
+[package.extras]
+botocore = ["botocore (==1.31.74)"]
 
 [[package]]
 name = "certifi"
@@ -596,13 +599,13 @@ cron = ["capturer (>=2.4)"]
 
 [[package]]
 name = "filelock"
-version = "3.13.0"
+version = "3.13.1"
 description = "A platform independent file lock."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "filelock-3.13.0-py3-none-any.whl", hash = "sha256:a552f4fde758f4eab33191e9548f671970f8b06d436d31388c9aa1e5861a710f"},
-    {file = "filelock-3.13.0.tar.gz", hash = "sha256:63c6052c82a1a24c873a549fbd39a26982e8f35a3016da231ead11a5be9dad44"},
+    {file = "filelock-3.13.1-py3-none-any.whl", hash = "sha256:57dbda9b35157b05fb3e58ee91448612eb674172fab98ee235ccb0b5bee19a1c"},
+    {file = "filelock-3.13.1.tar.gz", hash = "sha256:521f5f56c50f8426f5e03ad3b281b490a87ef15bc6c526f168290f0c7148d44e"},
 ]
 
 [package.extras]
@@ -1711,13 +1714,13 @@ vision = ["Pillow (<10.0.0)"]
 
 [[package]]
 name = "types-awscrt"
-version = "0.19.6"
+version = "0.19.7"
 description = "Type annotations and code completion for awscrt"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "types_awscrt-0.19.6-py3-none-any.whl", hash = "sha256:03ee9b215be78ec30e3451d4bbddd4abd9ca711df975e3db2f3bdb18ec450b6f"},
-    {file = "types_awscrt-0.19.6.tar.gz", hash = "sha256:19d4867f2b132bb34f2ddaee1f3feba7cc42a868af5e055cc6a580b42fa17933"},
+    {file = "types_awscrt-0.19.7-py3-none-any.whl", hash = "sha256:230b06479eaf37488ce9d536b0c4a34a5b1525d0a0a09964f2c29617bee87da5"},
+    {file = "types_awscrt-0.19.7.tar.gz", hash = "sha256:3a4a8a5829f0a4d806476bd94c4a7e231a561879fac4fe044705acc44b212a64"},
 ]
 
 [[package]]
