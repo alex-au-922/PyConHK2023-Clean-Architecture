@@ -43,7 +43,7 @@ module "data_ingestion_handler_lambda" {
     AWS_SQS_SUBSCRIBED_QUEUE_URL    = module.embedding_handler_queue.queue_url
     AWS_SQS_UPSERT_BATCH_SIZE       = 10
     AWS_S3_SAMPLE_DATA_BUCKET_NAME  = module.data_bucket.s3_bucket_id
-    AWS_S3_SAMPLE_DATA_KEY          = "sample_data.csv"
+    AWS_S3_SAMPLE_DATA_KEY          = "sampled_valid_images_dedup_tv_audio_camera_df.csv"
     TZ                              = "${var.timezone}"
   }
 
