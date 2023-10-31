@@ -120,7 +120,7 @@ lambda_config = {
     package_type                   = "Zip"
     layer_path                     = "../backend/data_ingestion_handler/"
     layer_name                     = "pyconhk2023-data-ingestion-handler-layer"
-    handler                        = "deployments.lambda.lambda_function.handler"
+    handler                        = "deployments.lambda.app.handler"
     function_url                   = true
     in_vpc                         = true
   }
@@ -132,7 +132,7 @@ lambda_config = {
     reserved_concurrent_executions = -1
     runtime                        = "python3.10"
     package_type                   = "Image"
-    image_config_command           = ["deployments.lambda.lambda_function.handler"]
+    image_config_command           = ["deployments.lambda.app.handler"]
     function_url                   = false
     in_vpc                         = true
   }
