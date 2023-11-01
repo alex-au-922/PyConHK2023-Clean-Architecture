@@ -128,6 +128,7 @@ module "data_embedding_handler_lambda" {
     OPENSEARCH_INDEX_NAME                = var.opensearch_index_config.index.embedded_products.name
     OPENSEARCH_TIMEOUT                   = var.opensearch_index_config.timeout
     AWS_SQS_SUBSCRIBED_QUEUE_URL         = module.embedding_handler_queue.queue_url
+    TRANSFORMERS_CACHE                   = "/tmp"
     TZ                                   = "${var.timezone}"
   }
 
