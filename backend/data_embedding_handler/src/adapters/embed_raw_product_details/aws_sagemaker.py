@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 from usecases import EmbedRawProductDetailsUseCase
 from entities import RawProductDetails, EmbeddedProductDetails
@@ -57,8 +57,8 @@ class AWSSageMakerEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
         """Get SageMaker client and revoke after use"""
 
         if (
-            datetime.now() - self._last_revoke_time
-        ) > AWSSageMakerEmbedRawProductDetailsClient._client_revoke_timeout:
+            datetime.now() - timedelta(seconds=self._client_revoke_timeout)
+        ) > self._last_revoke_time:
             self._client = self._client_creator()
             self._last_revoke_time = datetime.now()
         yield self._client

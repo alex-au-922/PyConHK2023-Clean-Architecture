@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from usecases import UpsertRawProductDetailsUseCase
 from entities import RawProductDetails
 from typing import ClassVar, Sequence, overload, TypeVar, Iterator, Callable
@@ -59,8 +59,8 @@ class AWSSQSUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
         """Get SQS client and revoke after use"""
 
         if (
-            datetime.now() - self._last_revoke_time
-        ) > AWSSQSUpsertRawProductDetailsClient._client_revoke_timeout:
+            datetime.now() - timedelta(seconds=self._client_revoke_timeout)
+        ) > self._last_revoke_time:
             self._client = self._client_creator()
             self._last_revoke_time = datetime.now()
         yield self._client
