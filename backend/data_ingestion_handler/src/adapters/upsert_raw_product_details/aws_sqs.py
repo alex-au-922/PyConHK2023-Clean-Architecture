@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+import json
 from usecases import UpsertRawProductDetailsUseCase
 from entities import RawProductDetails
 from typing import ClassVar, Sequence, overload, TypeVar, Iterator, Callable
@@ -112,9 +113,9 @@ class AWSSQSUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
                         Entries=[
                             {
                                 "Id": raw_product_detail.product_id,
-                                "MessageBody": self._serialize_raw_product_details(
+                                "MessageBody": json.dumps(self._serialize_raw_product_details(
                                     raw_product_detail
-                                ),
+                                )),
                             }
                             for raw_product_detail in raw_products_batch
                         ],

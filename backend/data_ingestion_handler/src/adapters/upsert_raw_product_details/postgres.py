@@ -163,7 +163,7 @@ class PostgresUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
                             actual_price = EXCLUDED.actual_price,
                             modified_date = EXCLUDED.modified_date,
                             created_date = EXCLUDED.created_date
-                        WHEN EXCLUDED.modified_date > {table_name}.modified_date
+                        WHERE {table_name}.modified_date < EXCLUDED.modified_date
                     """.format(
                         table_name=self._raw_product_table_name
                     )
