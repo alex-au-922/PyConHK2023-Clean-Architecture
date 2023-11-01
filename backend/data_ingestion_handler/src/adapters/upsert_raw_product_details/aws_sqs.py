@@ -24,6 +24,8 @@ class AWSSQSUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
         self._client_creator = client_creator
         self._queue_url = queue_url
         self._upsert_batch_size = upsert_batch_size
+        self._client = self._client_creator()
+        self._last_revoke_time = datetime.now()
 
     @overload
     def upsert(self, raw_product_details: RawProductDetails) -> bool:
@@ -43,7 +45,7 @@ class AWSSQSUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
 
     def _serialize_raw_product_details(
         self, raw_product_details: RawProductDetails
-    ) -> str:
+    ) -> dict:
         """Serialize raw product details to JSON string"""
         return {
             "product_id": raw_product_details.product_id,

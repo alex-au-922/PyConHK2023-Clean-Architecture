@@ -33,11 +33,18 @@ rds_config = {
     max     = 100,
   },
   backup_retention_period = 7,
-  parameters = [{
-    name         = "client_encoding"
-    value        = "utf8"
-    apply_method = "immediate"
-  }]
+  parameters = [
+    {
+      name         = "client_encoding"
+      value        = "utf8"
+      apply_method = "immediate"
+    },
+    {
+      name = "rds.force_ssl"
+      value = "0"
+      apply_method = "immediate"
+    }
+  ]
   performance_insights = {
     enabled          = true
     retention_period = 7
