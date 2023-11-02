@@ -350,10 +350,9 @@ def handler(event: SQSEvent, context: LambdaContext) -> dict:
 
         product_id_modified_date_pairs = [
             (
-                event_record.message_attributes["product_id"].get("stringValue"),
+                event_record.json_body["product_id"],
                 datetime.strptime(
-                    event_record.message_attributes["modified_date"].get("stringValue"),
-                    "%Y-%m-%d %H:%M:%S.%f",
+                    event_record.json_body["modified_date"], "%Y-%m-%d %H:%M:%S.%f"
                 ),
             )
             for event_record in event.records
