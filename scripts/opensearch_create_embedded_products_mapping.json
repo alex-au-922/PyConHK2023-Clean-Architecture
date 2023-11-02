@@ -1,0 +1,36 @@
+{
+    "settings": {
+        "number_of_shards": 1,
+        "number_of_replicas": 1,
+        "index.knn": true,
+        "index.knn.algo_param.ef_search": 512
+    },
+    "mappings": {
+        "properties": {
+            "product_id": {
+                "type": "keyword"
+            },
+            "product_embedding": {
+                "type": "knn_vector",
+                "dimension": 384,
+                "method": {
+                    "name": "hnsw",
+                    "space_type": "l2",
+                    "engine": "lucene",
+                    "parameters": {
+                        "ef_construction": 512,
+                        "m": 64
+                    }
+                }
+            },
+            "modified_date": {
+                "type": "date",
+                "format": "yyyy-MM-dd HH:mm:ss"
+            },
+            "created_date": {
+                "type": "date",
+                "format": "yyyy-MM-dd HH:mm:ss"
+            }
+        }
+    }
+}
