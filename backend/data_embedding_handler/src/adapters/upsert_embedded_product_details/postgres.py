@@ -99,7 +99,7 @@ class PostgresUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsUse
                             product_embedding = EXCLUDED.product_embedding,
                             modified_date = EXCLUDED.modified_date,
                             created_date = EXCLUDED.created_date
-                        WHEN EXCLUDED.modified_date > {table_name}.modified_date
+                        WHERE EXCLUDED.modified_date > {table_name}.modified_date
                     """.format(
                         table_name=self._embedded_product_table_name
                     )
@@ -146,7 +146,7 @@ class PostgresUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsUse
                                 product_embedding = EXCLUDED.product_embedding,
                                 modified_date = EXCLUDED.modified_date,
                                 created_date = EXCLUDED.created_date
-                            WHEN EXCLUDED.modified_date > {table_name}.modified_date
+                            WHERE EXCLUDED.modified_date > {table_name}.modified_date
                         """.format(
                             table_name=self._embedded_product_table_name
                         )
