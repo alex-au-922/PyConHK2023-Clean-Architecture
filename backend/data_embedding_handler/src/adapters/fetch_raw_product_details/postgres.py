@@ -1,7 +1,8 @@
 from contextlib import contextmanager
 from usecases import FetchRawProductDetailsUseCase
 from entities import RawProductDetails
-import psycopg
+import psycopg2
+from psycopg2.extensions import connection
 from typing import Optional, Sequence, overload, TypeVar, Iterator
 from typing_extensions import override
 import logging
@@ -12,15 +13,23 @@ T = TypeVar("T")
 class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
     def __init__(
         self,
-        connection_string: str,
+        host: str,
+        port: int,
+        username: str,
+        password: str,
+        database: str,
         raw_product_table_name: str,
         fetch_batch_size: int,
     ) -> None:
         super().__init__()
-        self._connection_string = connection_string
+        self._host = host
+        self._port = port
+        self._username = username
+        self._password = password
+        self._database = database
         self._raw_product_table_name = raw_product_table_name
         self._fetch_batch_size = fetch_batch_size
-        self._conn: Optional[psycopg.Connection] = None
+        self._conn: Optional[connection] = None
 
     @overload
     def fetch(self, product_id: str) -> Optional[RawProductDetails]:
@@ -47,9 +56,15 @@ class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
         )
 
     @contextmanager
-    def _get_conn(self) -> Iterator[psycopg.Connection]:
+    def _get_conn(self) -> Iterator[connection]:
         if self._conn is None or self._conn.closed:
-            self._conn = psycopg.connect(self._connection_string)
+            self._conn = psycopg2.connect(
+                database=self._database,
+                user=self._username,
+                password=self._password,
+                host=self._host,
+                port=self._port,
+            )
         yield self._conn
 
     def _batch_generator(

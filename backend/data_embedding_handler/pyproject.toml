@@ -18,7 +18,7 @@ boto3 = "^1.28.68"
 transformers = { extras = ["onnx"], version = "^4.34.1" }
 aws-lambda-powertools = "^2.26.0"
 typing-extensions = "^4.8.0"
-psycopg-binary = "^3.1.12"
+psycopg2-binary = "^2.9.9"
 
 [build-system]
 requires = ["poetry-core"]
