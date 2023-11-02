@@ -46,6 +46,7 @@ jobs:
         run: |
           git clone https://github.com/jkehler/awslambda-psycopg2.git
           cp -r awslambda-psycopg2/psycopg2-3.9 backend/data_ingestion_handler/src/psycopg2
+          ls -al backend/data_ingestion_handler/src/psycopg2
           mv backend/data_ingestion_handler/src/psycopg2/_psycopg.cpython-39-x86_64-linux-gnu.so backend/data_ingestion_handler/src/psycopg2/_psycopg.so
           cd backend/data_ingestion_handler
           python -m pip install -r requirements.txt -t python
