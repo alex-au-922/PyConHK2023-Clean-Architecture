@@ -40,8 +40,8 @@ rds_config = {
       apply_method = "immediate"
     },
     {
-      name = "rds.force_ssl"
-      value = "0"
+      name         = "rds.force_ssl"
+      value        = "0"
       apply_method = "immediate"
     }
   ]
