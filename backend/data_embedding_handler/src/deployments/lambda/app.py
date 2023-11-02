@@ -131,8 +131,10 @@ def init_opensearch_upsert_embedded_product_details_client() -> None:
         OpenSearchUpsertEmbeddedProductDetailsClient(
             opensearch_endpoint=opensearch_secrets["endpoint"],
             index_name=OpenSearchConfig.OPENSEARCH_INDEX_NAME,
-            username=opensearch_secrets["username"],
-            password=opensearch_secrets["password"],
+            master_auth=(
+                opensearch_secrets["username"],
+                opensearch_secrets["password"],
+            ),
             upsert_batch_size=OpenSearchConfig.UPSERT_BATCH_SIZE,
             timeout=OpenSearchConfig.TIMEOUT,
         )
