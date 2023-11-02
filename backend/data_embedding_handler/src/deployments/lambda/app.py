@@ -361,11 +361,11 @@ def handler(event: SQSEvent, context: LambdaContext) -> dict:
         if len(product_id_modified_date_pairs) == 1:
             product_id, product_modified_date = product_id_modified_date_pairs[0]
 
-            successes = pipeline_embed_product(
+            success = pipeline_embed_product(
                 product_id=product_id, product_modified_date=product_modified_date
             )
 
-            if successes[0]:
+            if success:
                 sqs_client.delete_message(
                     QueueUrl=AWSSQSConfig.SUBSCRIBED_QUEUE_URL,
                     ReceiptHandle=message_receipts[0],
