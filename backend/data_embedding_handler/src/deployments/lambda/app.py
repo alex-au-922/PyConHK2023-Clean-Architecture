@@ -129,7 +129,7 @@ def init_opensearch_upsert_embedded_product_details_client() -> None:
 
     opensearch_upsert_embedded_product_details_client = (
         OpenSearchUpsertEmbeddedProductDetailsClient(
-            endpoint=opensearch_secrets["endpoint"],
+            opensearch_endpoint=opensearch_secrets["endpoint"],
             index_name=OpenSearchConfig.OPENSEARCH_INDEX_NAME,
             username=opensearch_secrets["username"],
             password=opensearch_secrets["password"],
