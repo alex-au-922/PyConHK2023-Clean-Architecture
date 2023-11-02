@@ -66,7 +66,7 @@ class SentenceBertOnnxModel(nn.Module):
         expanded_tokens_embeddings = tokens_embeddings * attention_mask.unsqueeze(-1)
         return torch.sum(expanded_tokens_embeddings, dim=1) / torch.clamp(
             torch.sum(attention_mask.to(torch.float), dim=1, keepdims=True),
-            min=torch.finfo(expanded_tokens_embeddings.dtype).eps,
+            min=1e-9,
         )
 
     def _normalize(self, model_output: torch.FloatTensor) -> torch.FloatTensor:
@@ -94,16 +94,18 @@ def main(args: argparse.Namespace) -> None:
     with spinner(f"Loading tokenizer {args.model_name}..."):
         tokenizer: AutoTokenizer = AutoTokenizer.from_pretrained(args.model_name)
     torch_model = SentenceBertOnnxModel(model)
-    torch_model.float().eval()
+    torch_model.cpu().float().eval()
     with spinner(f"Exporting model to ONNX..."):
         dummy_tokenized_input = tokenizer(
-            ["Hello World!"], return_tensors="pt", padding="max_length", truncation=True
+            ["Hello World!"], return_tensors="pt", padding=True, truncation=True
         )
-        tokenized_input_keys = list(dummy_tokenized_input.keys())
+        tokenized_input_keys = ["input_ids", "attention_mask"] + (
+            ["token_type_ids"] if "token_type_ids" in dummy_tokenized_input else []
+        )
         output_model_path = Path(args.output_model_path)
         output_model_path.parent.mkdir(parents=True, exist_ok=True)
         torch.onnx.export(
-            torch_model.cpu(),
+            torch_model,
             tuple(dummy_tokenized_input[key] for key in tokenized_input_keys),
             args.output_model_path,
             input_names=tokenized_input_keys,
