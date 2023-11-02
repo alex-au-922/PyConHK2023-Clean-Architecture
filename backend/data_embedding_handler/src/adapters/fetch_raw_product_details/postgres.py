@@ -94,12 +94,14 @@ class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
                     if result is None:
                         return None
                     return self._sql_tuple_to_raw_product_details(result)
-                except Exception:
-                    logging.exception("Error fetching product details from Postgres!")
+                except Exception as e:
+                    logging.exception(e)
+                    logging.error("Error fetching product details from Postgres!")
                     conn.rollback()
                     return None
-        except Exception:
-            logging.exception("Error getting Postgres connection!")
+        except Exception as e:
+            logging.exception(e)
+            logging.error("Error getting Postgres connection!")
             return None
 
     def _fetch_batch(
@@ -133,14 +135,14 @@ class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
                                 for row in result
                             ]
                         )
-                    except Exception:
-                        logging.exception(
-                            "Error fetching product details from Postgres!"
-                        )
+                    except Exception as e:
+                        logging.exception(e)
+                        logging.error("Error fetching product details from Postgres!")
                         conn.rollback()
                         raw_product_details.extend([None] * len(product_ids_batch))
-            except Exception:
-                logging.exception("Error getting Postgres connection!")
+            except Exception as e:
+                logging.exception(e)
+                logging.error("Error getting Postgres connection!")
                 raw_product_details.extend([None] * len(product_ids_batch))
         return raw_product_details
 
@@ -151,6 +153,7 @@ class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
                 return True
             self._conn.close()
             return True
-        except Exception:
-            logging.exception("Error closing Postgres connection!")
+        except Exception as e:
+            logging.exception(e)
+            logging.error("Error closing Postgres connection!")
             return False

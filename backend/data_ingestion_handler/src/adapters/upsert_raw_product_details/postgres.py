@@ -124,14 +124,16 @@ class PostgresUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
                     )
                     conn.commit()
                     return True
-                except Exception:
-                    logging.exception(
+                except Exception as e:
+                    logging.exception(e)
+                    logging.error(
                         f"Error upserting raw product details {raw_product_details.product_id}!"
                     )
                     conn.rollback()
                     return False
-        except Exception:
-            logging.exception("Error getting Postgres connection!")
+        except Exception as e:
+            logging.exception(e)
+            logging.error("Error getting Postgres connection!")
             return False
 
     def _upsert_batch(
@@ -185,17 +187,19 @@ class PostgresUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
                         )
                         conn.commit()
                         successes.extend([True] * len(raw_products_batch))
-                    except Exception:
+                    except Exception as e:
                         failed_product_ids = [
                             raw_product_detail.product_id
                             for raw_product_detail in raw_products_batch
                         ]
-                        logging.exception(
+                        logging.exception(e)
+                        logging.error(
                             f"Error upserting raw product details {','.join(failed_product_ids)}!"
                         )
                         successes.extend([False] * len(raw_products_batch))
-            except Exception:
-                logging.exception("Error getting Postgres connection!")
+            except Exception as e:
+                logging.exception(e)
+                logging.error("Error getting Postgres connection!")
                 successes.extend([False] * len(raw_products_batch))
         return successes
 

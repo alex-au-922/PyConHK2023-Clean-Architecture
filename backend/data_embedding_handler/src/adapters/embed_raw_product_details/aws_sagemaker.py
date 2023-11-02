@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+import json
 import logging
 from usecases import EmbedRawProductDetailsUseCase
 from entities import RawProductDetails, EmbeddedProductDetails
@@ -86,13 +87,13 @@ class AWSSageMakerEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
                     )
                 )
 
-                embedding: list[float] = (
-                    self._client_creator()
-                    .invoke_endpoint(
+                embedding: list[float] = json.loads(
+                    client.invoke_endpoint(
                         EndpointName="text-embeddings",
                         Body=tokenized_input,
                     )["Body"]
                     .read()
+                    .decode("utf-8")
                 )
 
                 return EmbeddedProductDetails(
@@ -101,10 +102,9 @@ class AWSSageMakerEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
                     modified_date=raw_product_details.modified_date,
                     created_date=datetime.now(),
                 )
-        except Exception:
-            logging.exception(
-                f"Error embedding product {raw_product_details.product_id}!"
-            )
+        except Exception as e:
+            logging.exception(e)
+            logging.error(f"Error embedding product {raw_product_details.product_id}!")
             return None
 
     def _embed_batch(
@@ -124,10 +124,14 @@ class AWSSageMakerEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
                         )
                     )
 
-                    embeddings: list[list[float]] = client.invoke_endpoint(
-                        EndpointName="text-embeddings",
-                        Body=tokenized_input,
-                    )["Body"].read()
+                    embeddings: list[list[float]] = json.loads(
+                        client.invoke_endpoint(
+                            EndpointName="text-embeddings",
+                            Body=tokenized_input,
+                        )["Body"]
+                        .read()
+                        .decode("utf-8")
+                    )
 
                     embedded_product_details.extend(
                         [
@@ -140,11 +144,12 @@ class AWSSageMakerEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
                             for raw_product_detail, embedding in zip(batch, embeddings)
                         ]
                     )
-            except Exception:
+            except Exception as e:
                 failed_product_ids = [
                     raw_product_detail.product_id for raw_product_detail in batch
                 ]
-                logging.exception(
+                logging.exception(e)
+                logging.error(
                     f"Error embedding products {','.join(failed_product_ids)}!"
                 )
                 embedded_product_details.extend([None] * len(batch))
@@ -157,6 +162,7 @@ class AWSSageMakerEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
                 return True
             self._client.close()
             return True
-        except Exception:
-            logging.exception("Error closing SageMaker client!")
+        except Exception as e:
+            logging.exception(e)
+            logging.error("Error closing SageMaker client!")
             return False

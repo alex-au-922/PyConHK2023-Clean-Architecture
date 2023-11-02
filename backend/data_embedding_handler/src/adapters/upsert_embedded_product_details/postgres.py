@@ -97,7 +97,7 @@ class PostgresUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsUse
                             %s, %s, %s, %s
                         ) ON CONFLICT (product_id) DO UPDATE SET
                             product_embedding = EXCLUDED.product_embedding,
-                            modified_date = EXCLUDED.modified_date
+                            modified_date = EXCLUDED.modified_date,
                             created_date = EXCLUDED.created_date
                         WHEN EXCLUDED.modified_date > {table_name}.modified_date
                     """.format(
@@ -112,13 +112,15 @@ class PostgresUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsUse
                     )
                     conn.commit()
                     return True
-                except Exception:
-                    logging.exception(
+                except Exception as e:
+                    logging.exception(e)
+                    logging.error(
                         f"Error upserting embedded product details {embedded_product_details.product_id}!"
                     )
                     return False
-        except Exception:
-            logging.exception("Error getting Postgres connection!")
+        except Exception as e:
+            logging.exception(e)
+            logging.error("Error getting Postgres connection!")
             return False
 
     def _upsert_batch(
@@ -142,7 +144,7 @@ class PostgresUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsUse
                                 %s, %s, %s, %s
                             ) ON CONFLICT (product_id) DO UPDATE SET
                                 product_embedding = EXCLUDED.product_embedding,
-                                modified_date = EXCLUDED.modified_date
+                                modified_date = EXCLUDED.modified_date,
                                 created_date = EXCLUDED.created_date
                             WHEN EXCLUDED.modified_date > {table_name}.modified_date
                         """.format(
@@ -165,13 +167,15 @@ class PostgresUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsUse
                             embedded_product_detail.product_id
                             for embedded_product_detail in embedded_products_batch
                         ]
-                        logging.exception(
+                        logging.exception(e)
+                        logging.error(
                             f"Error upserting embedded product details {','.join(failed_product_ids)}!"
                         )
                         conn.rollback()
                         successes.extend([False] * len(embedded_products_batch))
-            except Exception:
-                logging.exception("Error getting Postgres connection!")
+            except Exception as e:
+                logging.exception(e)
+                logging.error("Error getting Postgres connection!")
                 successes.extend([False] * len(embedded_products_batch))
         return successes
 

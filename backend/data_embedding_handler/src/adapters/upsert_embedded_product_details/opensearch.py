@@ -117,8 +117,9 @@ class OpenSearchUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsU
                 f"Newer version of document {embedded_product_details.product_id} already exists!"
             )
             return True
-        except Exception:
-            logging.exception(
+        except Exception as e:
+            logging.exception(e)
+            logging.error(
                 f"Error upserting document {embedded_product_details.product_id}!"
             )
             return False
@@ -190,12 +191,13 @@ class OpenSearchUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsU
                         f"Failed to upsert products {failed_product_ids} to opensearch"
                     )
 
-            except Exception:
+            except Exception as e:
                 failed_product_ids = [
                     embedded_product_details.product_id
                     for embedded_product_details in embedded_products_batch
                 ]
-                logging.exception(
+                logging.exception(e)
+                logging.error(
                     f"Failed to upsert jobs {failed_product_ids} to opensearch"
                 )
                 successes.extend([False] * (len(embedded_products_batch)))
@@ -206,6 +208,7 @@ class OpenSearchUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsU
         try:
             self._client.close()
             return True
-        except Exception:
-            logging.exception("Error closing opensearch client!")
+        except Exception as e:
+            logging.exception(e)
+            logging.error("Error closing opensearch client!")
             return False
