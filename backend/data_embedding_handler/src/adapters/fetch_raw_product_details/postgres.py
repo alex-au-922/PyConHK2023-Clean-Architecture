@@ -79,22 +79,27 @@ class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
         """Fetch a single product details from the database"""
         try:
             with self._get_conn() as conn, conn.cursor() as cursor:
-                stmt = """
-                    SELECT
-                        product_id,
-                        name,
-                        modified_date
-                    FROM {table_name}
-                        WHERE product_id = %s""".format(
-                    table_name=self._raw_product_table_name
-                )
-                cursor.execute(stmt, (product_id,))
-                result = cursor.fetchone()
-                if result is None:
+                try:
+                    stmt = """
+                        SELECT
+                            product_id,
+                            name,
+                            modified_date
+                        FROM {table_name}
+                            WHERE product_id = %s""".format(
+                        table_name=self._raw_product_table_name
+                    )
+                    cursor.execute(stmt, (product_id,))
+                    result = cursor.fetchone()
+                    if result is None:
+                        return None
+                    return self._sql_tuple_to_raw_product_details(result)
+                except Exception:
+                    logging.exception("Error fetching product details from Postgres!")
+                    conn.rollback()
                     return None
-                return self._sql_tuple_to_raw_product_details(result)
         except Exception:
-            logging.exception("Error fetching product details from Postgres!")
+            logging.exception("Error getting Postgres connection!")
             return None
 
     def _fetch_batch(
@@ -108,27 +113,34 @@ class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
         ):
             try:
                 with self._get_conn() as conn, conn.cursor() as cursor:
-                    stmt = """
-                        SELECT
-                            product_id,
-                            name,
-                            modified_date
-                        FROM {table_name}
-                            WHERE product_id = ANY(%s)""".format(
-                        table_name=self._raw_product_table_name
-                    )
-                    cursor.execute(stmt, (product_ids_batch,))
-                    result = cursor.fetchall()
-                    raw_product_details.extend(
-                        [
-                            self._sql_tuple_to_raw_product_details(row)
-                            if row is not None
-                            else None
-                            for row in result
-                        ]
-                    )
+                    try:
+                        stmt = """
+                            SELECT
+                                product_id,
+                                name,
+                                modified_date
+                            FROM {table_name}
+                                WHERE product_id = ANY(%s)""".format(
+                            table_name=self._raw_product_table_name
+                        )
+                        cursor.execute(stmt, (list(product_ids_batch),))
+                        result = cursor.fetchall()
+                        raw_product_details.extend(
+                            [
+                                self._sql_tuple_to_raw_product_details(row)
+                                if row is not None
+                                else None
+                                for row in result
+                            ]
+                        )
+                    except Exception:
+                        logging.exception(
+                            "Error fetching product details from Postgres!"
+                        )
+                        conn.rollback()
+                        raw_product_details.extend([None] * len(product_ids_batch))
             except Exception:
-                logging.exception("Error fetching product details from Postgres!")
+                logging.exception("Error getting Postgres connection!")
                 raw_product_details.extend([None] * len(product_ids_batch))
         return raw_product_details
 

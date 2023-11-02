@@ -84,50 +84,9 @@ class PostgresUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsUse
 
     def _upsert_single(self, embedded_product_details: EmbeddedProductDetails) -> bool:
         """Upsert a single embedded product to Postgres."""
-
         try:
             with self._get_conn() as conn, conn.cursor() as cur:
-                stmt = """
-                    INSERT INTO {table_name} (
-                        product_id,
-                        product_embedding,
-                        modified_date,
-                        created_date
-                    ) VALUES (
-                        %s, %s, %s, %s
-                    ) ON CONFLICT (product_id) DO UPDATE SET
-                        product_embedding = EXCLUDED.product_embedding,
-                        modified_date = EXCLUDED.modified_date
-                        created_date = EXCLUDED.created_date
-                    WHEN EXCLUDED.modified_date > {table_name}.modified_date
-                """.format(
-                    table_name=self._embedded_product_table_name
-                )
-
-                cur.execute(
-                    stmt,
-                    self._embedded_product_details_to_sql_tuple(
-                        embedded_product_details
-                    ),
-                )
-                conn.commit()
-                return True
-        except Exception:
-            logging.exception(
-                f"Error upserting embedded product details {embedded_product_details.product_id}!"
-            )
-            return False
-
-    def _upsert_batch(
-        self, embedded_product_details: Sequence[EmbeddedProductDetails]
-    ) -> list[bool]:
-        """Upsert a batch of embedded products to Postgres."""
-        successes: list[bool] = []
-        for embedded_products_batch in self._batch_generator(
-            embedded_product_details, self._upsert_batch_size
-        ):
-            try:
-                with self._get_conn() as conn, conn.cursor() as cur:
+                try:
                     stmt = """
                         INSERT INTO {table_name} (
                             product_id,
@@ -145,25 +104,74 @@ class PostgresUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsUse
                         table_name=self._embedded_product_table_name
                     )
 
-                    cur.executemany(
+                    cur.execute(
                         stmt,
-                        [
-                            self._embedded_product_details_to_sql_tuple(
-                                embedded_product_detail
-                            )
-                            for embedded_product_detail in embedded_products_batch
-                        ],
+                        self._embedded_product_details_to_sql_tuple(
+                            embedded_product_details
+                        ),
                     )
                     conn.commit()
-                    successes.extend([True] * len(embedded_products_batch))
-            except Exception as e:
-                failed_product_ids = [
-                    embedded_product_detail.product_id
-                    for embedded_product_detail in embedded_products_batch
-                ]
-                logging.exception(
-                    f"Error upserting embedded product details {','.join(failed_product_ids)}!"
-                )
+                    return True
+                except Exception:
+                    logging.exception(
+                        f"Error upserting embedded product details {embedded_product_details.product_id}!"
+                    )
+                    return False
+        except Exception:
+            logging.exception("Error getting Postgres connection!")
+            return False
+
+    def _upsert_batch(
+        self, embedded_product_details: Sequence[EmbeddedProductDetails]
+    ) -> list[bool]:
+        """Upsert a batch of embedded products to Postgres."""
+        successes: list[bool] = []
+        for embedded_products_batch in self._batch_generator(
+            embedded_product_details, self._upsert_batch_size
+        ):
+            try:
+                with self._get_conn() as conn, conn.cursor() as cur:
+                    try:
+                        stmt = """
+                            INSERT INTO {table_name} (
+                                product_id,
+                                product_embedding,
+                                modified_date,
+                                created_date
+                            ) VALUES (
+                                %s, %s, %s, %s
+                            ) ON CONFLICT (product_id) DO UPDATE SET
+                                product_embedding = EXCLUDED.product_embedding,
+                                modified_date = EXCLUDED.modified_date
+                                created_date = EXCLUDED.created_date
+                            WHEN EXCLUDED.modified_date > {table_name}.modified_date
+                        """.format(
+                            table_name=self._embedded_product_table_name
+                        )
+
+                        cur.executemany(
+                            stmt,
+                            [
+                                self._embedded_product_details_to_sql_tuple(
+                                    embedded_product_detail
+                                )
+                                for embedded_product_detail in embedded_products_batch
+                            ],
+                        )
+                        conn.commit()
+                        successes.extend([True] * len(embedded_products_batch))
+                    except Exception as e:
+                        failed_product_ids = [
+                            embedded_product_detail.product_id
+                            for embedded_product_detail in embedded_products_batch
+                        ]
+                        logging.exception(
+                            f"Error upserting embedded product details {','.join(failed_product_ids)}!"
+                        )
+                        conn.rollback()
+                        successes.extend([False] * len(embedded_products_batch))
+            except Exception:
+                logging.exception("Error getting Postgres connection!")
                 successes.extend([False] * len(embedded_products_batch))
         return successes
 

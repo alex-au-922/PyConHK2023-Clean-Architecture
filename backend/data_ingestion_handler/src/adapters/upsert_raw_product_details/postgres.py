@@ -86,59 +86,9 @@ class PostgresUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
 
     def _upsert_single(self, raw_product_details: RawProductDetails) -> bool:
         """Upsert a single raw product to Postgres."""
-
         try:
             with self._get_conn() as conn, conn.cursor() as cur:
-                stmt = """
-                    INSERT INTO {table_name} (
-                        product_id,
-                        name,
-                        main_category,
-                        sub_category,
-                        image_url,
-                        ratings,
-                        discount_price,
-                        actual_price,
-                        modified_date,
-                        created_date
-                    ) VALUES (
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                    ) ON CONFLICT (product_id) DO UPDATE SET
-                        name = EXCLUDED.name,
-                        main_category = EXCLUDED.main_category,
-                        sub_category = EXCLUDED.sub_category,
-                        image_url = EXCLUDED.image_url,
-                        ratings = EXCLUDED.ratings,
-                        discount_price = EXCLUDED.discount_price,
-                        actual_price = EXCLUDED.actual_price,
-                        modified_date = EXCLUDED.modified_date,
-                        created_date = EXCLUDED.created_date
-                    WHEN EXCLUDED.modified_date > {table_name}.modified_date
-                """.format(
-                    table_name=self._raw_product_table_name
-                )
-
-                cur.execute(
-                    stmt, self._raw_product_details_to_sql_tuple(raw_product_details)
-                )
-                conn.commit()
-                return True
-        except Exception:
-            logging.exception(
-                f"Error upserting raw product details {raw_product_details.product_id}!"
-            )
-            return False
-
-    def _upsert_batch(
-        self, raw_product_details: Sequence[RawProductDetails]
-    ) -> list[bool]:
-        """Upsert a batch of raw products to Postgres."""
-        successes: list[bool] = []
-        for raw_products_batch in self._batch_generator(
-            raw_product_details, self._upsert_batch_size
-        ):
-            try:
-                with self._get_conn() as conn, conn.cursor() as cur:
+                try:
                     stmt = """
                         INSERT INTO {table_name} (
                             product_id,
@@ -163,30 +113,89 @@ class PostgresUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
                             actual_price = EXCLUDED.actual_price,
                             modified_date = EXCLUDED.modified_date,
                             created_date = EXCLUDED.created_date
-                        WHERE {table_name}.modified_date < EXCLUDED.modified_date
+                        WHEN EXCLUDED.modified_date > {table_name}.modified_date
                     """.format(
                         table_name=self._raw_product_table_name
                     )
 
-                    cur.executemany(
+                    cur.execute(
                         stmt,
-                        [
-                            self._raw_product_details_to_sql_tuple(
-                                embedded_product_detail
-                            )
-                            for embedded_product_detail in raw_products_batch
-                        ],
+                        self._raw_product_details_to_sql_tuple(raw_product_details),
                     )
                     conn.commit()
-                    successes.extend([True] * len(raw_products_batch))
+                    return True
+                except Exception:
+                    logging.exception(
+                        f"Error upserting raw product details {raw_product_details.product_id}!"
+                    )
+                    conn.rollback()
+                    return False
+        except Exception:
+            logging.exception("Error getting Postgres connection!")
+            return False
+
+    def _upsert_batch(
+        self, raw_product_details: Sequence[RawProductDetails]
+    ) -> list[bool]:
+        """Upsert a batch of raw products to Postgres."""
+        successes: list[bool] = []
+        for raw_products_batch in self._batch_generator(
+            raw_product_details, self._upsert_batch_size
+        ):
+            try:
+                with self._get_conn() as conn, conn.cursor() as cur:
+                    try:
+                        stmt = """
+                            INSERT INTO {table_name} (
+                                product_id,
+                                name,
+                                main_category,
+                                sub_category,
+                                image_url,
+                                ratings,
+                                discount_price,
+                                actual_price,
+                                modified_date,
+                                created_date
+                            ) VALUES (
+                                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                            ) ON CONFLICT (product_id) DO UPDATE SET
+                                name = EXCLUDED.name,
+                                main_category = EXCLUDED.main_category,
+                                sub_category = EXCLUDED.sub_category,
+                                image_url = EXCLUDED.image_url,
+                                ratings = EXCLUDED.ratings,
+                                discount_price = EXCLUDED.discount_price,
+                                actual_price = EXCLUDED.actual_price,
+                                modified_date = EXCLUDED.modified_date,
+                                created_date = EXCLUDED.created_date
+                            WHERE {table_name}.modified_date < EXCLUDED.modified_date
+                        """.format(
+                            table_name=self._raw_product_table_name
+                        )
+
+                        cur.executemany(
+                            stmt,
+                            [
+                                self._raw_product_details_to_sql_tuple(
+                                    embedded_product_detail
+                                )
+                                for embedded_product_detail in raw_products_batch
+                            ],
+                        )
+                        conn.commit()
+                        successes.extend([True] * len(raw_products_batch))
+                    except Exception:
+                        failed_product_ids = [
+                            raw_product_detail.product_id
+                            for raw_product_detail in raw_products_batch
+                        ]
+                        logging.exception(
+                            f"Error upserting raw product details {','.join(failed_product_ids)}!"
+                        )
+                        successes.extend([False] * len(raw_products_batch))
             except Exception:
-                failed_product_ids = [
-                    raw_product_detail.product_id
-                    for raw_product_detail in raw_products_batch
-                ]
-                logging.exception(
-                    f"Error upserting raw product details {','.join(failed_product_ids)}!"
-                )
+                logging.exception("Error getting Postgres connection!")
                 successes.extend([False] * len(raw_products_batch))
         return successes
 
