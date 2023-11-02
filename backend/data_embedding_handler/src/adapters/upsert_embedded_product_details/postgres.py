@@ -90,13 +90,13 @@ class PostgresUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsUse
                     stmt = """
                         INSERT INTO {table_name} (
                             product_id,
-                            product_embedding,
+                            embedding,
                             modified_date,
                             created_date
                         ) VALUES (
                             %s, %s, %s, %s
                         ) ON CONFLICT (product_id) DO UPDATE SET
-                            product_embedding = EXCLUDED.product_embedding,
+                            embedding = EXCLUDED.embedding,
                             modified_date = EXCLUDED.modified_date,
                             created_date = EXCLUDED.created_date
                         WHERE EXCLUDED.modified_date > {table_name}.modified_date
@@ -137,13 +137,13 @@ class PostgresUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsUse
                         stmt = """
                             INSERT INTO {table_name} (
                                 product_id,
-                                product_embedding,
+                                embedding,
                                 modified_date,
                                 created_date
                             ) VALUES (
                                 %s, %s, %s, %s
                             ) ON CONFLICT (product_id) DO UPDATE SET
-                                product_embedding = EXCLUDED.product_embedding,
+                                embedding = EXCLUDED.embedding,
                                 modified_date = EXCLUDED.modified_date,
                                 created_date = EXCLUDED.created_date
                             WHERE EXCLUDED.modified_date > {table_name}.modified_date
