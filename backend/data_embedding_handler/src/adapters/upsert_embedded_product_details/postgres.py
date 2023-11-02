@@ -47,9 +47,9 @@ class PostgresUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsUse
         embedded_product_details: EmbeddedProductDetails
         | Sequence[EmbeddedProductDetails],
     ) -> bool | list[bool]:
-        if isinstance(embedded_product_details, Sequence):
-            return self._upsert_batch(embedded_product_details)
-        return self._upsert_single(embedded_product_details)
+        if isinstance(embedded_product_details, EmbeddedProductDetails):
+            return self._upsert_single(embedded_product_details)
+        return self._upsert_batch(embedded_product_details)
 
     def _embedded_product_details_to_sql_tuple(
         self, embedded_product_details: EmbeddedProductDetails

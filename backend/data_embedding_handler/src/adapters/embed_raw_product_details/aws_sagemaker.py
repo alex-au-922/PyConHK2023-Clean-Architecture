@@ -48,9 +48,9 @@ class AWSSageMakerEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
     def embed(
         self, raw_product_details: RawProductDetails | Sequence[RawProductDetails]
     ) -> Optional[EmbeddedProductDetails] | list[Optional[EmbeddedProductDetails]]:
-        if isinstance(raw_product_details, list):
-            return self._embed_batch(raw_product_details)
-        return self._embed_single(raw_product_details)
+        if isinstance(raw_product_details, RawProductDetails):
+            return self._embed_single(raw_product_details)
+        return self._embed_batch(raw_product_details)
 
     @contextmanager
     def _get_client(self) -> Iterator[SageMakerRuntimeClient]:

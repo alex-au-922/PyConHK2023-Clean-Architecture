@@ -43,9 +43,9 @@ class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
     def fetch(
         self, product_id: str | Sequence[str]
     ) -> Optional[RawProductDetails] | list[Optional[RawProductDetails]]:
-        if isinstance(product_id, Sequence):
-            return self._fetch_batch(product_id)
-        return self._fetch_single(product_id)
+        if isinstance(product_id, str):
+            return self._fetch_single(product_id)
+        return self._fetch_batch(product_id)
 
     def _sql_tuple_to_raw_product_details(self, sql_tuple: tuple) -> RawProductDetails:
         """Deserialize SQL tuple to RawProductDetails"""

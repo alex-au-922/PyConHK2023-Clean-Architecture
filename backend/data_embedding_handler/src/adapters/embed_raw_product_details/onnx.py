@@ -35,12 +35,12 @@ class OnnxEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
     def embed(
         self, raw_product_details: RawProductDetails | Sequence[RawProductDetails]
     ) -> Optional[EmbeddedProductDetails] | list[Optional[EmbeddedProductDetails]]:
-        if isinstance(raw_product_details, Sequence):
-            return [
-                self._embed_single(raw_product_detail)
-                for raw_product_detail in raw_product_details
-            ]
-        return self._embed_single(raw_product_details)
+        if isinstance(raw_product_details, RawProductDetails):
+            return self._embed_single(raw_product_details)
+        return [
+            self._embed_single(raw_product_detail)
+            for raw_product_detail in raw_product_details
+        ]
 
     def _embed_single(
         self, raw_product_details: RawProductDetails

@@ -43,9 +43,9 @@ class PostgresUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
     def upsert(
         self, raw_product_details: RawProductDetails | Sequence[RawProductDetails]
     ) -> bool | list[bool]:
-        if isinstance(raw_product_details, Sequence):
-            return self._upsert_batch(raw_product_details)
-        return self._upsert_single(raw_product_details)
+        if isinstance(raw_product_details, RawProductDetails):
+            return self._upsert_single(raw_product_details)
+        return self._upsert_batch(raw_product_details)
 
     def _raw_product_details_to_sql_tuple(
         self, raw_product_details: RawProductDetails

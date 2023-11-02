@@ -57,9 +57,9 @@ class OpenSearchUpsertEmbeddedProductDetailsClient(UpsertEmbeddedProductDetailsU
         embedded_product_details: EmbeddedProductDetails
         | Sequence[EmbeddedProductDetails],
     ) -> bool | list[bool]:
-        if isinstance(embedded_product_details, Sequence):
-            return self._upsert_batch(embedded_product_details)
-        return self._upsert_single(embedded_product_details)
+        if isinstance(embedded_product_details, EmbeddedProductDetails):
+            return self._upsert_single(embedded_product_details)
+        return self._upsert_batch(embedded_product_details)
 
     def _serialize_embedded_product_details(
         self, embedded_product_details: EmbeddedProductDetails

@@ -40,9 +40,9 @@ class AWSSQSUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
     def upsert(
         self, raw_product_details: RawProductDetails | Sequence[RawProductDetails]
     ) -> bool | list[bool]:
-        if isinstance(raw_product_details, Sequence):
-            return self._upsert_batch(raw_product_details)
-        return self._upsert_single(raw_product_details)
+        if isinstance(raw_product_details, RawProductDetails):
+            return self._upsert_single(raw_product_details)
+        return self._upsert_batch(raw_product_details)
 
     def _serialize_raw_product_details(
         self, raw_product_details: RawProductDetails
@@ -113,9 +113,11 @@ class AWSSQSUpsertRawProductDetailsClient(UpsertRawProductDetailsUseCase):
                         Entries=[
                             {
                                 "Id": raw_product_detail.product_id,
-                                "MessageBody": json.dumps(self._serialize_raw_product_details(
-                                    raw_product_detail
-                                )),
+                                "MessageBody": json.dumps(
+                                    self._serialize_raw_product_details(
+                                        raw_product_detail
+                                    )
+                                ),
                             }
                             for raw_product_detail in raw_products_batch
                         ],
