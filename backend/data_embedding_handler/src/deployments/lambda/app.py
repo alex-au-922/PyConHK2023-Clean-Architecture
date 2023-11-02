@@ -26,6 +26,7 @@ from .config import (
 )
 import boto3
 import json
+import logging
 from aws_lambda_powertools.logging import Logger, utils as log_utils
 from aws_lambda_powertools.utilities.data_classes import SQSEvent, event_source
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -33,7 +34,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 logger = Logger(level=ProjectConfig.LOG_LEVEL)
 log_utils.copy_config_to_registered_loggers(
     source_logger=logger,
-    log_level=ProjectConfig.LOG_LEVEL,
+    log_level=logging.WARNING,
 )
 
 embed_raw_product_details_client: Optional[EmbedRawProductDetailsUseCase] = None
@@ -82,10 +83,12 @@ def init_fetch_raw_product_details_client() -> None:
         secret_name=PostgresConfig.SECRETS_MANAGER_NAME
     )
 
-    connection_string = f"postgresql://{postgres_secrets['username']}:{postgres_secrets['password']}@{postgres_secrets['host']}:{postgres_secrets['port']}/{PostgresConfig.POSTGRES_DB}"
-
     fetch_raw_product_details_client = PostgresFetchRawProductDetailsClient(
-        connection_string=connection_string,
+        host=postgres_secrets["host"],
+        port=int(postgres_secrets["port"]),
+        username=postgres_secrets["username"],
+        password=postgres_secrets["password"],
+        database=PostgresConfig.POSTGRES_DB,
         raw_product_table_name=PostgresConfig.RAW_PRODUCT_TABLE_NAME,
         fetch_batch_size=PostgresConfig.FETCH_BATCH_SIZE,
     )
@@ -101,11 +104,13 @@ def init_postgres_upsert_embedded_product_details_client() -> None:
         secret_name=PostgresConfig.SECRETS_MANAGER_NAME
     )
 
-    connection_string = f"postgresql://{postgres_secrets['username']}:{postgres_secrets['password']}@{postgres_secrets['host']}:{postgres_secrets['port']}/{PostgresConfig.POSTGRES_DB}"
-
     postgres_upsert_embedded_product_details_client = (
         PostgresUpsertEmbeddedProductDetailsClient(
-            connection_string=connection_string,
+            host=postgres_secrets["host"],
+            port=int(postgres_secrets["port"]),
+            username=postgres_secrets["username"],
+            password=postgres_secrets["password"],
+            database=PostgresConfig.POSTGRES_DB,
             embedded_product_table_name=PostgresConfig.EMBEDDED_PRODUCT_TABLE_NAME,
             upsert_batch_size=PostgresConfig.UPSERT_BATCH_SIZE,
         )

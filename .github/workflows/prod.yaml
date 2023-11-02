@@ -123,28 +123,38 @@ jobs:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Create Model Cache From Check
+      - name: Create Image Cache
+        id: create-image-cache
+        uses: actions/cache@v3
+        with:
+          path: backend/data_embedding_handler
+          key: ${{ runner.os }}-image-${{ hashFiles('backend/data_embedding_handler/**') }}
+      - name: Get Model Cache From Check
         id: read-cache-check
-        if: needs.check-model-cache-exists.outputs.model_cache_exists == 'true'
+        if: needs.check-model-cache-exists.outputs.model_cache_exists == 'true' && steps.create-image-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v3
         with:
           path: models
           key: ${{ needs.check-model-cache-exists.outputs.model_cache_key }}
-      - name: Create Model Cache From Create
+      - name: Get Model Cache From Create
         id: read-cache-create
-        if: needs.create-model.outputs.model_cache_key != ''
+        if: needs.create-model.outputs.model_cache_key != '' && steps.create-image-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v3
         with:
           path: models
           key: ${{ needs.create-model.outputs.model_cache_key }}
       - name: Copy Model Cache
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
         id: copy-cache
         run: |
           cp -r models/ backend/data_embedding_handler/models/
       - name: Set up Docker Buildx
+        id: setup-buildx
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
         uses: docker/setup-buildx-action@v3
       - name: Login ECR
         id: login-ecr
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
         run: |
           export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
           export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/pyconhk2023-data-embedding-handler
@@ -153,6 +163,7 @@ jobs:
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Build Dockerfile
         uses: docker/build-push-action@v4
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
         with:
           context: backend/data_embedding_handler
           load: true
@@ -165,6 +176,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Push Docker Image
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
         run: |
           docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
   terraform-plan:
