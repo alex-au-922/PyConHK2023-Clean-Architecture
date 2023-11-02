@@ -40,9 +40,6 @@ jobs:
       - name: Install dependencies for data ingestion handler
         if: steps.cache_path.outputs.cache-hit != 'true'
         id: install_dependencies
-        env:
-          POSTGRES_VER: 15.3
-
         run: |
           git clone https://github.com/jkehler/awslambda-psycopg2.git
           cp -r awslambda-psycopg2/psycopg2-3.9 backend/data_ingestion_handler/src/psycopg2
