@@ -76,8 +76,8 @@ def init_fetch_raw_product_details_client() -> None:
         secret_name=PostgresConfig.SECRETS_MANAGER_NAME
     )
     fetch_raw_product_details_client = PostgresFetchRawProductDetailsClient(
-        host=postgres_secrets["host"],
-        port=int(postgres_secrets["port"]),
+        host=postgres_secrets["readerHost"],
+        port=int(postgres_secrets["readerPort"]),
         username=postgres_secrets["username"],
         password=postgres_secrets["password"],
         database=PostgresConfig.POSTGRES_DB,
@@ -118,13 +118,19 @@ def similar_products() -> Response:
     try:
         query_body: dict = app.current_event.json_body
 
+        logger.info(f"{query_body=}")
+
         raw_query_details = RawQueryDetails(
             query=query_body["query"], created_date=datetime.now()
         )
 
+        logger.info(f"{raw_query_details=}")
+
         embedded_query_details = cast(
             EmbedRawQueryDetailsUseCase, embed_raw_query_details_client
         ).embed(raw_query_details)
+
+        logger.info(f"{embedded_query_details=}")
 
         if embedded_query_details is None:
             return Response(
@@ -142,6 +148,8 @@ def similar_products() -> Response:
         similar_products_tuples = cast(
             QuerySimilarProductDetailsUseCase, query_similar_product_details_client
         ).query(embedded_query_details)
+
+        logger.info(f"{similar_products_tuples=}")
 
         if similar_products_tuples is None:
             return Response(
@@ -163,6 +171,8 @@ def similar_products() -> Response:
         similar_product_details = cast(
             FetchRawProductDetailsUseCase, fetch_raw_product_details_client
         ).fetch(similar_product_ids)
+
+        logger.info(f"{similar_product_details=}")
 
         valid_similar_product_details = [
             similar_product_detail
@@ -239,7 +249,10 @@ def similar_products() -> Response:
 @tracer.capture_lambda_handler
 def handler(event: dict, context: LambdaContext) -> dict:
     init_embed_raw_query_details_client()
+    logger.info(f"{embed_raw_query_details_client=}")
     init_fetch_raw_product_details_client()
+    logger.info(f"{fetch_raw_product_details_client=}")
     init_query_similar_product_details_client()
+    logger.info(f"{query_similar_product_details_client=}")
 
     return app.resolve(event, context)
