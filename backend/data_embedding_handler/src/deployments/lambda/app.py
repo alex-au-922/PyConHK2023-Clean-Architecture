@@ -26,7 +26,6 @@ from .config import (
 )
 import boto3
 import json
-import logging
 from aws_lambda_powertools.logging import Logger, utils as log_utils
 from aws_lambda_powertools.utilities.data_classes import SQSEvent, event_source
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -34,7 +33,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 logger = Logger(level=ProjectConfig.LOG_LEVEL)
 log_utils.copy_config_to_registered_loggers(
     source_logger=logger,
-    log_level=logging.WARNING,
+    log_level=ProjectConfig.LOG_LEVEL,
 )
 
 embed_raw_product_details_client: Optional[EmbedRawProductDetailsUseCase] = None

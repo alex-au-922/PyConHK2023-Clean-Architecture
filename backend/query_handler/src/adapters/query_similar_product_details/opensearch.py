@@ -121,7 +121,10 @@ class OpenSearchQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCa
 
             logging.info(f"{result = }")
 
-            return [(hit["_source"]["product_id"], hit["_score"]) for hit in result]
+            return [
+                (hit["_source"]["product_id"], hit["_score"])
+                for hit in result["hits"]["hits"]
+            ]
         except Exception as e:
             logging.exception(e)
             logging.error("Error getting OpenSearch connection!")

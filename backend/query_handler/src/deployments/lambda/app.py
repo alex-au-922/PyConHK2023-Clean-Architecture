@@ -35,7 +35,7 @@ from .config import (
 logger = Logger(level=ProjectConfig.LOG_LEVEL)
 log_utils.copy_config_to_registered_loggers(
     source_logger=logger,
-    log_level=logging.WARNING,
+    log_level=ProjectConfig.LOG_LEVEL,
 )
 tracer = Tracer(service="query_handler")
 app = APIGatewayHttpResolver()
