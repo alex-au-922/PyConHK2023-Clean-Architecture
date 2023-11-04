@@ -249,7 +249,7 @@ ecs_config = {
         unhealthy_threshold = 1
         interval            = 30
         matcher             = "200"
-        path                = "/api/health_status"
+        path_parts          = ["api", "health_status"]
       }
       command = [
         "python",

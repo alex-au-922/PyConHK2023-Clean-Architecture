@@ -56,12 +56,12 @@ resource "aws_lb_target_group" "query_handler" {
   vpc_id      = module.vpc.vpc_id
   health_check {
     enabled             = true
-    healthy_threshold   = var.ecs_config.query_handler.health_check.healthy_threshold
-    unhealthy_threshold = var.ecs_config.query_handler.health_check.unhealthy_threshold
-    interval            = var.ecs_config.query_handler.health_check.interval
+    healthy_threshold   = var.ecs_config.query_handler.container.health_check.healthy_threshold
+    unhealthy_threshold = var.ecs_config.query_handler.container.health_check.unhealthy_threshold
+    interval            = var.ecs_config.query_handler.container.health_check.interval
     protocol            = "HTTP"
-    matcher             = var.ecs_config.query_handler.health_check.matcher
-    path                = var.ecs_config.query_handler.health_check.path
+    matcher             = var.ecs_config.query_handler.container.health_check.matcher
+    path                = format("/%s", join("/", var.ecs_config.query_handler.container.health_check.path_parts))
   }
   lifecycle {
     create_before_destroy = true

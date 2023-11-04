@@ -267,7 +267,7 @@ variable "ecs_config" {
           unhealthy_threshold = number
           interval            = number
           matcher             = string
-          path                = string
+          path_parts          = list(string)
         })
         command = list(string)
         autoscaling = object({
