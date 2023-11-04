@@ -53,13 +53,13 @@ module "query_handler_alb" {
     }
   ]
 
-  http_tcp_listeners = [
-    {
-      port               = var.ecs_config.query_handler.container.port
-      protocol           = "HTTP"
-      target_group_index = 0
-    }
-  ]
+  #   http_tcp_listeners = [
+  #     {
+  #       port               = var.ecs_config.query_handler.container.port
+  #       protocol           = "HTTP"
+  #       target_group_index = 0
+  #     }
+  #   ]
 }
 
 module "query_handler" {
