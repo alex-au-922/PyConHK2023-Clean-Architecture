@@ -204,8 +204,12 @@ def similar_products() -> Response:
                             "ratings": product.ratings,
                             "discount_price": product.discount_price,
                             "actual_price": product.actual_price,
-                            "modified_date": product.modified_date,
-                            "created_date": product.created_date,
+                            "modified_date": datetime.strftime(
+                                product.modified_date, "%Y-%m-%d %H:%M:%S"
+                            ),
+                            "created_date": datetime.strftime(
+                                product.created_date, "%Y-%m-%d %H:%M:%S"
+                            ),
                             "score": min(1, max(-1, score)),
                         }
                         for product, score in zip(
