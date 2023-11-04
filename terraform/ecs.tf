@@ -49,7 +49,7 @@ resource "aws_lb_listener" "query_handler" {
 }
 
 resource "aws_lb_target_group" "query_handler" {
-  name        = "${var.ecs_config.query_handler.name}-lb"
+  name        = "${var.ecs_config.query_handler.name}-${substr(uuid(), 0, 3)}-lb"
   port        = var.ecs_config.query_handler.container.port
   protocol    = "HTTP"
   target_type = "ip"
@@ -62,6 +62,11 @@ resource "aws_lb_target_group" "query_handler" {
     protocol            = "HTTP"
     matcher             = var.ecs_config.query_handler.container.health_check.matcher
     path                = format("/%s", join("/", var.ecs_config.query_handler.container.health_check.path_parts))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes        = [name]
   }
 }
 
