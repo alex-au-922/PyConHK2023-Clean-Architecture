@@ -147,7 +147,7 @@ jobs:
         if: steps.create-image-cache.outputs.cache-hit != 'true'
         id: copy-cache
         run: |
-          cp -r models/ backend/data_embedding_handler/models/
+          mv models/ backend/query_handler/models/
       - name: Set up Docker Buildx
         id: setup-buildx
         if: steps.create-image-cache.outputs.cache-hit != 'true'
@@ -220,7 +220,7 @@ jobs:
         if: steps.create-image-cache.outputs.cache-hit != 'true'
         id: copy-cache
         run: |
-          cp -r models/ backend/query_handler/models/
+          mv models/ backend/query_handler/models/
       - name: Set up Docker Buildx
         id: setup-buildx
         if: steps.create-image-cache.outputs.cache-hit != 'true'
@@ -294,7 +294,7 @@ jobs:
         if: steps.create-image-cache.outputs.cache-hit != 'true'
         id: copy-cache
         run: |
-          cp -r models/ backend/query_handler/models/
+          mv models/ backend/query_handler/models/
       - name: Set up Docker Buildx
         id: setup-buildx
         if: steps.create-image-cache.outputs.cache-hit != 'true'
