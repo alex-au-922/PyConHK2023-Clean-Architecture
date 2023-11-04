@@ -133,7 +133,7 @@ module "query_handler" {
             },
             {
               name  = "LOG_FORMAT",
-              value = "[<green>{time:YYYY-MM-DD HH:mm:ss}</green>|<level>{level}</level>] <cyan>({name}.py|{function}|line:{line})</cyan> >> {message}",
+              value = "{message}",
             },
             {
               name  = "LOG_JSON",
