@@ -61,7 +61,7 @@ resource "aws_lb_target_group" "query_handler" {
     interval            = var.ecs_config.query_handler.container.health_check.interval
     protocol            = "HTTP"
     matcher             = var.ecs_config.query_handler.container.health_check.matcher
-    path                = format("/%s", join("/", var.ecs_config.query_handler.container.health_check.path_parts))
+    path                = format("/%s/", join("/", var.ecs_config.query_handler.container.health_check.path_parts))
   }
 
   lifecycle {
