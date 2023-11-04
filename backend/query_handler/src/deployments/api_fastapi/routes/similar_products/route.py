@@ -65,7 +65,7 @@ def similar_products(
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content=jsonable_encoder(
-                    ApiResponse(
+                    ResponseClass(
                         message="Query Similar Products failed",
                         error=ApiResponseError(
                             message=str(e),

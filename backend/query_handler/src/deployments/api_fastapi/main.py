@@ -1,6 +1,6 @@
-from .utils.logging import setup_logger
+# from .utils.logging import setup_logger
 
-setup_logger()
+# setup_logger()
 
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
@@ -10,6 +10,12 @@ import uvloop
 import logging
 from .routes import router, lifespan
 from .utils.api_response import ApiResponse, ApiResponseError
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s | %(levelname)s] (%(name)s) >> %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 uvloop.install()
 

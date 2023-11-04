@@ -11,5 +11,5 @@ class ApiResponseError(BaseModel):
 
 class ApiResponse(BaseModel, Generic[T]):
     message: str
-    data: T
+    data: Optional[T] = None
     error: Optional[ApiResponseError] = None
