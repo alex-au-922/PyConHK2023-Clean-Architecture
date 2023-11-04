@@ -42,7 +42,7 @@ def similar_products(
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content=jsonable_encoder(
-                    ApiResponse(
+                    ResponseClass(
                         message="Query Embedding failed",
                         error=ApiResponseError(
                             message=str(e),
@@ -88,7 +88,7 @@ def similar_products(
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content=jsonable_encoder(
-                    ApiResponse(
+                    ResponseClass(
                         message="Fetch Similar Products failed",
                         error=ApiResponseError(
                             message=str(e),
@@ -111,7 +111,7 @@ def similar_products(
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
             content=jsonable_encoder(
-                ApiResponse(
+                ResponseClass(
                     message="Query Similar Products successful",
                     data={
                         "similar_products": [
@@ -145,7 +145,7 @@ def similar_products(
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=jsonable_encoder(
-                ApiResponse(
+                ResponseClass(
                     message="Internal server error",
                     error=ApiResponseError(
                         message=str(e),

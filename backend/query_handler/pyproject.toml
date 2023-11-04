@@ -14,11 +14,11 @@ boto3 = "^1.28.78"
 transformers = {extras = ["onnx"], version = "^4.35.0"}
 typing-extensions = "^4.8.0"
 psycopg2-binary = "^2.9.9"
+loguru = "^0.7.2"
 
 
 [tool.poetry.group.api_server.dependencies]
 fastapi = {extras = ["all"], version = "^0.104.1"}
-structlog = "^23.2.0"
 uvicorn = {extras = ["all"], version = "^0.24.0"}
 uvloop = "^0.19.0"
 

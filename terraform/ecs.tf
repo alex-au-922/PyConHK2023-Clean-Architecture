@@ -132,6 +132,14 @@ module "query_handler" {
               value = "INFO"
             },
             {
+              name  = "LOG_FORMAT",
+              value = "[<green>{time:YYYY-MM-DD HH:mm:ss}</green>|<level>{level}</level>] <cyan>({name}.py|{function}|line:{line})</cyan> >> {message}",
+            },
+            {
+              name  = "LOG_JSON",
+              value = "true"
+            },
+            {
               name  = "ONNX_MODEL_PATH",
               value = "model"
             },

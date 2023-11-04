@@ -20,7 +20,7 @@ async def health_status() -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content=jsonable_encoder(
-                ApiResponse(
+                ResponseClass(
                     message="Health status OK",
                 )
             ),
@@ -30,7 +30,7 @@ async def health_status() -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=jsonable_encoder(
-                ApiResponse(
+                ResponseClass(
                     message="Internal server error",
                     error=ApiResponseError(
                         message=str(e),

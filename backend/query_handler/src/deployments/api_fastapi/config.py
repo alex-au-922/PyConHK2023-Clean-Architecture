@@ -1,8 +1,10 @@
 import os
 
 
-class ProjectConfig:
+class LogConfig:
     LOG_LEVEL: bool = str(os.environ.get("LOG_LEVEL"))
+    FORMAT: str = str(os.environ.get("LOG_FORMAT"))
+    JSON_LOGS: bool = str(os.environ.get("LOG_JSON")) == "true"
 
 
 class PostgresConfig:

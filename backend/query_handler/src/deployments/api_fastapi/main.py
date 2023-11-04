@@ -1,3 +1,7 @@
+from .utils.logging import setup_logger
+
+setup_logger()
+
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
