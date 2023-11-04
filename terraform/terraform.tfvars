@@ -198,8 +198,8 @@ eventbridge_config = {
 }
 
 api_gateway_config = {
-  name                = "pyconhk2023-api-gateway"
-  log_retentions_days = 30
+  name               = "pyconhk2023-api-gateway"
+  log_retention_days = 30
   cors = {
     allowed_origins = ["*"]
     allowed_headers = ["*"]
@@ -230,7 +230,7 @@ api_gateway_config = {
 
 ecs_config = {
   query_handler = {
-    name = "pyconhk2023-ecs-query-handler"
+    name = "pyconhk2023-query-handler"
     log_group = {
       retention_days = 30
     }

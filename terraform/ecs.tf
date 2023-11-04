@@ -11,7 +11,7 @@ module "query_handler_alb" {
   source  = "terraform-aws-modules/alb/aws"
   version = "9.1.0"
 
-  name = "${var.ecs_config.query_handler.name}-alb"
+  name = var.ecs_config.query_handler.name
 
   load_balancer_type = "application"
 
@@ -20,21 +20,21 @@ module "query_handler_alb" {
 
   security_group_ingress_rules = {
     vpc_ingress = {
-      type        = "ingress"
-      from_port   = var.ecs_config.query_handler.container.port
-      to_port     = var.ecs_config.query_handler.container.port
-      protocol    = "tcp"
-      cidr_blocks = [module.vpc.vpc_cidr_block]
+      type      = "ingress"
+      from_port = var.ecs_config.query_handler.container.port
+      to_port   = var.ecs_config.query_handler.container.port
+      protocol  = "tcp"
+      cidr_ipv4 = module.vpc.vpc_cidr_block
     }
   }
 
   security_group_egress_rules = {
     all_egress = {
-      type        = "egress"
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_blocks = ["0.0.0.0/0"]
+      type      = "egress"
+      from_port = 0
+      to_port   = 0
+      protocol  = "-1"
+      cidr_ipv4 = "0.0.0.0/0"
     }
   }
 
@@ -44,7 +44,7 @@ module "query_handler_alb" {
 
   target_groups = {
     query_handler = {
-      name_prefix      = "query-handler-"
+      name_prefix      = "pref-"
       backend_protocol = "HTTP"
       backend_port     = var.ecs_config.query_handler.container.port
       target_type      = "instance"

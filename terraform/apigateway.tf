@@ -10,6 +10,8 @@ module "api_gateway" {
   description   = "API Gateway for PyCon HK 2023"
   protocol_type = "HTTP"
 
+  create_api_domain_name = false
+
   cors_configuration = {
     allow_headers = var.api_gateway_config.cors.allow_headers
     allow_methods = var.api_gateway_config.cors.allow_methods
