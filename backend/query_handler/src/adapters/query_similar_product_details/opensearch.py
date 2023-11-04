@@ -111,15 +111,11 @@ class OpenSearchQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCa
                 "min_score": self._get_threshold(threshold),
             }
 
-            logging.info(f"{query = }")
-
             result = self._client.search(
                 index=self._index_name,
                 body=query,
                 _source_includes=["product_id"],
             )
-
-            logging.info(f"{result = }")
 
             return [
                 (hit["_source"]["product_id"], hit["_score"])

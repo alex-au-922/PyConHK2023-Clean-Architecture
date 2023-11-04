@@ -36,6 +36,9 @@ logger = Logger(level=ProjectConfig.LOG_LEVEL)
 log_utils.copy_config_to_registered_loggers(
     source_logger=logger,
     log_level=ProjectConfig.LOG_LEVEL,
+    exclude=set(
+        ["opensearch", "botocore.credentials", "transformers.tokenization_utils_base"]
+    ),
 )
 tracer = Tracer(service="query_handler")
 app = APIGatewayHttpResolver()
@@ -118,19 +121,13 @@ def similar_products() -> Response:
     try:
         query_body: dict = app.current_event.json_body
 
-        logger.info(f"{query_body=}")
-
         raw_query_details = RawQueryDetails(
             query=query_body["query"], created_date=datetime.now()
         )
 
-        logger.info(f"{raw_query_details=}")
-
         embedded_query_details = cast(
             EmbedRawQueryDetailsUseCase, embed_raw_query_details_client
         ).embed(raw_query_details)
-
-        logger.info(f"{embedded_query_details=}")
 
         if embedded_query_details is None:
             return Response(
@@ -150,8 +147,6 @@ def similar_products() -> Response:
         ).query(
             embedded_query_details, query_body.get("threshold"), query_body.get("limit")
         )
-
-        logger.info(f"{similar_products_tuples=}")
 
         if similar_products_tuples is None:
             return Response(
@@ -204,11 +199,11 @@ def similar_products() -> Response:
                             "ratings": product.ratings,
                             "discount_price": product.discount_price,
                             "actual_price": product.actual_price,
-                            "modified_date": datetime.strftime(
-                                product.modified_date, "%Y-%m-%d %H:%M:%S"
+                            "modified_date": product.modified_date.strftime(
+                                "%Y-%m-%d %H:%M:%S"
                             ),
-                            "created_date": datetime.strftime(
-                                product.created_date, "%Y-%m-%d %H:%M:%S"
+                            "created_date": product.created_date.strftime(
+                                "%Y-%m-%d %H:%M:%S"
                             ),
                             "score": min(1, max(-1, score)),
                         }
@@ -217,8 +212,8 @@ def similar_products() -> Response:
                         )
                     ],
                     "query": query_body["query"],
-                    "created_date": datetime.now(),
-                    "modified_date": datetime.now(),
+                    "created_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "modified_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 },
             },
         )
@@ -255,10 +250,7 @@ def similar_products() -> Response:
 @tracer.capture_lambda_handler
 def handler(event: dict, context: LambdaContext) -> dict:
     init_embed_raw_query_details_client()
-    logger.info(f"{embed_raw_query_details_client=}")
     init_fetch_raw_product_details_client()
-    logger.info(f"{fetch_raw_product_details_client=}")
     init_query_similar_product_details_client()
-    logger.info(f"{query_similar_product_details_client=}")
 
     return app.resolve(event, context)
