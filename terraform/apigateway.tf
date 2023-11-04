@@ -1,4 +1,4 @@
-resource "cloudwatch_log_group" "api_gateway_logs" {
+resource "aws_cloudwatch_log_group" "api_gateway_logs" {
   name              = "/aws/api-gateway/${var.api_gateway_config.name}"
   retention_in_days = var.api_gateway_config.log_retention_days
 }
@@ -17,7 +17,7 @@ module "api_gateway" {
   }
 
   # Access logs
-  default_stage_access_log_destination_arn = cloudwatch_log_group.api_gateway_logs.arn
+  default_stage_access_log_destination_arn = aws_cloudwatch_log_group.api_gateway_logs.arn
   default_stage_access_log_format          = jsonencode(var.api_gateway_config.access_log_format)
 
   # Routes and integrations
