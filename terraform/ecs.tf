@@ -70,6 +70,11 @@ resource "aws_lb_target_group" "query_handler" {
   }
 }
 
+data "aws_iam_policy_document" "query_handler_task_exec_role" {
+
+}
+
+
 
 module "query_handler" {
   source = "terraform-aws-modules/ecs/aws"
@@ -207,6 +212,15 @@ module "query_handler" {
           container_port   = var.ecs_config.query_handler.container.port
         }
       }
+
+      tasks_iam_role_name = "${var.ecs_config.query_handler.name}-task-exec-role"
+      tasks_iam_role_statements = [
+        {
+          effect    = "Allow",
+          actions   = ["secretsmanager:GetSecretValue"]
+          resources = ["*"]
+        }
+      ]
 
       subnet_ids = module.vpc.private_subnets
       security_group_rules = {
