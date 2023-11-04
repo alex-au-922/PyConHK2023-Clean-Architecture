@@ -8,8 +8,11 @@ import logging
 from aws_lambda_powertools.logging import Logger, correlation_paths, utils as log_utils
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.tracing import Tracer
-from aws_lambda_powertools.event_handler import APIGatewayHttpResolver
-from aws_lambda_powertools.event_handler.api_gateway import Response
+from aws_lambda_powertools.event_handler import (
+    APIGatewayHttpResolver,
+    Response,
+    content_types,
+)
 
 from entities import RawQueryDetails
 from usecases import (
@@ -111,6 +114,7 @@ def init_query_similar_product_details_client() -> None:
 
 
 @app.post("/api/similar_products")
+@tracer.capture_method
 def similar_products() -> Response:
     """Pipeline for querying similar products"""
 
@@ -132,7 +136,7 @@ def similar_products() -> Response:
         if embedded_query_details is None:
             return Response(
                 status_code=INTERNAL_SERVER_ERROR_CODE,
-                content_type="application/json",
+                content_type=content_types.APPLICATION_JSON,
                 body={
                     "message": "Query Embedding failed",
                     "error": {
@@ -151,7 +155,7 @@ def similar_products() -> Response:
         if similar_products_tuples is None:
             return Response(
                 status_code=INTERNAL_SERVER_ERROR_CODE,
-                content_type="application/json",
+                content_type=content_types.APPLICATION_JSON,
                 body={
                     "message": "Query Similar Products failed",
                     "error": {
@@ -169,8 +173,6 @@ def similar_products() -> Response:
             FetchRawProductDetailsUseCase, fetch_raw_product_details_client
         ).fetch(similar_product_ids)
 
-        logger.info(f"{similar_product_details=}")
-
         valid_similar_product_details = [
             similar_product_detail
             for similar_product_detail in similar_product_details
@@ -179,13 +181,18 @@ def similar_products() -> Response:
 
         valid_similar_product_scores = [
             similar_product_score
-            for similar_product_score in similar_product_scores
-            if similar_product_score is not None
+            for similar_product_detail, similar_product_score in zip(
+                similar_product_details, similar_product_scores
+            )
+            if similar_product_detail is not None
         ]
+
+        logger.info(f"{valid_similar_product_details=}")
+        logger.info(f"{valid_similar_product_scores=}")
 
         return Response(
             status_code=SUCCESS_CODE,
-            content_type="application/json",
+            content_type=content_types.APPLICATION_JSON,
             body={
                 "message": "Query Similar Products successful",
                 "data": {
@@ -218,9 +225,10 @@ def similar_products() -> Response:
             },
         )
     except ValueError as e:
+        logger.exception(e)
         return Response(
             status_code=CLIENT_ERROR_CODE,
-            content_type="application/json",
+            content_type=content_types.APPLICATION_JSON,
             body={
                 "message": "Invalid request body",
                 "error": {
@@ -230,9 +238,10 @@ def similar_products() -> Response:
             },
         )
     except Exception as e:
+        logger.exception(e)
         return Response(
             status_code=INTERNAL_SERVER_ERROR_CODE,
-            content_type="application/json",
+            content_type=content_types.APPLICATION_JSON,
             body={
                 "message": "Internal server error",
                 "error": {
