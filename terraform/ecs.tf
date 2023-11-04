@@ -53,7 +53,7 @@ resource "aws_lb_target_group" "query_handler" {
   port        = var.ecs_config.query_handler.container.port
   protocol    = "HTTP"
   target_type = "ip"
-  vpc_id      = data.aws_vpc.eks.id
+  vpc_id      = module.vpc.vpc_id
   health_check {
     enabled             = true
     healthy_threshold   = var.ecs_config.query_handler.health_check.healthy_threshold
