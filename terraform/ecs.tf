@@ -119,25 +119,76 @@ module "query_handler" {
             }
           ]
 
-          environment = {
-            LOG_LEVEL                            = "INFO"
-            ONNX_MODEL_PATH                      = "model"
-            TOKENIZER_PATH                       = "tokenizer"
-            POSTGRES_SECRETS_MANAGER_NAME        = module.rds_credentials.secretsmanager_secret_name
-            POSTGRES_DB                          = var.rds_config.main_database
-            POSTGRES_RAW_PRODUCT_TABLE_NAME      = var.rds_table_config.raw_products.name
-            POSTGRES_EMBEDDED_PRODUCT_TABLE_NAME = var.rds_table_config.embedded_products.name
-            POSTGRES_FETCH_BATCH_SIZE            = 1000
-            POSTGRES_UPSERT_BATCH_SIZE           = 5
-            OPENSEARCH_SECRETS_MANAGER_NAME      = module.opensearch_credentials.secretsmanager_secret_name
-            OPENSEARCH_INDEX_NAME                = var.opensearch_index_config.index.embedded_products.name
-            OPENSEARCH_TIMEOUT                   = var.opensearch_index_config.timeout
-            AWS_SQS_SUBSCRIBED_QUEUE_URL         = module.embedding_handler_queue.queue_url
-            SEARCH_DEFAULT_LIMIT                 = 10
-            SEARCH_DEFAULT_THRESHOLD             = 0.3
-            TRANSFORMERS_CACHE                   = "/tmp"
-            TZ                                   = "${var.timezone}"
-          }
+          environment = [
+            {
+              name  = "LOG_LEVEL",
+              value = "INFO"
+            },
+            {
+              name  = "ONNX_MODEL_PATH",
+              value = "model"
+            },
+            {
+              name  = "TOKENIZER_PATH",
+              value = "tokenizer"
+            },
+            {
+              name  = "POSTGRES_SECRETS_MANAGER_NAME",
+              value = module.rds_credentials.secretsmanager_secret_name
+            },
+            {
+              name  = "POSTGRES_DB",
+              value = var.rds_config.main_database
+            },
+            {
+              name  = "POSTGRES_RAW_PRODUCT_TABLE_NAME",
+              value = var.rds_table_config.raw_products.name
+            },
+            {
+              name  = "POSTGRES_EMBEDDED_PRODUCT_TABLE_NAME",
+              value = var.rds_table_config.embedded_products.name
+            },
+            {
+              name  = "POSTGRES_FETCH_BATCH_SIZE",
+              value = "1000"
+            },
+            {
+              name  = "POSTGRES_UPSERT_BATCH_SIZE",
+              value = "5"
+            },
+            {
+              name  = "OPENSEARCH_SECRETS_MANAGER_NAME",
+              value = module.opensearch_credentials.secretsmanager_secret_name
+            },
+            {
+              name  = "OPENSEARCH_INDEX_NAME",
+              value = var.opensearch_index_config.index.embedded_products.name
+            },
+            {
+              name  = "OPENSEARCH_TIMEOUT",
+              value = var.opensearch_index_config.timeout
+            },
+            {
+              name  = "AWS_SQS_SUBSCRIBED_QUEUE_URL",
+              value = module.embedding_handler_queue.queue_url
+            },
+            {
+              name  = "SEARCH_DEFAULT_LIMIT",
+              value = "10"
+            },
+            {
+              name  = "SEARCH_DEFAULT_THRESHOLD",
+              value = "0.3"
+            },
+            {
+              name  = "TRANSFORMERS_CACHE",
+              value = "/tmp"
+            },
+            {
+              name  = "TZ",
+              value = "${var.timezone}"
+            }
+          ]
 
           # Example image used requires access to write to root filesystem
           readonly_root_filesystem = !var.ecs_config.query_handler.container.filesystem_write_access
