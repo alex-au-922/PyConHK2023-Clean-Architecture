@@ -89,6 +89,9 @@ jobs:
         run: |
           cd artifacts/sentence_bert_onnx_transform
           pip install -r requirements.txt
+      - name: Remove old model
+        run: |
+          rm -rf models/
       - name: Create Onnx Model Through Script
         run: |
           cd artifacts/sentence_bert_onnx_transform
@@ -101,11 +104,11 @@ jobs:
         uses: actions/cache@v3
         with:
           path: models
-          key: ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/artifacts/sentence_bert_onnx_transform/**') }}
+          key: ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/artifacts/**') }}
       - name: Output Model Cache Key
         id: model_cache_key
         run: |
-          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/artifacts/sentence_bert_onnx_transform/**') }})" >> $GITHUB_OUTPUT
+          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/artifacts/**') }})" >> $GITHUB_OUTPUT
   build-push-embedding-handler-image:
     needs: [create-model, check-model-cache-exists]
     if: |
@@ -221,6 +224,9 @@ jobs:
         id: copy-cache
         run: |
           mv models/ backend/query_handler/models/
+      - name: list files
+        run: |
+          ls -al backend/query_handler/models/
       - name: Set up Docker Buildx
         id: setup-buildx
         if: steps.create-image-cache.outputs.cache-hit != 'true'
@@ -295,6 +301,9 @@ jobs:
         id: copy-cache
         run: |
           mv models/ backend/query_handler/models/
+      - name: list files
+        run: |
+          ls -al backend/query_handler/models/
       - name: Set up Docker Buildx
         id: setup-buildx
         if: steps.create-image-cache.outputs.cache-hit != 'true'
