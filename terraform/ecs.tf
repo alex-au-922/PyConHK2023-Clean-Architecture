@@ -63,9 +63,6 @@ resource "aws_lb_target_group" "query_handler" {
     matcher             = var.ecs_config.query_handler.container.health_check.matcher
     path                = format("/%s", join("/", var.ecs_config.query_handler.container.health_check.path_parts))
   }
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 
