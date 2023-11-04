@@ -66,12 +66,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: models
-          key: ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**') }}
+          key: ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**', 'artifacts/**') }}
       - name: Output Model Cache Exists
         id: model_cache_exists
         run: |
           echo "MODEL_CACHE_EXISTS=${{ steps.check_model_cache_exists.outputs.cache-hit }}" >> $GITHUB_OUTPUT
-          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**') }})" >> $GITHUB_OUTPUT
+          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**', 'artifacts/**') }})" >> $GITHUB_OUTPUT
   create-model:
     needs: [check-model-cache-exists]
     runs-on: ubuntu-latest

@@ -3,8 +3,12 @@ from datetime import datetime
 
 
 @dataclass(frozen=True, slots=True)
-class EmbeddedProductDetails:
-    product_id: str
+class RawQueryDetails:
+    query: str
+    created_date: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class EmbeddedQueryDetails:
     embedding: list[float]
-    modified_date: datetime
     created_date: datetime
