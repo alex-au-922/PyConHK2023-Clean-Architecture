@@ -125,7 +125,10 @@ class PostgresQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCase
                             "threshold": self._get_threshold(threshold),
                         },
                     )
-                    return cursor.fetchall()
+                    return [
+                        (product_id, float(score))
+                        for product_id, score in cursor.fetchall()
+                    ]
                 except Exception as e:
                     logging.exception(e)
                     logging.error("Error fetching product details from Postgres!")
@@ -173,7 +176,15 @@ class PostgresQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCase
                             ],
                         )
                         result = cursor.fetchall()
-                        similar_products_results.extend(result)
+                        similar_products_results.extend(
+                            [
+                                [
+                                    (product_id, float(score))
+                                    for product_id, score in result_batch
+                                ]
+                                for result_batch in result
+                            ]
+                        )
                     except Exception as e:
                         logging.exception(e)
                         logging.error("Error fetching product details from Postgres!")

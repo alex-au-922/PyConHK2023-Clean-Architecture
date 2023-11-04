@@ -55,9 +55,9 @@ class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
             main_category=sql_tuple[2],
             sub_category=sql_tuple[3],
             image_url=sql_tuple[4],
-            ratings=sql_tuple[5],
-            discount_price=sql_tuple[6],
-            actual_price=sql_tuple[7],
+            ratings=float(sql_tuple[5]),
+            discount_price=float(sql_tuple[6]),
+            actual_price=float(sql_tuple[7]),
             modified_date=sql_tuple[8],
             created_date=sql_tuple[9],
         )

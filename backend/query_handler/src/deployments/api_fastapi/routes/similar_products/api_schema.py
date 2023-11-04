@@ -10,12 +10,12 @@ DESCRIPTION = "Search for similar products based on the query"
 
 RESPONSES = {
     status.HTTP_201_CREATED: {
-        "description": "Health status OK",
+        "description": "Query Similar Products successful",
         "model": ResponseClass,
         "content": {
             "application/json": {
                 "example": {
-                    "message": "Health status OK",
+                    "message": "Query Similar Products successful",
                     "data": {
                         "similar_products": [
                             {
