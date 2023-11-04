@@ -15,8 +15,6 @@ RESPONSES = {
             "application/json": {
                 "example": {
                     "message": "Health status OK",
-                    "data": None,
-                    "error": None,
                 }
             }
         },
@@ -28,7 +26,6 @@ RESPONSES = {
             "application/json": {
                 "example": {
                     "message": "Internal server error",
-                    "data": None,
                     "error": {
                         "message": "Error message",
                         "code": "UNK",

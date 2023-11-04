@@ -133,11 +133,11 @@ module "query_handler" {
             },
             {
               name  = "LOG_FORMAT",
-              value = "{message}",
+              value = "[{time:YYYY-MM-DD HH:mm:ss}|{level}] ({name}.py|{function}|line:{line}) >> {message}",
             },
             {
               name  = "LOG_JSON",
-              value = "true"
+              value = "false"
             },
             {
               name  = "ONNX_MODEL_PATH",
