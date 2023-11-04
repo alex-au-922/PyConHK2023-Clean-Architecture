@@ -5,14 +5,14 @@ from fastapi.encoders import jsonable_encoder
 from ...utils.api_response import ApiResponse, ApiResponseError
 from .api_schema import DEFAULT_STATUS_CODE, DESCRIPTION, ResponseClass, RESPONSES
 from .api_models import SimilarProductsRequestModel
-from .lifespan import (
-    embed_raw_query_details_client,
-    fetch_raw_product_details_client,
-    query_similar_product_details_client,
+from usecases import (
+    EmbedRawQueryDetailsUseCase,
+    QuerySimilarProductDetailsUseCase,
+    FetchRawProductDetailsUseCase,
 )
-
 from entities import RawQueryDetails
 import logging
+from typing import cast
 
 router = APIRouter()
 
@@ -33,7 +33,10 @@ def similar_products(
             query=request_model.query, created_date=datetime.now()
         )
 
-        embedded_query_details = embed_raw_query_details_client.embed(raw_query_details)
+        embedded_query_details = cast(
+            EmbedRawQueryDetailsUseCase,
+            request.app.state.embed_raw_query_details_client,
+        ).embed(raw_query_details)
 
         if embedded_query_details is None:
             return JSONResponse(
@@ -49,7 +52,10 @@ def similar_products(
                 ),
             )
 
-        similar_products_tuples = query_similar_product_details_client.query(
+        similar_products_tuples = cast(
+            QuerySimilarProductDetailsUseCase,
+            request.app.state.query_similar_product_details_client,
+        ).query(
             embedded_query_details,
             request_model.threshold,
             request_model.limit,
@@ -73,9 +79,10 @@ def similar_products(
         similar_product_scores: list[float]
         similar_product_ids, similar_product_scores = zip(*similar_products_tuples)
 
-        similar_product_details = fetch_raw_product_details_client.fetch(
-            similar_product_ids
-        )
+        similar_product_details = cast(
+            FetchRawProductDetailsUseCase,
+            request.app.state.fetch_raw_product_details_client,
+        ).fetch(similar_product_ids)
 
         if similar_product_details is None:
             return JSONResponse(
