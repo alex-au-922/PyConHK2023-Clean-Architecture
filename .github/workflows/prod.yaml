@@ -101,11 +101,11 @@ jobs:
         uses: actions/cache@v3
         with:
           path: models
-          key: ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**') }}
+          key: ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**', 'artifacts/**') }}
       - name: Output Model Cache Key
         id: model_cache_key
         run: |
-          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**') }})" >> $GITHUB_OUTPUT
+          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**', 'artifacts/**') }})" >> $GITHUB_OUTPUT
   build-push-embedding-handler-image:
     needs: [create-model, check-model-cache-exists]
     if: |
