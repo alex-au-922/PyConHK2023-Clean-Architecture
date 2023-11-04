@@ -201,9 +201,9 @@ api_gateway_config = {
   name               = "pyconhk2023-api-gateway"
   log_retention_days = 30
   cors = {
-    allowed_origins = ["*"]
-    allowed_headers = ["*"]
-    allowed_methods = ["*"]
+    allow_headers = ["*"]
+    allow_headers = ["*"]
+    allow_methods = ["*"]
   }
   access_log_format = {
     "requestId" : "$context.requestId",
@@ -244,6 +244,13 @@ ecs_config = {
       memory                  = 2048
       port                    = 80
       filesystem_write_access = true
+      health_check = {
+        healthy_threshold   = 1
+        unhealthy_threshold = 1
+        interval            = 30
+        matcher             = "200"
+        path                = "/api/health_status"
+      }
       command = [
         "python",
         "-m",

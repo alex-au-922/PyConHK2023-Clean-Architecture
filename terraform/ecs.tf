@@ -7,51 +7,67 @@ data "aws_ecr_image" "latest_query_handler_ecs_docker_image" {
   most_recent     = true
 }
 
-module "query_handler_alb" {
-  source  = "terraform-aws-modules/alb/aws"
-  version = "9.1.0"
+resource "aws_security_group" "query_handler" {
+  name        = "${var.ecs_config.query_handler.name}-sg"
+  description = "Allow TCP inbound traffic"
+  vpc_id      = module.vpc.vpc_id
 
-  name = var.ecs_config.query_handler.name
-
-  load_balancer_type = "application"
-
-  vpc_id  = module.vpc.vpc_id
-  subnets = module.vpc.public_subnets
-
-  security_group_ingress_rules = {
-    vpc_ingress = {
-      type      = "ingress"
-      from_port = var.ecs_config.query_handler.container.port
-      to_port   = var.ecs_config.query_handler.container.port
-      protocol  = "tcp"
-      cidr_ipv4 = module.vpc.vpc_cidr_block
-    }
+  ingress {
+    description = "TCP from VPC"
+    from_port   = var.ecs_config.query_handler.container.port
+    to_port     = var.ecs_config.query_handler.container.port
+    protocol    = "tcp"
+    cidr_blocks = [module.vpc.vpc_cidr_block]
   }
 
-  security_group_egress_rules = {
-    all_egress = {
-      type      = "egress"
-      from_port = 0
-      to_port   = 0
-      protocol  = "-1"
-      cidr_ipv4 = "0.0.0.0/0"
-    }
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
-
-  access_logs = {
-    bucket = "${var.ecs_config.query_handler.name}-alb"
-  }
-
-  target_groups = {
-    query_handler = {
-      name_prefix      = "pref-"
-      backend_protocol = "HTTP"
-      backend_port     = var.ecs_config.query_handler.container.port
-      target_type      = "instance"
-    }
-  }
-
 }
+
+resource "aws_lb" "query_handler" {
+  name               = "${var.ecs_config.query_handler.name}-alb"
+  load_balancer_type = "application"
+  internal           = false
+  security_groups    = [aws_security_group.query_handler.id]
+  subnets            = module.vpc.public_subnets
+  idle_timeout       = 300
+}
+
+resource "aws_lb_listener" "query_handler" {
+  load_balancer_arn = aws_lb.query_handler.arn
+  protocol          = "HTTP"
+  port              = var.ecs_config.query_handler.container.port
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.query_handler.arn
+  }
+}
+
+resource "aws_lb_target_group" "query_handler" {
+  name        = "${var.ecs_config.query_handler.name}-lb"
+  port        = var.ecs_config.query_handler.container.port
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = data.aws_vpc.eks.id
+  health_check {
+    enabled             = true
+    healthy_threshold   = var.ecs_config.query_handler.health_check.healthy_threshold
+    unhealthy_threshold = var.ecs_config.query_handler.health_check.unhealthy_threshold
+    interval            = var.ecs_config.query_handler.health_check.interval
+    protocol            = "HTTP"
+    matcher             = var.ecs_config.query_handler.health_check.matcher
+    path                = var.ecs_config.query_handler.health_check.path
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 
 module "query_handler" {
   source = "terraform-aws-modules/ecs/aws"
@@ -133,7 +149,7 @@ module "query_handler" {
 
       load_balancer = {
         service = {
-          target_group_arn = module.query_handler_alb.target_groups["query_handler"].arn
+          target_group_arn = aws_lb_target_group.query_handler.arn
           container_name   = var.ecs_config.query_handler.container.name
           container_port   = var.ecs_config.query_handler.container.port
         }
