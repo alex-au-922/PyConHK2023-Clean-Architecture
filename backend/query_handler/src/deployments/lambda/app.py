@@ -147,7 +147,9 @@ def similar_products() -> Response:
 
         similar_products_tuples = cast(
             QuerySimilarProductDetailsUseCase, query_similar_product_details_client
-        ).query(embedded_query_details)
+        ).query(
+            embedded_query_details, query_body.get("threshold"), query_body.get("limit")
+        )
 
         logger.info(f"{similar_products_tuples=}")
 
