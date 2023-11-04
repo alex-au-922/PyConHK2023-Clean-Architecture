@@ -197,6 +197,8 @@ module "query_handler" {
             }
           ]
 
+          command = var.ecs_config.query_handler.container.command
+
           # Example image used requires access to write to root filesystem
           readonly_root_filesystem = !var.ecs_config.query_handler.container.filesystem_write_access
 
