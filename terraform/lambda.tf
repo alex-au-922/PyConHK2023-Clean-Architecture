@@ -250,7 +250,7 @@ module "query_handler_lambda" {
   policy_statements = {
     api_gateway = {
       principal  = "apigateway.amazonaws.com"
-      source_arn = "arn:aws:execute-api:${data.aws_region.current.name}:${data.aws_caller_identity.identity.account_id}:*/*/*"
+      source_arn = "arn:aws:execute-api:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*/*/*"
     }
     secret_manager = {
       effect    = "Allow",

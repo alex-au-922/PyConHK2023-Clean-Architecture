@@ -93,13 +93,13 @@ module "query_handler" {
     query_handler = {
       cpu                      = var.ecs_config.query_handler.container.cpu
       memory                   = var.ecs_config.query_handler.container.memory
-      autoscaling_min_capacity = var.ecs_config.query_handler.autoscaling.min
-      autoscaling_max_capacity = var.ecs_config.query_handler.autoscaling.max
+      autoscaling_min_capacity = var.ecs_config.query_handler.container.autoscaling.min
+      autoscaling_max_capacity = var.ecs_config.query_handler.container.autoscaling.max
 
       # Container definition(s)
       container_definitions = {
 
-        var.ecs_config.query_handler.container.name = {
+        (var.ecs_config.query_handler.container.name) = {
           cpu       = var.ecs_config.query_handler.container.cpu
           memory    = var.ecs_config.query_handler.container.memory
           essential = true
