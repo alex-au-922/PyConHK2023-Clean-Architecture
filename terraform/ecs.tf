@@ -1,5 +1,5 @@
 data "aws_ecr_repository" "query_handler_ecr_ecs" {
-  name = "${var.lambda_config.query_handler.name}-api-server"
+  name = "${var.ecs_config.query_handler.name}-api-server"
 }
 
 data "aws_ecr_image" "latest_query_handler_ecs_docker_image" {
@@ -41,7 +41,7 @@ module "query_handler_alb" {
   security_groups = [aws_security_group.query_handler.id]
 
   access_logs = {
-    bucket = "${var.ecs_config.query_handler.log_bucket.name}-alb"
+    bucket = "${var.ecs_config.query_handler.name}-alb"
   }
 
   target_groups = [

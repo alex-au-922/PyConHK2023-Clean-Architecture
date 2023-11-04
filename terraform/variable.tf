@@ -180,6 +180,18 @@ variable "lambda_config" {
       function_url                   = bool
       in_vpc                         = bool
     })
+    query_handler = object({
+      name                           = string
+      description                    = string
+      memory_size                    = number
+      timeout                        = number
+      reserved_concurrent_executions = number
+      runtime                        = string
+      package_type                   = string
+      image_config_command           = list(string)
+      function_url                   = bool
+      in_vpc                         = bool
+    })
   })
 }
 
