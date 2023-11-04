@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 from entities import EmbeddedQueryDetails
-from typing import Optional, overload
+from typing import Optional, overload, Sequence
 
 
 class QuerySimilarProductDetailsUseCase(ABC):
@@ -10,25 +10,25 @@ class QuerySimilarProductDetailsUseCase(ABC):
         embedded_query_details: EmbeddedQueryDetails,
         threshold: Optional[float],
         top_k: Optional[int],
-    ) -> list[str]:
+    ) -> Optional[list[tuple[str, float]]]:
         ...
 
     @overload
     def query(
         self,
-        embedded_query_details: list[EmbeddedQueryDetails],
+        embedded_query_details: Sequence[EmbeddedQueryDetails],
         threshold: Optional[float],
         top_k: Optional[int],
-    ) -> list[list[str]]:
+    ) -> list[Optional[list[tuple[str, float]]]]:
         ...
 
     @abstractmethod
     def query(
         self,
-        embedded_query_details: EmbeddedQueryDetails | list[EmbeddedQueryDetails],
+        embedded_query_details: EmbeddedQueryDetails | Sequence[EmbeddedQueryDetails],
         threshold: Optional[float],
         top_k: Optional[int],
-    ) -> list[str] | list[list[str]]:
+    ) -> Optional[list[tuple[str, float]]] | list[Optional[list[tuple[str, float]]]]:
         ...
 
     @abstractmethod

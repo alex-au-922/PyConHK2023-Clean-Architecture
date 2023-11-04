@@ -210,6 +210,56 @@ variable "eventbridge_config" {
   })
 }
 
+variable "api_gateway_config" {
+  description = "Config for the API Gateway"
+  type = object({
+    name               = string
+    log_retention_days = number
+    cors = object({
+      allow_headers = list(string)
+      allow_methods = list(string)
+      allow_origins = list(string)
+    })
+    access_log_format = map(string),
+    routes = object({
+      query_handler = object({
+        method                 = string
+        path_parts             = list(string)
+        payload_format_version = string
+        timeout                = number
+      })
+    })
+  })
+}
+
+variable "ecs_config" {
+  description = "Config for the ECS"
+  type = object({
+    query_handler = object({
+      name = string
+      log_group = object({
+        retention_days = number
+      })
+      fargate_capacity_config = object({
+        normal_weight = number
+        spot_weight   = number
+      })
+      container = object({
+        name                    = string
+        cpu                     = number
+        memory                  = number
+        port                    = number
+        filesystem_write_access = bool
+        command                 = list(string)
+        autoscaling = object({
+          min = number
+          max = number
+        })
+      })
+    })
+  })
+}
+
 variable "ssh_public_key" {
   description = "SSH Public Key, Provided by Pipeline"
   type        = string

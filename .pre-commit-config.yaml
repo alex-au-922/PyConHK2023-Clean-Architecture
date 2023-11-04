@@ -97,7 +97,7 @@ repos:
         name: poetry-lock-query-handler
         args: ["-C", "./backend/query_handler"]
       - id: poetry-export
-        name: poetry-export-query-handler
+        name: poetry-export-query-handler-api-server
         args:
           [
             "-C",
@@ -105,6 +105,22 @@ repos:
             "-f",
             "requirements.txt",
             "-o",
-            "./backend/query_handler/requirements.txt",
+            "./backend/query_handler/requirements.api_server.txt",
             "--without-hashes",
+            "--with",
+            "api_server",
+          ]
+      - id: poetry-export
+        name: poetry-export-query-handler-lambda
+        args:
+          [
+            "-C",
+            "./backend/query_handler",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "./backend/query_handler/requirements.lambda.txt",
+            "--without-hashes",
+            "--with",
+            "lambda",
           ]

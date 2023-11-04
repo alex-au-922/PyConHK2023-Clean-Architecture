@@ -1,6 +1,6 @@
 from datetime import datetime
-from usecases import EmbedRawProductDetailsUseCase
-from entities import RawProductDetails, EmbeddedProductDetails
+from usecases import EmbedRawQueryDetailsUseCase
+from entities import RawQueryDetails, EmbeddedQueryDetails
 from typing import Optional, overload, Sequence
 from typing_extensions import override
 from onnxruntime import InferenceSession
@@ -9,7 +9,7 @@ import numpy.typing as npt
 import numpy as np
 
 
-class OnnxEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
+class OnnxEmbedRawQueryDetailsClient(EmbedRawQueryDetailsUseCase):
     def __init__(
         self,
         inference_session: InferenceSession,
@@ -21,35 +21,33 @@ class OnnxEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
 
     @overload
     def embed(
-        self, raw_product_details: RawProductDetails
-    ) -> Optional[EmbeddedProductDetails]:
+        self, raw_query_details: RawQueryDetails
+    ) -> Optional[EmbeddedQueryDetails]:
         ...
 
     @overload
     def embed(
-        self, raw_product_details: Sequence[RawProductDetails]
-    ) -> list[Optional[EmbeddedProductDetails]]:
+        self, raw_query_details: Sequence[RawQueryDetails]
+    ) -> list[Optional[EmbeddedQueryDetails]]:
         ...
 
     @override
     def embed(
-        self, raw_product_details: RawProductDetails | Sequence[RawProductDetails]
-    ) -> Optional[EmbeddedProductDetails] | list[Optional[EmbeddedProductDetails]]:
-        if isinstance(raw_product_details, RawProductDetails):
-            return self._embed_single(raw_product_details)
+        self, raw_query_details: RawQueryDetails | Sequence[RawQueryDetails]
+    ) -> Optional[EmbeddedQueryDetails] | list[Optional[EmbeddedQueryDetails]]:
+        if isinstance(raw_query_details, RawQueryDetails):
+            return self._embed_single(raw_query_details)
         return [
-            self._embed_single(raw_product_detail)
-            for raw_product_detail in raw_product_details
+            self._embed_single(raw_query_detail)
+            for raw_query_detail in raw_query_details
         ]
 
-    def _embed_single(
-        self, raw_product_details: RawProductDetails
-    ) -> EmbeddedProductDetails:
+    def _embed_single(self, raw_query_details: RawQueryDetails) -> EmbeddedQueryDetails:
         """Embed a single RawProductDetails"""
 
         tokenized_input: dict[str, npt.NDArray[np.float_]] = dict(
             self._tokenizer(
-                [raw_product_details.name.lower()],
+                [raw_query_details.query.lower()],
                 return_tensors="np",
                 padding=True,
                 truncation=True,
@@ -60,10 +58,8 @@ class OnnxEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
             ["output"], tokenized_input
         )[0][0]
 
-        return EmbeddedProductDetails(
-            product_id=raw_product_details.product_id,
+        return EmbeddedQueryDetails(
             embedding=embedding.tolist(),
-            modified_date=raw_product_details.modified_date,
             created_date=datetime.now(),
         )
 

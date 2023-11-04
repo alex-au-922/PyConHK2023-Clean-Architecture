@@ -179,18 +179,169 @@ jobs:
         if: steps.create-image-cache.outputs.cache-hit != 'true'
         run: |
           docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+  build-push-query-handler-api-server-image:
+    needs: [create-model, check-model-cache-exists]
+    if: |
+      always() &&
+      needs.check-model-cache-exists.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        id: configure-aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Create Image Cache
+        id: create-image-cache
+        uses: actions/cache@v3
+        with:
+          path: backend/query_handler
+          key: ${{ runner.os }}-image-${{ hashFiles('backend/query_handler/**') }}
+      - name: Get Model Cache From Check
+        id: read-cache-check
+        if: needs.check-model-cache-exists.outputs.model_cache_exists == 'true' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.check-model-cache-exists.outputs.model_cache_key }}
+      - name: Get Model Cache From Create
+        id: read-cache-create
+        if: needs.create-model.outputs.model_cache_key != '' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.create-model.outputs.model_cache_key }}
+      - name: Copy Model Cache
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        id: copy-cache
+        run: |
+          cp -r models/ backend/query_handler/models/
+      - name: Set up Docker Buildx
+        id: setup-buildx
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: docker/setup-buildx-action@v3
+      - name: Login ECR
+        id: login-ecr
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        run: |
+          export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+          export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/pyconhk2023-query-handler-api-server
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
+          echo "AWS_ECR_REPOSITORY_URL=${AWS_ECR_REPOSITORY_URL}" >> $GITHUB_OUTPUT
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Build Dockerfile
+        uses: docker/build-push-action@v4
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        with:
+          context: backend/data_embedding_handler
+          load: true
+          tags: |
+            ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+          build-args: |
+            MODEL_PATH=models/${{ env.MODEL_NAME }}.onnx
+            TOKENIZER_PATH=models/${{ env.MODEL_NAME }}.tokenizer
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Push Docker Image
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        run: |
+          docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+  build-push-query-handler-lambda-image:
+    needs: [create-model, check-model-cache-exists]
+    if: |
+      always() &&
+      needs.check-model-cache-exists.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        id: configure-aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Create Image Cache
+        id: create-image-cache
+        uses: actions/cache@v3
+        with:
+          path: backend/query_handler
+          key: ${{ runner.os }}-image-${{ hashFiles('backend/query_handler/**') }}
+      - name: Get Model Cache From Check
+        id: read-cache-check
+        if: needs.check-model-cache-exists.outputs.model_cache_exists == 'true' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.check-model-cache-exists.outputs.model_cache_key }}
+      - name: Get Model Cache From Create
+        id: read-cache-create
+        if: needs.create-model.outputs.model_cache_key != '' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.create-model.outputs.model_cache_key }}
+      - name: Copy Model Cache
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        id: copy-cache
+        run: |
+          cp -r models/ backend/query_handler/models/
+      - name: Set up Docker Buildx
+        id: setup-buildx
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: docker/setup-buildx-action@v3
+      - name: Login ECR
+        id: login-ecr
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        run: |
+          export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+          export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/pyconhk2023-query-handler-lambda
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
+          echo "AWS_ECR_REPOSITORY_URL=${AWS_ECR_REPOSITORY_URL}" >> $GITHUB_OUTPUT
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Build Dockerfile
+        uses: docker/build-push-action@v4
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        with:
+          context: backend/query_handler
+          file: dockerfile.lambda
+          load: true
+          tags: |
+            ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+          build-args: |
+            MODEL_PATH=models/${{ env.MODEL_NAME }}.onnx
+            TOKENIZER_PATH=models/${{ env.MODEL_NAME }}.tokenizer
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Push Docker Image
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        run: |
+          docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
   terraform-plan:
     needs:
       [
         create-model,
         check-model-cache-exists,
         build-push-embedding-handler-image,
+        build-push-query-handler-api-server-image,
+        build-push-query-handler-lambda-image,
         pip-build-data-ingestion-handler,
       ]
     if: |
       always() &&
       needs.check-model-cache-exists.result == 'success' &&
       needs.build-push-embedding-handler-image.result == 'success' &&
+      needs.build-push-query-handler-api-server-image.result == 'success' &&
+      needs.build-push-query-handler-lambda-image.result == 'success' &&
       needs.pip-build-data-ingestion-handler.result == 'success' &&
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     runs-on: ubuntu-latest

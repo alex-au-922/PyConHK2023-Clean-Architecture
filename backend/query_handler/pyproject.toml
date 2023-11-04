@@ -7,7 +7,22 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+onnxruntime = "^1.16.1"
+opensearch-py = "^2.3.2"
+boto3-stubs = {extras = ["sagemaker-runtime", "secretsmanager"], version = "^1.28.78"}
+boto3 = "^1.28.78"
+transformers = {extras = ["onnx"], version = "^4.35.0"}
+typing-extensions = "^4.8.0"
+psycopg2-binary = "^2.9.9"
 
+
+[tool.poetry.group.api_server.dependencies]
+fastapi = {extras = ["all"], version = "^0.104.1"}
+structlog = "^23.2.0"
+
+
+[tool.poetry.group.lambda.dependencies]
+aws-lambda-powertools = "^2.26.0"
 
 [build-system]
 requires = ["poetry-core"]

@@ -151,7 +151,19 @@ lambda_config = {
   }
   data_embedding_handler = {
     name                           = "pyconhk2023-data-embedding-handler"
-    description                    = "Data ingestion handler for PyCon HK 2023"
+    description                    = "Data Embedding handler for PyCon HK 2023"
+    memory_size                    = 2048
+    timeout                        = 5 * 60 # 5 minutes
+    reserved_concurrent_executions = -1
+    runtime                        = "python3.10"
+    package_type                   = "Image"
+    image_config_command           = ["deployments.lambda.app.handler"]
+    function_url                   = false
+    in_vpc                         = true
+  }
+  query_handler = {
+    name                           = "pyconhk2023-query-handler"
+    description                    = "Query handler for PyCon HK 2023"
     memory_size                    = 2048
     timeout                        = 5 * 60 # 5 minutes
     reserved_concurrent_executions = -1
@@ -182,5 +194,70 @@ eventbridge_config = {
   data_ingestion_lambda_trigger = {
     name                = "pyconhk2023-data-ingestion-lambda-trigger"
     schedule_expression = "cron(0 * * * ? *)" # Every hour
+  }
+}
+
+api_gateway_config = {
+  name                = "pyconhk2023-api-gateway"
+  log_retentions_days = 30
+  cors = {
+    allowed_origins = ["*"]
+    allowed_headers = ["*"]
+    allowed_methods = ["*"]
+  }
+  access_log_format = {
+    "requestId" : "$context.requestId",
+    "extendedRequestId" : "$context.extendedRequestId",
+    "ip" : "$context.identity.sourceIp",
+    "caller" : "$context.identity.caller",
+    "user" : "$context.identity.user",
+    "requestTime" : "$context.requestTime",
+    "httpMethod" : "$context.httpMethod",
+    "resourcePath" : "$context.resourcePath",
+    "status" : "$context.status",
+    "protocol" : "$context.protocol",
+    "responseLength" : "$context.responseLength"
+  }
+  routes = {
+    query_handler = {
+      method                 = "POST"
+      path_parts             = ["api", "similar_products"]
+      payload_format_version = "2.0"
+      timeout                = 29
+    }
+  }
+}
+
+ecs_config = {
+  query_handler = {
+    name = "pyconhk2023-ecs-query-handler"
+    log_group = {
+      retention_days = 30
+    }
+    fargate_capacity_config = {
+      normal_weight = 50
+      spot_weight   = 50
+    }
+    container = {
+      name                    = "pyconhk2023-ecs-query-handler"
+      cpu                     = 1024
+      memory                  = 2048
+      port                    = 80
+      filesystem_write_access = true
+      command = [
+        "python",
+        "-m",
+        "uvicorn",
+        "deployments.api_fastapi.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "80",
+      ]
+      autoscaling = {
+        min = 1
+        max = 2
+      }
+    }
   }
 }
