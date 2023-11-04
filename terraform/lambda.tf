@@ -237,7 +237,6 @@ module "query_handler_lambda" {
     TZ                                   = "${var.timezone}"
   }
 
-
   create_role                       = true
   attach_cloudwatch_logs_policy     = false
   cloudwatch_logs_retention_in_days = var.lambda_config.log_retention_days
@@ -258,7 +257,7 @@ module "query_handler_lambda" {
   allowed_triggers = {
     api_gateway = {
       principal  = "apigateway.amazonaws.com"
-      source_arn = "arn:aws:execute-api:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*/*/*"
+      source_arn = "${module.api_gateway.apigatewayv2_api_execution_arn}/*/*"
     }
   }
 
