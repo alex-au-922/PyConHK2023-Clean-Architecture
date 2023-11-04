@@ -216,8 +216,10 @@ api_gateway_config = {
     "resourcePath" : "$context.resourcePath",
     "status" : "$context.status",
     "protocol" : "$context.protocol",
-    "responseLength" : "$context.responseLength"
-  }
+    "responseLength" : "$context.responseLength",
+    "integrationError" : "$context.integrationErrorMessage"
+  },
+
   routes = {
     query_handler = {
       method                 = "POST"
