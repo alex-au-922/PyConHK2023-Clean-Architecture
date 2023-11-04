@@ -239,7 +239,7 @@ jobs:
         if: steps.create-image-cache.outputs.cache-hit != 'true'
         with:
           context: backend/query_handler
-          file: ./dockerfile.api_server
+          file: backend/query_handler/dockerfile.api_server
           load: true
           tags: |
             ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
@@ -313,7 +313,7 @@ jobs:
         if: steps.create-image-cache.outputs.cache-hit != 'true'
         with:
           context: backend/query_handler
-          file: ./dockerfile.lambda
+          file: backend/query_handler/dockerfile.lambda
           load: true
           tags: |
             ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
