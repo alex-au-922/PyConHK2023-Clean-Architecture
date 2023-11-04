@@ -66,12 +66,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: models
-          key: ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**', 'artifacts/**') }}
+          key: ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/artifacts/sentence_bert_onnx_transform/**') }}
       - name: Output Model Cache Exists
         id: model_cache_exists
         run: |
           echo "MODEL_CACHE_EXISTS=${{ steps.check_model_cache_exists.outputs.cache-hit }}" >> $GITHUB_OUTPUT
-          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**', 'artifacts/**') }})" >> $GITHUB_OUTPUT
+          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/artifacts/sentence_bert_onnx_transform/**') }})" >> $GITHUB_OUTPUT
   create-model:
     needs: [check-model-cache-exists]
     runs-on: ubuntu-latest
@@ -101,11 +101,11 @@ jobs:
         uses: actions/cache@v3
         with:
           path: models
-          key: ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**', 'artifacts/**') }}
+          key: ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/artifacts/sentence_bert_onnx_transform/**') }}
       - name: Output Model Cache Key
         id: model_cache_key
         run: |
-          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/models/**', 'artifacts/**') }})" >> $GITHUB_OUTPUT
+          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/artifacts/sentence_bert_onnx_transform/**') }})" >> $GITHUB_OUTPUT
   build-push-embedding-handler-image:
     needs: [create-model, check-model-cache-exists]
     if: |

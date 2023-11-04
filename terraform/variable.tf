@@ -262,7 +262,14 @@ variable "ecs_config" {
         memory                  = number
         port                    = number
         filesystem_write_access = bool
-        command                 = list(string)
+        health_check = object({
+          healthy_threshold   = number
+          unhealthy_threshold = number
+          interval            = number
+          matcher             = string
+          path                = string
+        })
+        command = list(string)
         autoscaling = object({
           min = number
           max = number
