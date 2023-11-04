@@ -248,15 +248,18 @@ module "query_handler_lambda" {
 
   attach_policy_statements = true
   policy_statements = {
-    api_gateway = {
-      principal  = "apigateway.amazonaws.com"
-      source_arn = "arn:aws:execute-api:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*/*/*"
-    }
     secret_manager = {
       effect    = "Allow",
       actions   = ["secretsmanager:GetSecretValue"]
       resources = ["*"]
     },
+  }
+
+  allowed_triggers = {
+    api_gateway = {
+      principal  = "apigateway.amazonaws.com"
+      source_arn = "arn:aws:execute-api:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*/*/*"
+    }
   }
 
   vpc_subnet_ids         = var.lambda_config.query_handler.in_vpc ? module.vpc.private_subnets : []
