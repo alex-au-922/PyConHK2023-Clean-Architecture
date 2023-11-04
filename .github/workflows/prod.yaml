@@ -42,9 +42,9 @@ jobs:
         id: install_dependencies
         run: |
           git clone https://github.com/jkehler/awslambda-psycopg2.git
-          cp -r awslambda-psycopg2/psycopg2-3.9 backend/data_ingestion_handler/src/psycopg2
-          ls -al backend/data_ingestion_handler/src/psycopg2
-          mv backend/data_ingestion_handler/src/psycopg2/_psycopg.cpython-39-x86_64-linux-gnu.so backend/data_ingestion_handler/src/psycopg2/_psycopg.so
+          cp -r awslambda-psycopg2/psycopg2-3.9 backend/data_ingestion_handler/src/psycopg2-3.9
+          mkdir -p backend/data_ingestion_handler/src/psycopg2
+          mv backend/data_ingestion_handler/src/psycopg2-3.9/_psycopg.cpython-39-x86_64-linux-gnu.so backend/data_ingestion_handler/src/psycopg2/_psycopg.so
           cd backend/data_ingestion_handler
           python -m pip install -r requirements.txt -t python
           zip -r pyconhk2023-data-ingestion-handler-layer.zip python
@@ -238,7 +238,8 @@ jobs:
         uses: docker/build-push-action@v4
         if: steps.create-image-cache.outputs.cache-hit != 'true'
         with:
-          context: backend/data_embedding_handler
+          context: backend/query_handler
+          file: ./dockerfile.api_server
           load: true
           tags: |
             ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
@@ -312,7 +313,7 @@ jobs:
         if: steps.create-image-cache.outputs.cache-hit != 'true'
         with:
           context: backend/query_handler
-          file: dockerfile.lambda
+          file: ./dockerfile.lambda
           load: true
           tags: |
             ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
