@@ -213,7 +213,7 @@ module "query_handler" {
         }
       }
 
-      tasks_iam_role_name = "${var.ecs_config.query_handler.name}-task-exec-role"
+      tasks_iam_role_name = "${var.ecs_config.query_handler.name}-ecs"
       tasks_iam_role_statements = [
         {
           effect    = "Allow",
