@@ -13,11 +13,11 @@ resource "aws_security_group" "query_handler" {
   vpc_id      = module.vpc.vpc_id
 
   ingress {
-    description = "TCP from VPC"
+    description = "TCP from Everywhere"
     from_port   = var.ecs_config.query_handler.container.port
     to_port     = var.ecs_config.query_handler.container.port
     protocol    = "tcp"
-    cidr_blocks = [module.vpc.vpc_cidr_block]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
