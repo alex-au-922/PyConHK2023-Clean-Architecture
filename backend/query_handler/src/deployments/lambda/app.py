@@ -4,7 +4,7 @@ from typing import Optional, cast
 from onnxruntime import InferenceSession
 from transformers import AutoTokenizer
 import boto3
-import logging
+import json
 from aws_lambda_powertools.logging import Logger, correlation_paths, utils as log_utils
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.tracing import Tracer
@@ -137,13 +137,15 @@ def similar_products() -> Response:
             return Response(
                 status_code=INTERNAL_SERVER_ERROR_CODE,
                 content_type=content_types.APPLICATION_JSON,
-                body={
-                    "message": "Query Embedding failed",
-                    "error": {
+                body=json.dumps(
+                    {
                         "message": "Query Embedding failed",
-                        "code": "QUERY_EMBEDDING_FAILED",
-                    },
-                },
+                        "error": {
+                            "message": "Query Embedding failed",
+                            "code": "QUERY_EMBEDDING_FAILED",
+                        },
+                    }
+                ),
             )
 
         similar_products_tuples = cast(
@@ -156,13 +158,15 @@ def similar_products() -> Response:
             return Response(
                 status_code=INTERNAL_SERVER_ERROR_CODE,
                 content_type=content_types.APPLICATION_JSON,
-                body={
-                    "message": "Query Similar Products failed",
-                    "error": {
+                body=json.dumps(
+                    {
                         "message": "Query Similar Products failed",
-                        "code": "QUERY_SIMILAR_PRODUCTS_FAILED",
-                    },
-                },
+                        "error": {
+                            "message": "Query Similar Products failed",
+                            "code": "QUERY_SIMILAR_PRODUCTS_FAILED",
+                        },
+                    }
+                ),
             )
 
         similar_product_ids: list[str]
@@ -193,62 +197,69 @@ def similar_products() -> Response:
         return Response(
             status_code=SUCCESS_CODE,
             content_type=content_types.APPLICATION_JSON,
-            body={
-                "message": "Query Similar Products successful",
-                "data": {
-                    "similar_products": [
-                        {
-                            "product_id": product.product_id,
-                            "name": product.name,
-                            "main_category": product.main_category,
-                            "sub_category": product.sub_category,
-                            "image_url": product.image_url,
-                            "ratings": product.ratings,
-                            "discount_price": product.discount_price,
-                            "actual_price": product.actual_price,
-                            "modified_date": product.modified_date.strftime(
-                                "%Y-%m-%d %H:%M:%S"
-                            ),
-                            "created_date": product.created_date.strftime(
-                                "%Y-%m-%d %H:%M:%S"
-                            ),
-                            "score": min(1, max(-1, score)),
-                        }
-                        for product, score in zip(
-                            valid_similar_product_details, valid_similar_product_scores
-                        )
-                    ],
-                    "query": query_body["query"],
-                    "created_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "modified_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                },
-            },
+            body=json.dumps(
+                {
+                    "message": "Query Similar Products successful",
+                    "data": {
+                        "similar_products": [
+                            {
+                                "product_id": product.product_id,
+                                "name": product.name,
+                                "main_category": product.main_category,
+                                "sub_category": product.sub_category,
+                                "image_url": product.image_url,
+                                "ratings": product.ratings,
+                                "discount_price": product.discount_price,
+                                "actual_price": product.actual_price,
+                                "modified_date": product.modified_date.strftime(
+                                    "%Y-%m-%d %H:%M:%S"
+                                ),
+                                "created_date": product.created_date.strftime(
+                                    "%Y-%m-%d %H:%M:%S"
+                                ),
+                                "score": min(1, max(-1, score)),
+                            }
+                            for product, score in zip(
+                                valid_similar_product_details,
+                                valid_similar_product_scores,
+                            )
+                        ],
+                        "query": query_body["query"],
+                        "created_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "modified_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    },
+                }
+            ),
         )
     except ValueError as e:
         logger.exception(e)
         return Response(
             status_code=CLIENT_ERROR_CODE,
             content_type=content_types.APPLICATION_JSON,
-            body={
-                "message": "Invalid request body",
-                "error": {
-                    "message": str(e),
-                    "code": "INVALID_REQUEST_BODY",
-                },
-            },
+            body=json.dumps(
+                {
+                    "message": "Invalid request body",
+                    "error": {
+                        "message": str(e),
+                        "code": "INVALID_REQUEST_BODY",
+                    },
+                }
+            ),
         )
     except Exception as e:
         logger.exception(e)
         return Response(
             status_code=INTERNAL_SERVER_ERROR_CODE,
             content_type=content_types.APPLICATION_JSON,
-            body={
-                "message": "Internal server error",
-                "error": {
-                    "message": str(e),
-                    "code": "UNK",
-                },
-            },
+            body=json.dumps(
+                {
+                    "message": "Internal server error",
+                    "error": {
+                        "message": str(e),
+                        "code": "UNK",
+                    },
+                }
+            ),
         )
 
 
