@@ -537,4 +537,4 @@ jobs:
       - name: Push Data to S3
         if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
         run: |
-          aws s3 cp frontend/query_handler_frontend/build/ s3://alexau-pyconhk2023-frontend/ --recursive
+          aws s3 cp frontend/query_handler_frontend/dist/ s3://alexau-pyconhk2023-frontend/ --recursive
