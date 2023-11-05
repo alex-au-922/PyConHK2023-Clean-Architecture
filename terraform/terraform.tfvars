@@ -135,7 +135,6 @@ s3_config = {
     versioning          = true
     force_destroy       = true
     block_public_access = true
-
   }
 }
 
