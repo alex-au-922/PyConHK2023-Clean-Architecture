@@ -193,9 +193,10 @@ lambda_config = {
     in_vpc                         = true
   }
   data_embedding_handler = {
-    name                           = "pyconhk2023-data-embedding-handler"
-    description                    = "Data Embedding handler for PyCon HK 2023"
-    memory_size                    = 2048
+    name        = "pyconhk2023-data-embedding-handler"
+    description = "Data Embedding handler for PyCon HK 2023"
+    # memory_size                    = 2048
+    memory_size                    = 128
     timeout                        = 5 * 60 # 5 minutes
     reserved_concurrent_executions = -1
     runtime                        = "python3.10"
