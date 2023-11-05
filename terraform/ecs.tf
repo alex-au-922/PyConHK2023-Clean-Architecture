@@ -70,11 +70,6 @@ resource "aws_lb_target_group" "query_handler" {
   }
 }
 
-data "aws_iam_policy_document" "query_handler_task_exec_role" {
-
-}
-
-
 
 module "query_handler" {
   source = "terraform-aws-modules/ecs/aws"
