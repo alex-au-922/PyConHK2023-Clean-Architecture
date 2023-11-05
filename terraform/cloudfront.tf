@@ -21,8 +21,7 @@ resource "aws_cloudfront_distribution" "frontend_distribution" {
 
   logging_config {
     include_cookies = false
-    bucket          = "pyconhk2023-cloudfront-frontend.s3.amazonaws.com"
-    # bucket          = module.frontend_cloudfront_logging_bucket.s3_bucket_id
+    bucket          = "${module.frontend_cloudfront_logging_bucket.s3_bucket_id}.s3.amazonaws.com"
   }
 
   enabled         = true
