@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 import json
@@ -6,11 +7,8 @@ from usecases import EmbedRawQueryDetailsUseCase
 from entities import RawQueryDetails, EmbeddedQueryDetails
 from typing import ClassVar, Iterator, Optional, overload, Sequence, TypeVar
 from typing_extensions import override
-from transformers import AutoTokenizer
 from typing import Callable
 from mypy_boto3_sagemaker_runtime import SageMakerRuntimeClient
-import numpy.typing as npt
-import numpy as np
 
 T = TypeVar("T")
 
@@ -22,13 +20,11 @@ class AWSSageMakerEmbedRawQueryDetailsClient(EmbedRawQueryDetailsUseCase):
         self,
         client_creator: Callable[[], SageMakerRuntimeClient],
         endpoint_name: str,
-        tokenizer: AutoTokenizer,
         embed_batch_size: int,
     ) -> None:
         super().__init__()
         self._client_creator = client_creator
         self._endpoint_name = endpoint_name
-        self._tokenizer = tokenizer
         self._embed_batch_size = embed_batch_size
         self._client: SageMakerRuntimeClient = self._client_creator()
         self._last_revoke_time: datetime = datetime.now()
@@ -78,23 +74,14 @@ class AWSSageMakerEmbedRawQueryDetailsClient(EmbedRawQueryDetailsUseCase):
         """Embed a single RawProductDetails"""
         try:
             with self._get_client() as client:
-                tokenized_input: dict[str, npt.NDArray[np.float_]] = dict(
-                    self._tokenizer(
-                        [raw_query_details.query.lower()],
-                        return_tensors="np",
-                        padding=True,
-                        truncation=True,
-                    )
-                )
-
                 embedding: list[float] = json.loads(
                     client.invoke_endpoint(
                         EndpointName="text-embeddings",
-                        Body=tokenized_input,
+                        Body=json.dumps({"text": raw_query_details.query.lower()}),
                     )["Body"]
                     .read()
                     .decode("utf-8")
-                )
+                )["result"]
 
                 return EmbeddedQueryDetails(
                     embedding=embedding,
@@ -111,45 +98,10 @@ class AWSSageMakerEmbedRawQueryDetailsClient(EmbedRawQueryDetailsUseCase):
         embedded_query_details_list: list[Optional[EmbeddedQueryDetails]] = []
 
         for batch in self._batch_generator(raw_query_details, self._embed_batch_size):
-            try:
-                with self._get_client() as client:
-                    tokenized_input: dict[str, npt.NDArray[np.float_]] = dict(
-                        self._tokenizer(
-                            [
-                                raw_query_details.query.lower()
-                                for raw_query_details in batch
-                            ],
-                            return_tensors="np",
-                            padding=True,
-                            truncation=True,
-                        )
-                    )
-
-                    embeddings: list[list[float]] = json.loads(
-                        client.invoke_endpoint(
-                            EndpointName="text-embeddings",
-                            Body=tokenized_input,
-                        )["Body"]
-                        .read()
-                        .decode("utf-8")
-                    )
-
-                    embedded_query_details_list.extend(
-                        [
-                            EmbeddedQueryDetails(
-                                embedding=embedding,
-                                created_date=datetime.now(),
-                            )
-                            for embedding in embeddings
-                        ]
-                    )
-            except Exception as e:
-                failed_queries = [
-                    raw_query_details.query for raw_query_details in batch
-                ]
-                logging.exception(e)
-                logging.error(f"Error embedding queries {','.join(failed_queries)}!")
-                embedded_query_details_list.extend([None] * len(batch))
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                embedded_query_details_list.extend(
+                    executor.map(self._embed_single, batch)
+                )
         return embedded_query_details_list
 
     @override

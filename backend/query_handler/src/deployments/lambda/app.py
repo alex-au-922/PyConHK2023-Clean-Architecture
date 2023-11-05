@@ -20,12 +20,14 @@ from usecases import (
     FetchRawProductDetailsUseCase,
     QuerySimilarProductDetailsUseCase,
 )
-from adapters.embed_raw_query_details.onnx import OnnxEmbedRawQueryDetailsClient
+from adapters.embed_raw_query_details.aws_sagemaker import (
+    AWSSageMakerEmbedRawQueryDetailsClient,
+)
 from adapters.fetch_raw_product_details.postgres import (
     PostgresFetchRawProductDetailsClient,
 )
-from adapters.query_similar_product_details.opensearch import (
-    OpenSearchQuerySimilarProductDetailsClient,
+from adapters.query_similar_product_details.postgres import (
+    PostgresQuerySimilarProductDetailsClient,
 )
 from .config import (
     PostgresConfig,
@@ -33,6 +35,7 @@ from .config import (
     OnnxEmbedConfig,
     SearchSimilarProductsConfig,
     ProjectConfig,
+    AWSSageMakerEmbedConfig,
 )
 
 logger = Logger(level=ProjectConfig.LOG_LEVEL)
@@ -64,13 +67,19 @@ def init_embed_raw_query_details_client() -> None:
     global embed_raw_query_details_client
     if embed_raw_query_details_client is not None:
         return
-    inference_session = InferenceSession(
-        OnnxEmbedConfig.ONNX_MODEL_PATH, providers=["CPUExecutionProvider"]
-    )
-    tokenizer = AutoTokenizer.from_pretrained(OnnxEmbedConfig.TOKENIZER_PATH)
-    embed_raw_query_details_client = OnnxEmbedRawQueryDetailsClient(
-        inference_session=inference_session,
-        tokenizer=tokenizer,
+    # inference_session = InferenceSession(
+    #     OnnxEmbedConfig.ONNX_MODEL_PATH, providers=["CPUExecutionProvider"]
+    # )
+    # tokenizer = AutoTokenizer.from_pretrained(OnnxEmbedConfig.TOKENIZER_PATH)
+    # embed_raw_query_details_client = OnnxEmbedRawQueryDetailsClient(
+    #     inference_session=inference_session,
+    #     tokenizer=tokenizer,
+    # )
+
+    embed_raw_query_details_client = AWSSageMakerEmbedRawQueryDetailsClient(
+        client_creator=lambda: boto3.client("sagemaker-runtime"),
+        endpoint_name=AWSSageMakerEmbedConfig.AWS_SAGEMAKER_ENDPOINT_NAME,
+        embed_batch_size=AWSSageMakerEmbedConfig.EMBED_BATCH_SIZE,
     )
 
 
@@ -96,20 +105,34 @@ def init_query_similar_product_details_client() -> None:
     global query_similar_product_details_client
     if query_similar_product_details_client is not None:
         return
-    opensearch_secrets = get_secrets_manager_secrets(
-        secret_name=OpenSearchConfig.SECRETS_MANAGER_NAME
+    # opensearch_secrets = get_secrets_manager_secrets(
+    #     secret_name=OpenSearchConfig.SECRETS_MANAGER_NAME
+    # )
+    # query_similar_product_details_client = OpenSearchQuerySimilarProductDetailsClient(
+    #     opensearch_endpoint=opensearch_secrets["endpoint"],
+    #     index_name=OpenSearchConfig.OPENSEARCH_INDEX_NAME,
+    #     master_auth=(
+    #         opensearch_secrets["username"],
+    #         opensearch_secrets["password"],
+    #     ),
+    #     default_threshold=SearchSimilarProductsConfig.DEFAULT_THRESHOLD,
+    #     default_top_k=SearchSimilarProductsConfig.DEFAULT_LIMIT,
+    #     fetch_batch_size=PostgresConfig.FETCH_BATCH_SIZE,
+    #     timeout=OpenSearchConfig.TIMEOUT,
+    # )
+    postgres_secrets = get_secrets_manager_secrets(
+        secret_name=PostgresConfig.SECRETS_MANAGER_NAME
     )
-    query_similar_product_details_client = OpenSearchQuerySimilarProductDetailsClient(
-        opensearch_endpoint=opensearch_secrets["endpoint"],
-        index_name=OpenSearchConfig.OPENSEARCH_INDEX_NAME,
-        master_auth=(
-            opensearch_secrets["username"],
-            opensearch_secrets["password"],
-        ),
+    query_similar_product_details_client = PostgresQuerySimilarProductDetailsClient(
+        host=postgres_secrets["readerHost"],
+        port=int(postgres_secrets["readerPort"]),
+        username=postgres_secrets["username"],
+        password=postgres_secrets["password"],
+        database=PostgresConfig.POSTGRES_DB,
+        embedded_product_table_name=PostgresConfig.EMBEDDED_PRODUCT_TABLE_NAME,
         default_threshold=SearchSimilarProductsConfig.DEFAULT_THRESHOLD,
         default_top_k=SearchSimilarProductsConfig.DEFAULT_LIMIT,
         fetch_batch_size=PostgresConfig.FETCH_BATCH_SIZE,
-        timeout=OpenSearchConfig.TIMEOUT,
     )
 
 

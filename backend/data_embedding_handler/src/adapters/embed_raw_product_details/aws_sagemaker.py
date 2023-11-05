@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 import json
@@ -6,11 +7,8 @@ from usecases import EmbedRawProductDetailsUseCase
 from entities import RawProductDetails, EmbeddedProductDetails
 from typing import ClassVar, Iterator, Optional, overload, Sequence, TypeVar
 from typing_extensions import override
-from transformers import AutoTokenizer
 from typing import Callable
 from mypy_boto3_sagemaker_runtime import SageMakerRuntimeClient
-import numpy.typing as npt
-import numpy as np
 
 T = TypeVar("T")
 
@@ -22,13 +20,11 @@ class AWSSageMakerEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
         self,
         client_creator: Callable[[], SageMakerRuntimeClient],
         endpoint_name: str,
-        tokenizer: AutoTokenizer,
         embed_batch_size: int,
     ) -> None:
         super().__init__()
         self._client_creator = client_creator
         self._endpoint_name = endpoint_name
-        self._tokenizer = tokenizer
         self._embed_batch_size = embed_batch_size
         self._client: SageMakerRuntimeClient = self._client_creator()
         self._last_revoke_time: datetime = datetime.now()
@@ -78,19 +74,10 @@ class AWSSageMakerEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
         """Embed a single RawProductDetails"""
         try:
             with self._get_client() as client:
-                tokenized_input: dict[str, npt.NDArray[np.float_]] = dict(
-                    self._tokenizer(
-                        [raw_product_details.name.lower()],
-                        return_tensors="np",
-                        padding=True,
-                        truncation=True,
-                    )
-                )
-
                 embedding: list[float] = json.loads(
                     client.invoke_endpoint(
                         EndpointName="text-embeddings",
-                        Body=tokenized_input,
+                        Body=json.dumps({"text": raw_product_details.name.lower()}),
                     )["Body"]
                     .read()
                     .decode("utf-8")
@@ -113,49 +100,8 @@ class AWSSageMakerEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
         embedded_product_details: list[Optional[EmbeddedProductDetails]] = []
 
         for batch in self._batch_generator(raw_product_details, self._embed_batch_size):
-            try:
-                with self._get_client() as client:
-                    tokenized_input: dict[str, npt.NDArray[np.float_]] = dict(
-                        self._tokenizer(
-                            [
-                                raw_product_detail.name.lower()
-                                for raw_product_detail in batch
-                            ],
-                            return_tensors="np",
-                            padding=True,
-                            truncation=True,
-                        )
-                    )
-
-                    embeddings: list[list[float]] = json.loads(
-                        client.invoke_endpoint(
-                            EndpointName="text-embeddings",
-                            Body=tokenized_input,
-                        )["Body"]
-                        .read()
-                        .decode("utf-8")
-                    )
-
-                    embedded_product_details.extend(
-                        [
-                            EmbeddedProductDetails(
-                                product_id=raw_product_detail.product_id,
-                                embedding=embedding,
-                                modified_date=raw_product_detail.modified_date,
-                                created_date=datetime.now(),
-                            )
-                            for raw_product_detail, embedding in zip(batch, embeddings)
-                        ]
-                    )
-            except Exception as e:
-                failed_product_ids = [
-                    raw_product_detail.product_id for raw_product_detail in batch
-                ]
-                logging.exception(e)
-                logging.error(
-                    f"Error embedding products {','.join(failed_product_ids)}!"
-                )
-                embedded_product_details.extend([None] * len(batch))
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                embedded_product_details.extend(executor.map(self._embed_single, batch))
         return embedded_product_details
 
     @override

@@ -221,6 +221,8 @@ module "query_handler_lambda" {
     LOG_SOURCE_EVENT                     = true
     ONNX_MODEL_PATH                      = "model"
     TOKENIZER_PATH                       = "tokenizer"
+    AWS_SAGEMAKER_ENDPOINT_NAME          = aws_sagemaker_endpoint.embedding_model.name
+    AWS_SAGEMAKER_EMBED_BATCH_SIZE       = 10
     POSTGRES_SECRETS_MANAGER_NAME        = module.rds_credentials.secretsmanager_secret_name
     POSTGRES_DB                          = var.rds_config.main_database
     POSTGRES_RAW_PRODUCT_TABLE_NAME      = var.rds_table_config.raw_products.name

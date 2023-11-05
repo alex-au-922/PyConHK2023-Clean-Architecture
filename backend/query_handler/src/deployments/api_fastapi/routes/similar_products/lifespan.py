@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 from adapters.embed_raw_query_details.onnx import OnnxEmbedRawQueryDetailsClient
+
 from adapters.fetch_raw_product_details.postgres import (
     PostgresFetchRawProductDetailsClient,
 )
