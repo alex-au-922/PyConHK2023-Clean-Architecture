@@ -4,3 +4,4 @@ Makefile
 *.pem
 notebooks
 venv
+node_modules

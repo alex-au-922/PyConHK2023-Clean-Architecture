@@ -146,6 +146,52 @@ variable "s3_config" {
       versioning    = bool
       force_destroy = bool
     })
+    frontend_bucket = object({
+      name                = string
+      versioning          = bool
+      force_destroy       = bool
+      block_public_access = bool
+    })
+  })
+}
+
+variable "cloudfront_config" {
+  description = "Config for the CloudFront"
+  type = object({
+    frontend = object({
+      name                = string
+      description         = string
+      aliases             = list(string)
+      price_class         = string
+      default_ssl_cert    = bool
+      retain_on_delete    = bool
+      wait_for_deployment = bool
+      origin_access_control = object({
+        s3 = object({
+          origin_type      = string
+          signing_enabled  = bool
+          signing_protocol = string
+        })
+      })
+      logging_bucket = object({
+        name = string
+      })
+      cache = object({
+        allowed_methods        = list(string)
+        cached_methods         = list(string)
+        viewer_protocol_policy = string
+        ttl = object({
+          min     = number
+          default = number
+          max     = number
+        })
+        compress     = bool
+        query_string = bool
+      })
+      restrictions = object({
+        whitelisted_locations = list(string)
+      })
+    })
   })
 }
 

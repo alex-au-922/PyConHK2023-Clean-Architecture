@@ -478,7 +478,7 @@ jobs:
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
-  ci_preparation:
+  ci_data_preparation:
     needs: [terraform-apply-main, terraform-apply-dev]
     if: |
       always() &&
@@ -497,3 +497,44 @@ jobs:
       - name: Push Data to S3
         run: |
           aws s3 cp data/ s3://alexau-pyconhk2023-data/ --recursive
+  ci_query_handler_frontend_preparation:
+    needs: [terraform-apply-main, terraform-apply-dev]
+    if: |
+      always() &&
+      (needs.terraform-apply-main.result == 'success' || needs.terraform-apply-main.result == 'skipped') &&
+      (needs.terraform-apply-dev.result == 'success' || needs.terraform-apply-dev.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Create Query Handler Frontend Build File Cache
+        id: create-query-handler-frontend-build-file-cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            frontend/query_handler_frontend/public
+            frontend/query_handler_frontend/src
+            frontend/query_handler_frontend/package.json
+          key: ${{ runner.os }}-image-${{ hashFiles('**/frontend/query_handler_frontend/public/**', '**/frontend/query_handler_frontend/src/**', '**/frontend/query_handler_frontend/package.json') }}
+      - name: Configure AWS credentials
+        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Setup Npm
+        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Build Query Handler Frontend
+        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
+        run: |
+          cd frontend/query_handler_frontend
+          npm install
+          npm run build
+      - name: Push Data to S3
+        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
+        run: |
+          aws s3 cp frontend/query_handler_frontend/build/ s3://alexau-pyconhk2023-frontend/ --recursive

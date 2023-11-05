@@ -130,6 +130,50 @@ s3_config = {
     versioning    = false
     force_destroy = true
   }
+  frontend_bucket = {
+    name                = "alexau-pyconhk2023-frontend"
+    versioning          = true
+    force_destroy       = true
+    block_public_access = true
+
+  }
+}
+
+cloudfront_config = {
+  frontend = {
+    name                = "pyconhk2023-frontend"
+    aliases             = ["pyconhk2023.alexau.dev"]
+    description         = "PyCon HK 2023 Frontend"
+    price_class         = "PriceClass_All"
+    default_ssl_cert    = true
+    retain_on_delete    = false
+    wait_for_deployment = false
+    origin_access_control = {
+      s3 = {
+        origin_type      = "s3"
+        signing_enabled  = true
+        signing_protocol = "sigv4"
+      }
+    }
+    logging_bucket = {
+      name = "alexau-pyconhk2023-frontend-cloudfront-logs"
+    }
+    cache = {
+      ttl = {
+        min     = 0
+        default = 600   # 10 minutes
+        max     = 86400 # 1 day
+      }
+      viewer_protocol_policy = "redirect-to-https"
+      allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+      cached_methods         = ["GET", "HEAD"]
+      compress               = true
+      query_string           = true
+    }
+    restrictions = {
+      whitelisted_locations = ["HK"]
+    }
+  }
 }
 
 lambda_config = {
