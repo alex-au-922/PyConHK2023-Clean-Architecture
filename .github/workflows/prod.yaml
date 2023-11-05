@@ -330,7 +330,7 @@ jobs:
         if: steps.create-image-cache.outputs.cache-hit != 'true'
         run: |
           docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
-  build-push-sagemaker-triton-image:
+  build-push-sagemaker-embedding-model-image:
     needs: [create-model, check-model-cache-exists]
     if: |
       always() &&
@@ -412,7 +412,7 @@ jobs:
         build-push-embedding-handler-image,
         build-push-query-handler-api-server-image,
         build-push-query-handler-lambda-image,
-        pull-push-sagemaker-triton-image,
+        build-push-sagemaker-embedding-model-image,
         pip-build-data-ingestion-handler,
       ]
     if: |
@@ -421,7 +421,7 @@ jobs:
       needs.build-push-embedding-handler-image.result == 'success' &&
       needs.build-push-query-handler-api-server-image.result == 'success' &&
       needs.build-push-query-handler-lambda-image.result == 'success' &&
-      needs.pull-push-sagemaker-triton-image.result == 'success' &&
+      needs.build-push-sagemaker-embedding-model-image.result == 'success' &&
       needs.pip-build-data-ingestion-handler.result == 'success' &&
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     runs-on: ubuntu-latest
