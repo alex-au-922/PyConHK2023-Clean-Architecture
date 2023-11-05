@@ -21,7 +21,7 @@ resource "aws_cloudfront_distribution" "frontend_distribution" {
 
   logging_config {
     include_cookies = false
-    bucket          = module.frontend_cloudfront_logging_bucket.s3_bucket_id
+    bucket          = var.cloudfront_config.frontend.logging_bucket.name
   }
 
   enabled         = true
@@ -84,4 +84,10 @@ resource "aws_cloudfront_distribution" "frontend_distribution" {
       locations        = var.cloudfront_config.frontend.restrictions.whitelisted_locations
     }
   }
+
+  depends_on = [
+    module.frontend_bucket,
+    module.frontend_cloudfront_logging_bucket,
+    aws_cloudfront_origin_access_control.frontend
+  ]
 }
