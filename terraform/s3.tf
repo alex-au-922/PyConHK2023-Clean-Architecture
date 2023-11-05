@@ -16,6 +16,7 @@ module "data_bucket" {
 
 data "aws_iam_policy_document" "frontend_bucket_access_policy" {
   statement {
+    effect    = "Allow"
     actions   = ["s3:GetObject"]
     resources = ["${module.frontend_bucket.s3_bucket_arn}/*"]
     principals {
@@ -24,6 +25,23 @@ data "aws_iam_policy_document" "frontend_bucket_access_policy" {
     }
     condition {
       test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.frontend_distribution.arn]
+    }
+  }
+  statement {
+    effect  = "Deny"
+    actions = ["s3:*"]
+    resources = [
+      module.frontend_bucket.s3_bucket_arn,
+      "${module.frontend_bucket.s3_bucket_arn}/*",
+    ]
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    condition {
+      test     = "StringNotEquals"
       variable = "AWS:SourceArn"
       values   = [aws_cloudfront_distribution.frontend_distribution.arn]
     }
@@ -53,14 +71,32 @@ resource "aws_s3_bucket_policy" "frontend_bucket_access_policy" {
 
 data "aws_iam_policy_document" "frontend_cloudfront_logging_bucket_access_policy" {
   statement {
-    actions   = ["s3:PutObject"]
-    resources = ["${module.frontend_cloudfront_logging_bucket.s3_bucket_arn}/*"]
+    effect    = "Allow"
+    actions   = ["s3:GetObject"]
+    resources = ["${module.frontend_bucket.s3_bucket_arn}/*"]
     principals {
       type        = "Service"
       identifiers = ["cloudfront.amazonaws.com"]
     }
     condition {
       test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.frontend_distribution.arn]
+    }
+  }
+  statement {
+    effect  = "Deny"
+    actions = ["s3:*"]
+    resources = [
+      module.frontend_bucket.s3_bucket_arn,
+      "${module.frontend_bucket.s3_bucket_arn}/*",
+    ]
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    condition {
+      test     = "StringNotEquals"
       variable = "AWS:SourceArn"
       values   = [aws_cloudfront_distribution.frontend_distribution.arn]
     }
