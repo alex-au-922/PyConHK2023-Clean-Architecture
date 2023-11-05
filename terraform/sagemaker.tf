@@ -112,6 +112,10 @@ resource "aws_sagemaker_endpoint_configuration" "embedding_model" {
     instance_type          = var.sagemaker_config.embedding_model.deployment.instance_type
     initial_variant_weight = var.sagemaker_config.embedding_model.deployment.instance_variant.weight
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_sagemaker_endpoint" "embedding_model" {
