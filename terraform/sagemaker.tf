@@ -32,7 +32,7 @@ data "aws_iam_policy_document" "embedding_model_policy" {
   statement {
     effect    = "Allow"
     actions   = ["s3:GetObject"]
-    resources = ["${module.sagemaker_model_bucket.s3_bucket_arn}/*"]
+    resources = ["*"]
   }
   statement {
     effect = "Allow"
@@ -89,7 +89,7 @@ resource "aws_sagemaker_model" "embedding_model" {
   execution_role_arn = aws_iam_role.embedding_model.arn
 
   primary_container {
-    image = "${data.aws_ecr_repository.sagemaker_model.repository_url}:${data.aws_ecr_image.latest_sagemaker_model_docker_image.image_tags[0]}}"
+    image = "${data.aws_ecr_repository.embedding_model.repository_url}:${data.aws_ecr_image.latest_embedding_model_docker_image.image_tags[0]}}"
     environment = {
       LOG_LEVEL  = "INFO"
       LOG_FORMAT = "[%(asctime)s | %(levelname)s] (%(module)s | %(funcName)s | %(lineno)d) >> %(message)s"
