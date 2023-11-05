@@ -330,6 +330,38 @@ jobs:
         if: steps.create-image-cache.outputs.cache-hit != 'true'
         run: |
           docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+  pull-push-sagemaker-triton-image:
+    needs: [create-model, check-model-cache-exists]
+    if: |
+      always() &&
+      needs.check-model-cache-exists.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        id: configure-aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Pull SageMaker Triton Image
+        run: |
+          docker pull 110948597952.dkr.ecr.ap-east-1.amazonaws.com/sagemaker-tritonserver:21.08-py3
+      - name: Login ECR
+        id: login-ecr
+        run: |
+          export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+          export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/pyconhk2023-data-embedding-sagemaker
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
+          echo "AWS_ECR_REPOSITORY_URL=${AWS_ECR_REPOSITORY_URL}" >> $GITHUB_OUTPUT
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          docker tag 110948597952.dkr.ecr.ap-east-1.amazonaws.com/sagemaker-tritonserver:21.08-py3 ${AWS_ECR_REPOSITORY_URL}:${SHORT_SHA}
+      - name: Push Docker Image
+        run: |
+          docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
   terraform-plan:
     needs:
       [
@@ -338,6 +370,7 @@ jobs:
         build-push-embedding-handler-image,
         build-push-query-handler-api-server-image,
         build-push-query-handler-lambda-image,
+        pull-push-sagemaker-triton-image,
         pip-build-data-ingestion-handler,
       ]
     if: |
@@ -346,6 +379,7 @@ jobs:
       needs.build-push-embedding-handler-image.result == 'success' &&
       needs.build-push-query-handler-api-server-image.result == 'success' &&
       needs.build-push-query-handler-lambda-image.result == 'success' &&
+      needs.pull-push-sagemaker-triton-image.result == 'success' &&
       needs.pip-build-data-ingestion-handler.result == 'success' &&
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     runs-on: ubuntu-latest

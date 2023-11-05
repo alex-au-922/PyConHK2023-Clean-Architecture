@@ -119,7 +119,7 @@ ecr_config = {
 }
 
 s3_config = {
-  model_bucket = {
+  embedding_model_bucket = {
     name          = "alexau-pyconhk2023-models"
     versioning    = false
     force_destroy = true

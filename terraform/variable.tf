@@ -136,7 +136,7 @@ variable "ecr_config" {
 variable "s3_config" {
   description = "Config for the S3"
   type = object({
-    model_bucket = object({
+    embedding_model_bucket = object({
       name          = string
       versioning    = bool
       force_destroy = bool
