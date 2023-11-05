@@ -38,15 +38,10 @@ data "aws_iam_policy_document" "embedding_model_policy" {
   statement {
     effect = "Allow"
     actions = [
-      "cloudwatch:PutMetricData",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents",
-      "logs:CreateLogGroup",
-      "logs:DescribeLogStreams",
-      "ecr:GetAuthorizationToken",
-      "ecr:BatchCheckLayerAvailability",
-      "ecr:GetDownloadUrlForLayer",
-      "ecr:BatchGetImage"
+      "cloudwatch:*",
+      "logs:*",
+      "ecr:*",
+      "ec2:*"
     ]
     resources = ["*"]
   }
