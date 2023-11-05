@@ -44,19 +44,25 @@ module "frontend_bucket" {
   }
 
   attach_policy = true
-  policy        = data.aws_iam_policy_document.frontend_bucket_access_policy.json
 }
 
+resource "aws_s3_bucket_policy" "frontend_bucket_access_policy" {
+  bucket = module.frontend_bucket.s3_bucket_id
+  policy = data.aws_iam_policy_document.frontend_bucket_access_policy.json
+}
 
 data "aws_iam_policy_document" "frontend_cloudfront_logging_bucket_access_policy" {
   statement {
-    actions = ["s3:PutObject"]
-    resources = [
-      "${module.frontend_cloudfront_logging_bucket.s3_bucket_arn}/*",
-    ]
+    actions   = ["s3:PutObject"]
+    resources = ["${module.model_bucket.s3_bucket_arn}/*"]
     principals {
       type        = "Service"
       identifiers = ["cloudfront.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.frontend_distribution.arn]
     }
   }
 }
@@ -75,5 +81,9 @@ module "frontend_cloudfront_logging_bucket" {
   }
 
   attach_policy = true
-  policy        = data.aws_iam_policy_document.frontend_cloudfront_logging_bucket_access_policy.json
+}
+
+resource "aws_s3_bucket_policy" "frontend_cloudfront_logging_bucket_access_policy" {
+  bucket = module.frontend_cloudfront_logging_bucket.s3_bucket_id
+  policy = data.aws_iam_policy_document.frontend_cloudfront_logging_bucket_access_policy.json
 }
