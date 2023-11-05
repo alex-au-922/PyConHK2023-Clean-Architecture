@@ -54,7 +54,7 @@ resource "aws_s3_bucket_policy" "frontend_bucket_access_policy" {
 data "aws_iam_policy_document" "frontend_cloudfront_logging_bucket_access_policy" {
   statement {
     actions   = ["s3:PutObject"]
-    resources = ["${module.model_bucket.s3_bucket_arn}/*"]
+    resources = ["${module.frontend_cloudfront_logging_bucket.s3_bucket_arn}/*"]
     principals {
       type        = "Service"
       identifiers = ["cloudfront.amazonaws.com"]
