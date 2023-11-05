@@ -515,7 +515,7 @@ jobs:
             frontend/query_handler_frontend/public
             frontend/query_handler_frontend/src
             frontend/query_handler_frontend/package.json
-          key: ${{ runner.os }}-image-${{ hashFiles('**/frontend/query_handler_frontend/**') }}
+          key: ${{ runner.os }}-frontend-${{ hashFiles('**/frontend/query_handler_frontend/**') }}
       - name: Configure AWS credentials
         if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
         uses: aws-actions/configure-aws-credentials@v4
