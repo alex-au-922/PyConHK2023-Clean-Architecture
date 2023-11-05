@@ -13,5 +13,5 @@ EXPOSE 8080
 COPY ${TOKENIZER_PATH} ./tokenizer
 COPY ${MODEL_PATH} ./model
 COPY --from=python-packages-builder /root/.local /root/.local
-COPY endpoint.py .
-ENTRYPOINT [ "python", "-m", "uvicorn", "endpoint:app", "--host", "0.0.0.0", "--port", "8080", "--app-dir"]
+COPY src/ .
+ENTRYPOINT [ "python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--app-dir"]

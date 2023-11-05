@@ -351,8 +351,8 @@ jobs:
         id: create-image-cache
         uses: actions/cache@v3
         with:
-          path: sagemaker
-          key: ${{ runner.os }}-image-${{ hashFiles('sagemaker/**') }}
+          path: sagemaker/embedding_model
+          key: ${{ runner.os }}-image-${{ hashFiles('sagemaker/embedding_model/**') }}
       - name: Get Model Cache From Check
         id: read-cache-check
         if: needs.check-model-cache-exists.outputs.model_cache_exists == 'true' && steps.create-image-cache.outputs.cache-hit != 'true'
@@ -371,7 +371,7 @@ jobs:
         if: steps.create-image-cache.outputs.cache-hit != 'true'
         id: copy-cache
         run: |
-          mv models/ sagemaker/models/
+          mv models/ sagemaker/embedding_model/models/
       - name: Set up Docker Buildx
         id: setup-buildx
         if: steps.create-image-cache.outputs.cache-hit != 'true'
@@ -389,8 +389,8 @@ jobs:
         uses: docker/build-push-action@v4
         if: steps.create-image-cache.outputs.cache-hit != 'true'
         with:
-          context: sagemaker
-          file: sagemaker/dockerfile
+          context: sagemaker/embedding_model/
+          file: sagemaker/embedding_model/dockerfile
           load: true
           tags: |
             ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}

@@ -10,14 +10,17 @@ import logging
 import asyncio
 import numpy.typing as npt
 import numpy as np
+from config import LogConfig
 
 uvloop.install()
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="[%(asctime)s | %(levelname)s] (%(name)s) >> %(message)s",
+    level=LogConfig.LOG_LEVEL,
+    format=LogConfig.FORMAT,
     datefmt="%Y-%m-%d %H:%M:%S",
 )
+
+logging.getLogger("uvicorn.access").handlers = logging.root.handlers
 
 
 @asynccontextmanager
@@ -62,8 +65,8 @@ def invocations(request: Request) -> JSONResponse:
         [text], return_tensors="np", padding=True, truncation=True
     )
     text_embedding: npt.NDArray[np.float_] = app.state.inference_session.run(
-        None, tokenized_text
-    )[0]
+        ["output"], dict(tokenized_text)
+    )[0][0]
 
     return JSONResponse(
         status_code=200,

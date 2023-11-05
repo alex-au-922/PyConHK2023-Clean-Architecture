@@ -1,6 +1,0 @@
-fastapi
-uvicorn[all]
-uvloop
-onnx
-onnxruntime
-transformers[onnx]

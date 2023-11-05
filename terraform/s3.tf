@@ -49,17 +49,3 @@ resource "aws_s3_bucket_policy" "frontend_bucket_access_policy" {
   bucket = module.frontend_bucket.s3_bucket_id
   policy = data.aws_iam_policy_document.frontend_bucket_access_policy.json
 }
-
-module "embedding_model_bucket" {
-  source = "terraform-aws-modules/s3-bucket/aws"
-
-  bucket                   = var.s3_config.embedding_model_bucket.name
-  acl                      = "private"
-  control_object_ownership = true
-  object_ownership         = "ObjectWriter"
-  force_destroy            = var.s3_config.embedding_model_bucket.force_destroy
-
-  versioning = {
-    enabled = var.s3_config.embedding_model_bucket.versioning
-  }
-}
