@@ -19,10 +19,10 @@ resource "aws_cloudfront_distribution" "frontend_distribution" {
     origin_access_control_id = aws_cloudfront_origin_access_control.frontend.id
   }
 
-  logging_config {
-    include_cookies = false
-    bucket          = "${module.frontend_cloudfront_logging_bucket.s3_bucket_id}.s3.amazonaws.com"
-  }
+  #   logging_config {
+  #     include_cookies = false
+  #     bucket          = "${module.frontend_cloudfront_logging_bucket.s3_bucket_id}.s3.amazonaws.com"
+  #   }
 
   enabled         = true
   is_ipv6_enabled = true
