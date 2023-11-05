@@ -1,0 +1,16 @@
+FROM python:3.10-slim-bullseye as python-packages-builder
+
+COPY requirements.api_server.txt  ./requirements.txt
+RUN pip install --user -r requirements.txt
+
+FROM python:3.10-slim-bullseye as runtime
+WORKDIR /app
+
+ARG MODEL_PATH
+ARG TOKENIZER_PATH
+
+EXPOSE 80
+COPY ${TOKENIZER_PATH} ./tokenizer
+COPY ${MODEL_PATH} ./model
+COPY --from=python-packages-builder /root/.local /root/.local
+COPY src/ ./

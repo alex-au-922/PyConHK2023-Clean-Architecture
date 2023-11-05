@@ -8,31 +8,449 @@ on:
   pull_request:
     branches:
       - main
+env:
+  MODEL_NAME: sentence-transformers/all-MiniLM-L6-v2
 permissions:
   id-token: write # This is required for requesting the JWT
   contents: read # This is required for actions/checkout
 jobs:
-  assume-role:
+  pip-build-data-ingestion-handler:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
+    name: Build Pip Packages for Data Ingestion Handler
+    outputs:
+      data_ingestion_handler_cache_key: ${{ steps.cache_output.outputs.DATA_INGESTION_HANDLER_CACHE_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.13
+          cache: "pip"
+      - name: Store requirements cache path
+        id: cache_path
+        uses: actions/cache@v3
+        with:
+          path: |
+            backend/data_ingestion_handler/src/psycopg2
+            backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/data_ingestion_handler/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install dependencies for data ingestion handler
+        if: steps.cache_path.outputs.cache-hit != 'true'
+        id: install_dependencies
+        run: |
+          git clone https://github.com/jkehler/awslambda-psycopg2.git
+          cp -r awslambda-psycopg2/psycopg2-3.9 backend/data_ingestion_handler/src/psycopg2-3.9
+          mkdir -p backend/data_ingestion_handler/src/psycopg2
+          mv backend/data_ingestion_handler/src/psycopg2-3.9/_psycopg.cpython-39-x86_64-linux-gnu.so backend/data_ingestion_handler/src/psycopg2/_psycopg.so
+          cd backend/data_ingestion_handler
+          python -m pip install -r requirements.txt -t python
+          zip -r pyconhk2023-data-ingestion-handler-layer.zip python
+          rm -rf python
+      - name: Output the cache key
+        id: cache_output
+        run: |
+          echo "DATA_INGESTION_HANDLER_CACHE_KEY=${{ runner.os }}-pip-${{ hashFiles('backend/data_ingestion_handler/requirements.txt') }}" >> $GITHUB_OUTPUT
+  check-model-cache-exists:
+    runs-on: ubuntu-latest
+    outputs:
+      model_cache_exists: ${{ steps.model_cache_exists.outputs.model_cache_exists }}
+      model_cache_key: ${{ steps.model_cache_exists.outputs.model_cache_key }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Check Model Cache Exists
+        id: check_model_cache_exists
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/artifacts/sentence_bert_onnx_transform/**') }}
+      - name: Output Model Cache Exists
+        id: model_cache_exists
+        run: |
+          echo "MODEL_CACHE_EXISTS=${{ steps.check_model_cache_exists.outputs.cache-hit }}" >> $GITHUB_OUTPUT
+          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/artifacts/sentence_bert_onnx_transform/**') }})" >> $GITHUB_OUTPUT
+  create-model:
+    needs: [check-model-cache-exists]
+    runs-on: ubuntu-latest
+    if: needs.check-model-cache-exists.outputs.model_cache_exists != 'true'
+    outputs:
+      model_cache_key: ${{ steps.model_cache_key.outputs.model_cache_key }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Create Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.13
+      - name: Setup dependencies
+        run: |
+          cd artifacts/sentence_bert_onnx_transform
+          pip install -r requirements.txt
+      - name: Remove old model
+        run: |
+          rm -rf models/
+      - name: Create Onnx Model Through Script
+        run: |
+          cd artifacts/sentence_bert_onnx_transform
+          python src/sentence_bert_onnx_transform.py \
+            --model_name ${{ env.MODEL_NAME }} \
+            --output_model_path ../../models/${{ env.MODEL_NAME }}.onnx \
+            --output_tokenizer_path ../../models/${{ env.MODEL_NAME }}.tokenizer \
+            --onnx-opset-version 13
+      - name: Create Model Cache
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/artifacts/**') }}
+      - name: Output Model Cache Key
+        id: model_cache_key
+        run: |
+          echo "MODEL_CACHE_KEY=$(echo ${{ runner.os }}-models-${{ env.MODEL_NAME }}-${{ hashFiles('**/artifacts/**') }})" >> $GITHUB_OUTPUT
+  build-push-embedding-handler-image:
+    needs: [create-model, check-model-cache-exists]
+    if: |
+      always() &&
+      needs.check-model-cache-exists.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1.7.0
+        id: configure-aws
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Check caller identity
-        run: aws sts get-caller-identity
+      - name: Create Image Cache
+        id: create-image-cache
+        uses: actions/cache@v3
+        with:
+          path: backend/data_embedding_handler
+          key: ${{ runner.os }}-image-${{ hashFiles('backend/data_embedding_handler/**') }}
+      - name: Get Model Cache From Check
+        id: read-cache-check
+        if: needs.check-model-cache-exists.outputs.model_cache_exists == 'true' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.check-model-cache-exists.outputs.model_cache_key }}
+      - name: Get Model Cache From Create
+        id: read-cache-create
+        if: needs.create-model.outputs.model_cache_key != '' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.create-model.outputs.model_cache_key }}
+      - name: Copy Model Cache
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        id: copy-cache
+        run: |
+          mv models/ backend/data_embedding_handler/models/
+      - name: Set up Docker Buildx
+        id: setup-buildx
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: docker/setup-buildx-action@v3
+      - name: Login ECR
+        id: login-ecr
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        run: |
+          export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+          export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/pyconhk2023-data-embedding-handler
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
+          echo "AWS_ECR_REPOSITORY_URL=${AWS_ECR_REPOSITORY_URL}" >> $GITHUB_OUTPUT
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Build Dockerfile
+        uses: docker/build-push-action@v4
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        with:
+          context: backend/data_embedding_handler
+          load: true
+          tags: |
+            ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+          build-args: |
+            MODEL_PATH=models/${{ env.MODEL_NAME }}.onnx
+            TOKENIZER_PATH=models/${{ env.MODEL_NAME }}.tokenizer
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Push Docker Image
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        run: |
+          docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+  build-push-query-handler-api-server-image:
+    needs: [create-model, check-model-cache-exists]
+    if: |
+      always() &&
+      needs.check-model-cache-exists.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        id: configure-aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Create Image Cache
+        id: create-image-cache
+        uses: actions/cache@v3
+        with:
+          path: backend/query_handler
+          key: ${{ runner.os }}-image-${{ hashFiles('backend/query_handler/**') }}
+      - name: Get Model Cache From Check
+        id: read-cache-check
+        if: needs.check-model-cache-exists.outputs.model_cache_exists == 'true' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.check-model-cache-exists.outputs.model_cache_key }}
+      - name: Get Model Cache From Create
+        id: read-cache-create
+        if: needs.create-model.outputs.model_cache_key != '' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.create-model.outputs.model_cache_key }}
+      - name: Copy Model Cache
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        id: copy-cache
+        run: |
+          mv models/ backend/query_handler/models/
+      - name: Set up Docker Buildx
+        id: setup-buildx
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: docker/setup-buildx-action@v3
+      - name: Login ECR
+        id: login-ecr
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        run: |
+          export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+          export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/pyconhk2023-query-handler-api-server
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
+          echo "AWS_ECR_REPOSITORY_URL=${AWS_ECR_REPOSITORY_URL}" >> $GITHUB_OUTPUT
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Build Dockerfile
+        uses: docker/build-push-action@v4
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        with:
+          context: backend/query_handler
+          file: backend/query_handler/dockerfile.api_server
+          load: true
+          tags: |
+            ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+          build-args: |
+            MODEL_PATH=models/${{ env.MODEL_NAME }}.onnx
+            TOKENIZER_PATH=models/${{ env.MODEL_NAME }}.tokenizer
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Push Docker Image
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        run: |
+          docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+  build-push-query-handler-lambda-image:
+    needs: [create-model, check-model-cache-exists]
+    if: |
+      always() &&
+      needs.check-model-cache-exists.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        id: configure-aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Create Image Cache
+        id: create-image-cache
+        uses: actions/cache@v3
+        with:
+          path: backend/query_handler
+          key: ${{ runner.os }}-image-${{ hashFiles('backend/query_handler/**') }}
+      - name: Get Model Cache From Check
+        id: read-cache-check
+        if: needs.check-model-cache-exists.outputs.model_cache_exists == 'true' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.check-model-cache-exists.outputs.model_cache_key }}
+      - name: Get Model Cache From Create
+        id: read-cache-create
+        if: needs.create-model.outputs.model_cache_key != '' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.create-model.outputs.model_cache_key }}
+      - name: Copy Model Cache
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        id: copy-cache
+        run: |
+          mv models/ backend/query_handler/models/
+      - name: Set up Docker Buildx
+        id: setup-buildx
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: docker/setup-buildx-action@v3
+      - name: Login ECR
+        id: login-ecr
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        run: |
+          export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+          export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/pyconhk2023-query-handler-lambda
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
+          echo "AWS_ECR_REPOSITORY_URL=${AWS_ECR_REPOSITORY_URL}" >> $GITHUB_OUTPUT
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Build Dockerfile
+        uses: docker/build-push-action@v4
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        with:
+          context: backend/query_handler
+          file: backend/query_handler/dockerfile.lambda
+          load: true
+          tags: |
+            ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+          build-args: |
+            MODEL_PATH=models/${{ env.MODEL_NAME }}.onnx
+            TOKENIZER_PATH=models/${{ env.MODEL_NAME }}.tokenizer
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Push Docker Image
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        run: |
+          docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+  build-push-sagemaker-embedding-model-image:
+    needs: [create-model, check-model-cache-exists]
+    if: |
+      always() &&
+      needs.check-model-cache-exists.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        id: configure-aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Create Image Cache
+        id: create-image-cache
+        uses: actions/cache@v3
+        with:
+          path: sagemaker/embedding_model
+          key: ${{ runner.os }}-image-${{ hashFiles('sagemaker/embedding_model/**') }}
+      - name: Get Model Cache From Check
+        id: read-cache-check
+        if: needs.check-model-cache-exists.outputs.model_cache_exists == 'true' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.check-model-cache-exists.outputs.model_cache_key }}
+      - name: Get Model Cache From Create
+        id: read-cache-create
+        if: needs.create-model.outputs.model_cache_key != '' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.create-model.outputs.model_cache_key }}
+      - name: Copy Model Cache
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        id: copy-cache
+        run: |
+          mv models/ sagemaker/embedding_model/models/
+      - name: Set up Docker Buildx
+        id: setup-buildx
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: docker/setup-buildx-action@v3
+      - name: Login ECR
+        id: login-ecr
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        run: |
+          export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+          export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/pyconhk2023-data-embedding-sagemaker
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
+          echo "AWS_ECR_REPOSITORY_URL=${AWS_ECR_REPOSITORY_URL}" >> $GITHUB_OUTPUT
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Build Dockerfile
+        uses: docker/build-push-action@v4
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        with:
+          context: sagemaker/embedding_model/
+          file: sagemaker/embedding_model/dockerfile
+          load: true
+          tags: |
+            ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+          build-args: |
+            MODEL_PATH=models/${{ env.MODEL_NAME }}.onnx
+            TOKENIZER_PATH=models/${{ env.MODEL_NAME }}.tokenizer
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Push Docker Image
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        run: |
+          docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+  terraform-plan:
+    needs:
+      [
+        create-model,
+        check-model-cache-exists,
+        build-push-embedding-handler-image,
+        build-push-query-handler-api-server-image,
+        build-push-query-handler-lambda-image,
+        build-push-sagemaker-embedding-model-image,
+        pip-build-data-ingestion-handler,
+      ]
+    if: |
+      always() &&
+      needs.check-model-cache-exists.result == 'success' &&
+      needs.build-push-embedding-handler-image.result == 'success' &&
+      needs.build-push-query-handler-api-server-image.result == 'success' &&
+      needs.build-push-query-handler-lambda-image.result == 'success' &&
+      needs.build-push-sagemaker-embedding-model-image.result == 'success' &&
+      needs.pip-build-data-ingestion-handler.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        id: configure-aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Download new directory for Data Ingestion Handler
+        id: download_data_ingestion_handler
+        uses: actions/cache@v3
+        with:
+          path: |
+            backend/data_ingestion_handler/src/psycopg2
+            backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
+          key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
       - name: Setup Terraform
+        id: setup-terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.6.0
+          terraform_version: 1.6.1
       - name: Terraform Init
+        id: init
         run: |
           cd terraform
           terraform init
@@ -40,9 +458,159 @@ jobs:
         id: plan
         run: |
           cd terraform
-          terraform plan -out=tfplan
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
+          terraform plan
+        env:
+          TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
+          TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
+  terraform-apply-main:
+    needs: [terraform-plan, create-model, pip-build-data-ingestion-handler]
+    if: |
+      always() &&
+      github.ref == 'refs/heads/main' &&
+      needs.terraform-plan.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        id: configure-aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Download new directory for Data Ingestion Handler
+        id: download_data_ingestion_handler
+        uses: actions/cache@v3
+        with:
+          path: |
+            backend/data_ingestion_handler/src/psycopg2
+            backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
+          key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
+      - name: Setup Terraform
+        id: setup-terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.6.1
+      - name: Terraform Init
+        id: init
         run: |
           cd terraform
-          terraform apply -auto-approve tfplan
+          terraform init
+      - name: Terraform Apply
+        id: apply
+        run: |
+          cd terraform
+          terraform apply -auto-approve
+        env:
+          TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
+          TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
+  terraform-apply-dev:
+    needs: [terraform-plan, create-model, pip-build-data-ingestion-handler]
+    if: |
+      always() &&
+      github.ref != 'refs/heads/main' &&
+      needs.terraform-plan.result == 'success' &&
+      (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
+    environment:
+      name: prod
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        id: configure-aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Download new directory for Data Ingestion Handler
+        id: download_data_ingestion_handler
+        uses: actions/cache@v3
+        with:
+          path: |
+            backend/data_ingestion_handler/src/psycopg2
+            backend/data_ingestion_handler/pyconhk2023-data-ingestion-handler-layer.zip
+          key: ${{ needs.pip-build-data-ingestion-handler.outputs.data_ingestion_handler_cache_key }}
+      - name: Setup Terraform
+        id: setup-terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.6.1
+      - name: Terraform Init
+        id: init
+        run: |
+          cd terraform
+          terraform init
+      - name: Terraform Apply
+        id: apply
+        run: |
+          cd terraform
+          terraform apply -auto-approve
+        env:
+          TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
+          TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
+  ci_data_preparation:
+    needs: [terraform-apply-main, terraform-apply-dev]
+    if: |
+      always() &&
+      (needs.terraform-apply-main.result == 'success' || needs.terraform-apply-main.result == 'skipped') &&
+      (needs.terraform-apply-dev.result == 'success' || needs.terraform-apply-dev.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Push Data to S3
+        run: |
+          aws s3 cp data/ s3://alexau-pyconhk2023-data/ --recursive
+  ci_query_handler_frontend_preparation:
+    needs: [terraform-apply-main, terraform-apply-dev]
+    if: |
+      always() &&
+      (needs.terraform-apply-main.result == 'success' || needs.terraform-apply-main.result == 'skipped') &&
+      (needs.terraform-apply-dev.result == 'success' || needs.terraform-apply-dev.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Create Query Handler Frontend Build File Cache
+        id: create-query-handler-frontend-build-file-cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            frontend/pyconhk2023_query_handler_frontend/public
+            frontend/pyconhk2023_query_handler_frontend/src
+            frontend/pyconhk2023_query_handler_frontend/package.json
+          key: ${{ runner.os }}-frontend-${{ hashFiles('**/frontend/pyconhk2023_query_handler_frontend/**') }}
+      - name: Configure AWS credentials
+        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Setup Npm
+        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Build Query Handler Frontend
+        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
+        run: |
+          cd frontend/pyconhk2023_query_handler_frontend
+          npm install
+          npm run build
+      - name: Push Data to S3
+        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
+        run: |
+          aws s3 cp frontend/pyconhk2023_query_handler_frontend/dist/ s3://alexau-pyconhk2023-frontend/ --recursive

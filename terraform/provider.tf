@@ -1,10 +1,3 @@
-locals {
-  tags = {
-    developer = "alexau"
-    contact   = "alexuau922@gmail.com"
-  }
-}
-
 terraform {
   required_providers {
     aws = {

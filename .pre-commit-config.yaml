@@ -1,13 +1,13 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v4.5.0
     hooks:
       - id: check-yaml
-      - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: check-added-large-files
         args: ["--maxkb=50000"] # 50 MB
       - id: check-json
+        exclude: "frontend/.*"
       - id: check-toml
       - id: detect-aws-credentials
         args: [--allow-missing-credentials]
@@ -20,3 +20,108 @@ repos:
         entry: terraform fmt terraform
         pass_filenames: false
         always_run: true
+      - id: terraform_validate
+        language: system
+        name: terraform_validate
+        entry: terraform validate -no-color
+        pass_filenames: false
+        always_run: true
+  - repo: https://github.com/psf/black
+    rev: 23.10.0
+    hooks:
+      - id: black
+  - repo: https://github.com/python-poetry/poetry
+    rev: 1.6.0
+    hooks:
+      # Artifacts - Sentence Bert Onnx Transformation
+      - id: poetry-check
+        name: poetry-check-artifacts-sentence-bert-onnx-transform
+        args: ["-C", "./artifacts/sentence_bert_onnx_transform"]
+      - id: poetry-lock
+        name: poetry-lock-artifacts-sentence-bert-onnx-transform
+        args: ["-C", "./artifacts/sentence_bert_onnx_transform"]
+      - id: poetry-export
+        name: poetry-export-artifacts-sentence-bert-onnx-transform
+        args:
+          [
+            "-C",
+            "./artifacts/sentence_bert_onnx_transform",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "./artifacts/sentence_bert_onnx_transform/requirements.txt",
+            "--without-hashes",
+          ]
+      # Data Embedding Handler
+      - id: poetry-check
+        name: poetry-check-data-embedding-handler
+        args: ["-C", "./backend/data_embedding_handler"]
+      - id: poetry-lock
+        name: poetry-lock-data-embedding-handler
+        args: ["-C", "./backend/data_embedding_handler"]
+      - id: poetry-export
+        name: poetry-export-data-embedding-handler
+        args:
+          [
+            "-C",
+            "./backend/data_embedding_handler",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "./backend/data_embedding_handler/requirements.txt",
+            "--without-hashes",
+          ]
+      # Data Ingestion Handler
+      - id: poetry-check
+        name: poetry-check-data-ingestion-handler
+        args: ["-C", "./backend/data_ingestion_handler"]
+      - id: poetry-lock
+        name: poetry-lock-data-ingestion-handler
+        args: ["-C", "./backend/data_ingestion_handler"]
+      - id: poetry-export
+        name: poetry-export-data-ingestion-handler
+        args:
+          [
+            "-C",
+            "./backend/data_ingestion_handler",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "./backend/data_ingestion_handler/requirements.txt",
+            "--without-hashes",
+          ]
+      # Query Handler
+      - id: poetry-check
+        name: poetry-check-query-handler
+        args: ["-C", "./backend/query_handler"]
+      - id: poetry-lock
+        name: poetry-lock-query-handler
+        args: ["-C", "./backend/query_handler"]
+      - id: poetry-export
+        name: poetry-export-query-handler-api-server
+        args:
+          [
+            "-C",
+            "./backend/query_handler",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "./backend/query_handler/requirements.api_server.txt",
+            "--without-hashes",
+            "--with",
+            "api_server",
+          ]
+      - id: poetry-export
+        name: poetry-export-query-handler-lambda
+        args:
+          [
+            "-C",
+            "./backend/query_handler",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "./backend/query_handler/requirements.lambda.txt",
+            "--without-hashes",
+            "--with",
+            "lambda",
+          ]

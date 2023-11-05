@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "sentence-bert-onnx-transform"
+version = "0.1.0"
+description = ""
+authors = ["alexau <alexaupyconhk2023aws@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+onnxruntime = "^1.16.1"
+torch = "^2.1.0"
+transformers = "^4.34.1"
+typing-extensions = "^4.8.0"
+onnx = "^1.15.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

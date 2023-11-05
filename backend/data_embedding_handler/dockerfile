@@ -1,0 +1,12 @@
+FROM public.ecr.aws/lambda/python:3.10 as python-packages-builder
+COPY requirements.txt  ./requirements.txt
+RUN  pip3 install -r requirements.txt --target ${LAMBDA_TASK_ROOT}
+
+FROM public.ecr.aws/lambda/python:3.10 as runtime
+ARG MODEL_PATH
+ARG TOKENIZER_PATH
+
+COPY ${TOKENIZER_PATH} ./tokenizer
+COPY ${MODEL_PATH} ./model
+COPY --from=python-packages-builder ${LAMBDA_TASK_ROOT} ./
+COPY src/ .

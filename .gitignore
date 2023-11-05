@@ -1,2 +1,8 @@
-data
 aws
+Makefile
+.venv
+*.pem
+notebooks
+venv
+node_modules
+build
