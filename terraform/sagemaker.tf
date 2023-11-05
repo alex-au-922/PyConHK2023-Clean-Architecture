@@ -8,6 +8,7 @@ data "aws_ecr_image" "latest_embedding_model_docker_image" {
 }
 
 resource "aws_iam_role" "embedding_model" {
+  name               = "${var.sagemaker_config.embedding_model.name}-sagemaker-role"
   assume_role_policy = data.aws_iam_policy_document.sagemaker_assume_role.json
 }
 
@@ -89,7 +90,7 @@ resource "aws_sagemaker_model" "embedding_model" {
   execution_role_arn = aws_iam_role.embedding_model.arn
 
   primary_container {
-    image = "${data.aws_ecr_repository.embedding_model.repository_url}:${data.aws_ecr_image.latest_embedding_model_docker_image.image_tags[0]}}"
+    image = "${data.aws_ecr_repository.embedding_model.repository_url}:${data.aws_ecr_image.latest_embedding_model_docker_image.image_tags[0]}"
     environment = {
       LOG_LEVEL  = "INFO"
       LOG_FORMAT = "[%(asctime)s | %(levelname)s] (%(module)s | %(funcName)s | %(lineno)d) >> %(message)s"
