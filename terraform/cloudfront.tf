@@ -21,7 +21,7 @@ resource "aws_cloudfront_distribution" "frontend_distribution" {
 
   logging_config {
     include_cookies = false
-    bucket          = var.cloudfront_config.frontend.logging_bucket.name
+    bucket          = module.frontend_cloudfront_logging_bucket.s3_bucket_id
   }
 
   enabled         = true

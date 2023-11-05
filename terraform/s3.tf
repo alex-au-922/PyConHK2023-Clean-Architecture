@@ -58,11 +58,6 @@ data "aws_iam_policy_document" "frontend_cloudfront_logging_bucket_access_policy
       type        = "Service"
       identifiers = ["cloudfront.amazonaws.com"]
     }
-    condition {
-      test     = "StringEquals"
-      variable = "AWS:SourceArn"
-      values   = [aws_cloudfront_distribution.frontend_distribution.arn]
-    }
   }
 }
 
