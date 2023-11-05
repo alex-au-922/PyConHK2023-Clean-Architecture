@@ -330,7 +330,7 @@ jobs:
         if: steps.create-image-cache.outputs.cache-hit != 'true'
         run: |
           docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
-  pull-push-sagemaker-triton-image:
+  build-push-sagemaker-triton-image:
     needs: [create-model, check-model-cache-exists]
     if: |
       always() &&
@@ -347,19 +347,61 @@ jobs:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Pull SageMaker Triton Image
+      - name: Create Image Cache
+        id: create-image-cache
+        uses: actions/cache@v3
+        with:
+          path: sagemaker
+          key: ${{ runner.os }}-image-${{ hashFiles('sagemaker/**') }}
+      - name: Get Model Cache From Check
+        id: read-cache-check
+        if: needs.check-model-cache-exists.outputs.model_cache_exists == 'true' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.check-model-cache-exists.outputs.model_cache_key }}
+      - name: Get Model Cache From Create
+        id: read-cache-create
+        if: needs.create-model.outputs.model_cache_key != '' && steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: models
+          key: ${{ needs.create-model.outputs.model_cache_key }}
+      - name: Copy Model Cache
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        id: copy-cache
         run: |
-          docker pull 110948597952.dkr.ecr.ap-east-1.amazonaws.com/sagemaker-tritonserver:21.08-py3
+          mv models/ sagemaker/models/
+      - name: Set up Docker Buildx
+        id: setup-buildx
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        uses: docker/setup-buildx-action@v3
       - name: Login ECR
         id: login-ecr
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
         run: |
           export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
           export AWS_ECR_REPOSITORY_URL=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/pyconhk2023-data-embedding-sagemaker
           aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ECR_REPOSITORY_URL}
           echo "AWS_ECR_REPOSITORY_URL=${AWS_ECR_REPOSITORY_URL}" >> $GITHUB_OUTPUT
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          docker tag 110948597952.dkr.ecr.ap-east-1.amazonaws.com/sagemaker-tritonserver:21.08-py3 ${AWS_ECR_REPOSITORY_URL}:${SHORT_SHA}
+      - name: Build Dockerfile
+        uses: docker/build-push-action@v4
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
+        with:
+          context: sagemaker
+          file: sagemaker/dockerfile
+          load: true
+          tags: |
+            ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
+          build-args: |
+            MODEL_PATH=models/${{ env.MODEL_NAME }}.onnx
+            TOKENIZER_PATH=models/${{ env.MODEL_NAME }}.tokenizer
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Push Docker Image
+        if: steps.create-image-cache.outputs.cache-hit != 'true'
         run: |
           docker push ${{ steps.login-ecr.outputs.AWS_ECR_REPOSITORY_URL }}:${{ steps.login-ecr.outputs.SHORT_SHA }}
   terraform-plan:
