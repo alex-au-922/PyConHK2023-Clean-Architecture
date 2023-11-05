@@ -313,3 +313,18 @@ ecs_config = {
     }
   }
 }
+
+sagemaker_config = {
+  embedding_model = {
+    name = "pyconhk2023-embedding-model"
+    deployment = {
+      instance_type  = "m5.xlarge"
+      instance_count = 1
+      instance_variant = {
+        weight = 1
+        name   = "main"
+      }
+    }
+    in_vpc = true
+  }
+}

@@ -325,6 +325,24 @@ variable "ecs_config" {
   })
 }
 
+variable "sagemaker_config" {
+  description = "Config for the SageMaker"
+  type = object({
+    embedding_model = object({
+      name = string
+      deployment = object({
+        instance_type  = string
+        instance_count = number
+        instance_variant = object({
+          name   = string
+          weight = number
+        })
+      })
+      in_vpc = bool
+    })
+  })
+}
+
 variable "ssh_public_key" {
   description = "SSH Public Key, Provided by Pipeline"
   type        = string

@@ -512,10 +512,10 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            frontend/query_handler_frontend/public
-            frontend/query_handler_frontend/src
-            frontend/query_handler_frontend/package.json
-          key: ${{ runner.os }}-frontend-${{ hashFiles('**/frontend/query_handler_frontend/**') }}
+            frontend/pyconhk2023_query_handler_frontend/public
+            frontend/pyconhk2023_query_handler_frontend/src
+            frontend/pyconhk2023_query_handler_frontend/package.json
+          key: ${{ runner.os }}-frontend-${{ hashFiles('**/frontend/pyconhk2023_query_handler_frontend/**') }}
       - name: Configure AWS credentials
         if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
         uses: aws-actions/configure-aws-credentials@v4
@@ -531,10 +531,10 @@ jobs:
       - name: Build Query Handler Frontend
         if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
         run: |
-          cd frontend/query_handler_frontend
+          cd frontend/pyconhk2023_query_handler_frontend
           npm install
           npm run build
       - name: Push Data to S3
         if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
         run: |
-          aws s3 cp frontend/query_handler_frontend/dist/ s3://alexau-pyconhk2023-frontend/ --recursive
+          aws s3 cp frontend/pyconhk2023_query_handler_frontend/dist/ s3://alexau-pyconhk2023-frontend/ --recursive
