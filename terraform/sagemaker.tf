@@ -96,10 +96,6 @@ resource "aws_sagemaker_model" "embedding_model" {
     security_group_ids = [aws_security_group.embedding_model.id]
     subnets            = module.vpc.private_subnets
   }
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 resource "aws_sagemaker_endpoint_configuration" "embedding_model" {
@@ -111,10 +107,6 @@ resource "aws_sagemaker_endpoint_configuration" "embedding_model" {
     initial_instance_count = var.sagemaker_config.embedding_model.deployment.instance_count
     instance_type          = var.sagemaker_config.embedding_model.deployment.instance_type
     initial_variant_weight = var.sagemaker_config.embedding_model.deployment.instance_variant.weight
-  }
-
-  lifecycle {
-    create_before_destroy = true
   }
 }
 
