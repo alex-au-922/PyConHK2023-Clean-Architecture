@@ -81,7 +81,7 @@ resource "aws_security_group" "embedding_model" {
 }
 
 resource "aws_iam_role_policy_attachment" "sagemaker" {
-  role       = aws_iam_role.embedding_model.arn
+  role       = aws_iam_role.embedding_model.name
   policy_arn = aws_iam_policy.embedding_model_policy.arn
 }
 
