@@ -4,56 +4,56 @@ locals {
   s3_origin_id = "s3-${var.cloudfront_config.frontend.name}"
 }
 
-resource "aws_s3_bucket" "frontend_cloudfront_logging_bucket" {
-  bucket        = var.cloudfront_config.frontend.logging_bucket.name
-  force_destroy = true
-}
+# resource "aws_s3_bucket" "frontend_cloudfront_logging_bucket" {
+#   bucket        = var.cloudfront_config.frontend.logging_bucket.name
+#   force_destroy = true
+# }
 
-resource "aws_s3_bucket_versioning" "frontend_cloudfront_logging_bucket" {
-  bucket = aws_s3_bucket.frontend_cloudfront_logging_bucket.id
+# resource "aws_s3_bucket_versioning" "frontend_cloudfront_logging_bucket" {
+#   bucket = aws_s3_bucket.frontend_cloudfront_logging_bucket.id
 
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
+#   versioning_configuration {
+#     status = "Enabled"
+#   }
+# }
 
-resource "aws_s3_bucket_public_access_block" "frontend_cloudfront_logging_bucket" {
-  bucket                  = aws_s3_bucket.frontend_cloudfront_logging_bucket.id
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
+# resource "aws_s3_bucket_public_access_block" "frontend_cloudfront_logging_bucket" {
+#   bucket                  = aws_s3_bucket.frontend_cloudfront_logging_bucket.id
+#   block_public_acls       = true
+#   block_public_policy     = true
+#   ignore_public_acls      = true
+#   restrict_public_buckets = true
+# }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "frontend_cloudfront_logging_bucket" {
-  bucket = aws_s3_bucket.frontend_cloudfront_logging_bucket.id
+# resource "aws_s3_bucket_server_side_encryption_configuration" "frontend_cloudfront_logging_bucket" {
+#   bucket = aws_s3_bucket.frontend_cloudfront_logging_bucket.id
 
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
+#   rule {
+#     apply_server_side_encryption_by_default {
+#       sse_algorithm = "AES256"
+#     }
+#   }
 
-}
+# }
 
-data "aws_iam_policy_document" "frontend_cloudfront_logging_bucket_policy_document" {
-  statement {
-    sid       = "S3GetObjectForCloudFront"
-    actions   = ["s3:*"]
-    resources = ["${aws_s3_bucket.frontend_cloudfront_logging_bucket.arn}/*"]
+# data "aws_iam_policy_document" "frontend_cloudfront_logging_bucket_policy_document" {
+#   statement {
+#     sid       = "S3GetObjectForCloudFront"
+#     actions   = ["s3:*"]
+#     resources = ["${aws_s3_bucket.frontend_cloudfront_logging_bucket.arn}/*"]
 
-    principals {
-      type        = "AWS"
-      identifiers = ["cloudfront.amazonaws.com"]
+#     principals {
+#       type        = "AWS"
+#       identifiers = ["cloudfront.amazonaws.com"]
 
-    }
-  }
-}
+#     }
+#   }
+# }
 
-resource "aws_s3_bucket_policy" "frontend_cloudfront_logging_bucket" {
-  bucket = aws_s3_bucket.frontend_cloudfront_logging_bucket.id
-  policy = data.aws_iam_policy_document.frontend_cloudfront_logging_bucket_policy_document.json
-}
+# resource "aws_s3_bucket_policy" "frontend_cloudfront_logging_bucket" {
+#   bucket = aws_s3_bucket.frontend_cloudfront_logging_bucket.id
+#   policy = data.aws_iam_policy_document.frontend_cloudfront_logging_bucket_policy_document.json
+# }
 
 resource "aws_cloudfront_origin_access_control" "frontend" {
   name                              = var.cloudfront_config.frontend.name
@@ -70,10 +70,10 @@ resource "aws_cloudfront_distribution" "frontend_distribution" {
     origin_access_control_id = aws_cloudfront_origin_access_control.frontend.id
   }
 
-  logging_config {
-    include_cookies = false
-    bucket          = aws_s3_bucket.frontend_cloudfront_logging_bucket.bucket_domain_name
-  }
+  #   logging_config {
+  #     include_cookies = false
+  #     bucket          = aws_s3_bucket.frontend_cloudfront_logging_bucket.bucket_domain_name
+  #   }
 
   enabled         = true
   is_ipv6_enabled = true
@@ -138,7 +138,7 @@ resource "aws_cloudfront_distribution" "frontend_distribution" {
 
   depends_on = [
     module.frontend_bucket,
-    aws_s3_bucket.frontend_cloudfront_logging_bucket,
+    # aws_s3_bucket.frontend_cloudfront_logging_bucket,
     aws_cloudfront_origin_access_control.frontend
   ]
 }
