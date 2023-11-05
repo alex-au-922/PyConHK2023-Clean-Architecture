@@ -60,8 +60,6 @@ module "frontend_bucket" {
   versioning = {
     enabled = var.s3_config.frontend_bucket.versioning
   }
-
-  attach_policy = true
 }
 
 resource "aws_s3_bucket_policy" "frontend_bucket_access_policy" {
@@ -115,8 +113,6 @@ module "frontend_cloudfront_logging_bucket" {
   versioning = {
     enabled = false
   }
-
-  attach_policy = true
 }
 
 resource "aws_s3_bucket_policy" "frontend_cloudfront_logging_bucket_access_policy" {

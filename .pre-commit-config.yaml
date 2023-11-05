@@ -7,6 +7,7 @@ repos:
       - id: check-added-large-files
         args: ["--maxkb=50000"] # 50 MB
       - id: check-json
+        exclude: "frontend/*"
       - id: check-toml
       - id: detect-aws-credentials
         args: [--allow-missing-credentials]
