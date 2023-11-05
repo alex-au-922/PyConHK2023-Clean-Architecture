@@ -36,16 +36,11 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "frontend_cloudfro
 
 }
 
-resource "aws_s3_bucket_policy" "frontend_cloudfront_logging_bucket" {
-  bucket = aws_s3_bucket.frontend_cloudfront_logging_bucket.id
-  policy = data.aws_iam_policy_document.frontend_cloudfront_logging_bucket.json
-}
-
 data "aws_iam_policy_document" "frontend_cloudfront_logging_bucket_policy_document" {
   statement {
     sid       = "S3GetObjectForCloudFront"
     actions   = ["s3:*"]
-    resources = ["${aws_s3_bucket.origin.arn}/*"]
+    resources = ["${aws_s3_bucket.frontend_cloudfront_logging_bucket.arn}/*"]
 
     principals {
       type        = "AWS"
@@ -53,6 +48,11 @@ data "aws_iam_policy_document" "frontend_cloudfront_logging_bucket_policy_docume
 
     }
   }
+}
+
+resource "aws_s3_bucket_policy" "frontend_cloudfront_logging_bucket" {
+  bucket = aws_s3_bucket.frontend_cloudfront_logging_bucket.id
+  policy = data.aws_iam_policy_document.frontend_cloudfront_logging_bucket_policy_document.json
 }
 
 resource "aws_cloudfront_origin_access_control" "frontend" {
