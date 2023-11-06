@@ -90,7 +90,7 @@ module "api_gateway_ecs_security_group" {
       to_port     = var.ecs_config.query_handler.container.port
       description = "TCP from Everywhere"
       protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
+      cidr_blocks = "0.0.0.0/0"
     }
   ]
 
