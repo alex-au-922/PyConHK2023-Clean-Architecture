@@ -81,7 +81,7 @@ class AWSSageMakerEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
                     )["Body"]
                     .read()
                     .decode("utf-8")
-                )
+                )["result"]
 
                 return EmbeddedProductDetails(
                     product_id=raw_product_details.product_id,
