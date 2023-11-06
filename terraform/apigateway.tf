@@ -71,7 +71,7 @@ module "api_gateway_ecs" {
     my-vpc = {
       name               = "example"
       security_group_ids = [module.api_gateway_ecs_security_group.security_group_id]
-      subnet_ids         = module.vpc.private_subnets
+      subnet_ids         = [module.vpc.private_subnets[1]]
     }
   }
 }
