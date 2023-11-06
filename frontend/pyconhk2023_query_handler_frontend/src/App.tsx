@@ -17,7 +17,9 @@ const App = () => {
     try {
       const [lambdaAPIGatewayResponse, ecsClusterREsponse] = await Promise.all([
         fetch(
-          `${import.meta.env.VITE_API_GATEWAY_DOMAIN}/api/similar_products`,
+          `${
+            import.meta.env.VITE_LAMBDA_API_GATEWAY_DOMAIN
+          }/api/similar_products`,
           {
             method: "POST",
             body: JSON.stringify({
@@ -27,22 +29,23 @@ const App = () => {
             }),
             headers: {
               "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*",
             },
           }
         ),
-        fetch(`${import.meta.env.VITE_ECS_CLUSTER_ALB}/api/similar_products/`, {
-          method: "POST",
-          body: JSON.stringify({
-            query: searchQuery,
-            limit: 50,
-            threshold: 0.3,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
-        }),
+        fetch(
+          `${import.meta.env.VITE_ECS_API_GATEWAY_DOMAIN}/api/similar_products`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              query: searchQuery,
+              limit: 50,
+              threshold: 0.3,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        ),
       ]);
 
       if (!lambdaAPIGatewayResponse.ok || !ecsClusterREsponse.ok) {

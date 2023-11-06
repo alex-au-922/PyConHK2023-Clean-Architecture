@@ -109,10 +109,10 @@ class PostgresQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCase
                     stmt = """
                         SELECT
                             product_id,
-                            embedding <#> %(embedding)s::vector AS score
+                            (embedding <#> %(embedding)s::vector) * -1 AS score
                         FROM {table_name}
-                            WHERE embedding <#> %(embedding)s::vector <= %(threshold)s
-                            ORDER BY embedding <#> %(embedding)s::vector DESC
+                            WHERE (embedding <#> %(embedding)s::vector) * -1 <= %(threshold)s
+                            ORDER BY (embedding <#> %(embedding)s::vector) * -1 DESC
                         LIMIT %(top_k)s
                         """.format(
                         table_name=self._embedded_product_table_name,
@@ -157,10 +157,10 @@ class PostgresQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCase
                         stmt = """
                             SELECT
                                 product_id,
-                                embedding <#> %(embedding)s::vector AS score
+                                (embedding <#> %(embedding)s::vector) * -1 AS score
                             FROM {table_name}
-                                WHERE embedding <#> %(embedding)s::vector <= %(threshold)s
-                                ORDER BY embedding <#> %(embedding)s::vector DESC
+                                WHERE (embedding <#> %(embedding)s::vector) * -1 <= %(threshold)s
+                                ORDER BY (embedding <#> %(embedding)s::vector) * -1 DESC
                             LIMIT %(top_k)s""".format(
                             table_name=self._embedded_product_table_name
                         )
