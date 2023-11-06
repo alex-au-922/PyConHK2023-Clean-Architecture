@@ -61,7 +61,7 @@ module "api_gateway_ecs" {
     "${var.api_gateway_config.ecs.routes.query_handler.method} ${format("/%s/", join("/", var.api_gateway_config.ecs.routes.query_handler.path_parts))}" = {
       connection_type    = "VPC_LINK"
       vpc_link           = "my-vpc"
-      integration_uri    = aws_lb.query_handler.arn
+      integration_uri    = aws_lb_listener.query_handler.arn
       integration_type   = "HTTP_PROXY"
       integration_method = "ANY"
     }
