@@ -58,7 +58,7 @@ module "api_gateway_ecs" {
   default_stage_access_log_format          = jsonencode(var.api_gateway_config.ecs.access_log_format)
 
   integrations = {
-    "${var.api_gateway_config.ecs.routes.query_handler.method} ${format("/%s/", join("/", var.api_gateway_config.ecs.routes.query_handler.path_parts))}" = {
+    "${var.api_gateway_config.ecs.routes.query_handler.method} ${format("/%s", join("/", var.api_gateway_config.ecs.routes.query_handler.path_parts))}" = {
       connection_type    = "VPC_LINK"
       vpc_link           = "my-vpc"
       integration_uri    = aws_lb_listener.query_handler.arn
