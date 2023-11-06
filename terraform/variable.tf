@@ -287,6 +287,7 @@ variable "api_gateway_config" {
     })
     ecs = object({
       name               = string
+      description        = string
       log_retention_days = number
       access_log_format  = map(string),
       routes = object({

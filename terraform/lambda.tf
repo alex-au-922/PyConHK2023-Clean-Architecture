@@ -271,7 +271,7 @@ module "query_handler_lambda" {
   allowed_triggers = {
     api_gateway = {
       principal  = "apigateway.amazonaws.com"
-      source_arn = "${module.api_gateway.apigatewayv2_api_execution_arn}/*/*"
+      source_arn = "${module.api_gateway_lambda.apigatewayv2_api_execution_arn}/*/*"
     }
   }
 
