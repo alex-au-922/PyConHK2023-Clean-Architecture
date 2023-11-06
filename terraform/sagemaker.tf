@@ -99,7 +99,7 @@ resource "aws_sagemaker_model" "embedding_model" {
 }
 
 resource "aws_sagemaker_endpoint_configuration" "embedding_model" {
-  name = "${var.sagemaker_config.embedding_model.name}-sagemaker-endpoint-config"
+  name = "${var.sagemaker_config.embedding_model.name}-endpoint-config-${substr(uuid(), 0, 3)}"
 
   production_variants {
     variant_name           = var.sagemaker_config.embedding_model.deployment.instance_variant.name
@@ -111,6 +111,6 @@ resource "aws_sagemaker_endpoint_configuration" "embedding_model" {
 }
 
 resource "aws_sagemaker_endpoint" "embedding_model" {
-  name                 = "${var.sagemaker_config.embedding_model.name}-sagemaker-endpoint"
+  name                 = "${var.sagemaker_config.embedding_model.name}-sagemaker-endpoint-${substr(uuid(), 0, 3)}"
   endpoint_config_name = aws_sagemaker_endpoint_configuration.embedding_model.name
 }
