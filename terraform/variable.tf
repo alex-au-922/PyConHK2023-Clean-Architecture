@@ -271,20 +271,31 @@ variable "eventbridge_config" {
 variable "api_gateway_config" {
   description = "Config for the API Gateway"
   type = object({
-    name               = string
-    log_retention_days = number
-    cors = object({
-      allow_headers = list(string)
-      allow_methods = list(string)
-      allow_origins = list(string)
+    lambda = object({
+      name               = string
+      description        = string
+      log_retention_days = number
+      access_log_format  = map(string),
+      routes = object({
+        query_handler = object({
+          method                 = string
+          path_parts             = list(string)
+          payload_format_version = string
+          timeout                = number
+        })
+      })
     })
-    access_log_format = map(string),
-    routes = object({
-      query_handler = object({
-        method                 = string
-        path_parts             = list(string)
-        payload_format_version = string
-        timeout                = number
+    ecs = object({
+      name               = string
+      log_retention_days = number
+      access_log_format  = map(string),
+      routes = object({
+        query_handler = object({
+          method                 = string
+          path_parts             = list(string)
+          payload_format_version = string
+          timeout                = number
+        })
       })
     })
   })

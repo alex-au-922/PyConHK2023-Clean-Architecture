@@ -242,34 +242,56 @@ eventbridge_config = {
 }
 
 api_gateway_config = {
-  name               = "pyconhk2023-api-gateway"
-  log_retention_days = 30
-  cors = {
-    allow_origins = ["*"]
-    allow_headers = ["*"]
-    allow_methods = ["*"]
-  }
-  access_log_format = {
-    "requestId" : "$context.requestId",
-    "extendedRequestId" : "$context.extendedRequestId",
-    "ip" : "$context.identity.sourceIp",
-    "caller" : "$context.identity.caller",
-    "user" : "$context.identity.user",
-    "requestTime" : "$context.requestTime",
-    "httpMethod" : "$context.httpMethod",
-    "resourcePath" : "$context.resourcePath",
-    "status" : "$context.status",
-    "protocol" : "$context.protocol",
-    "responseLength" : "$context.responseLength",
-    "integrationError" : "$context.integrationErrorMessage"
-  },
+  lambda = {
+    name               = "pyconhk2023-api-gateway-lambda"
+    log_retention_days = 30
+    access_log_format = {
+      "requestId" : "$context.requestId",
+      "extendedRequestId" : "$context.extendedRequestId",
+      "ip" : "$context.identity.sourceIp",
+      "caller" : "$context.identity.caller",
+      "user" : "$context.identity.user",
+      "requestTime" : "$context.requestTime",
+      "httpMethod" : "$context.httpMethod",
+      "resourcePath" : "$context.resourcePath",
+      "status" : "$context.status",
+      "protocol" : "$context.protocol",
+      "responseLength" : "$context.responseLength",
+      "integrationError" : "$context.integrationErrorMessage"
+    },
 
-  routes = {
-    query_handler = {
-      method                 = "POST"
-      path_parts             = ["api", "similar_products"]
-      payload_format_version = "2.0"
-      timeout                = 29
+    routes = {
+      query_handler = {
+        method                 = "POST"
+        path_parts             = ["api", "similar_products"]
+        payload_format_version = "2.0"
+        timeout                = 29
+      }
+    }
+  }
+  ecs = {
+    name               = "pyconhk2023-api-gateway-ecs"
+    log_retention_days = 30
+    access_log_format = {
+      "requestId" : "$context.requestId",
+      "extendedRequestId" : "$context.extendedRequestId",
+      "ip" : "$context.identity.sourceIp",
+      "caller" : "$context.identity.caller",
+      "user" : "$context.identity.user",
+      "requestTime" : "$context.requestTime",
+      "httpMethod" : "$context.httpMethod",
+      "resourcePath" : "$context.resourcePath",
+      "status" : "$context.status",
+      "protocol" : "$context.protocol",
+      "responseLength" : "$context.responseLength",
+      "integrationError" : "$context.integrationErrorMessage"
+    },
+
+    routes = {
+      query_handler = {
+        method     = "POST"
+        path_parts = ["api", "similar_products"]
+      }
     }
   }
 }
