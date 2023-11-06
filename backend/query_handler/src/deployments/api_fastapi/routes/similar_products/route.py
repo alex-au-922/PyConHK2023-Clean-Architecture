@@ -18,7 +18,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/",
+    "/similar_products",
     status_code=DEFAULT_STATUS_CODE,
     description=DESCRIPTION,
     responses=RESPONSES,
