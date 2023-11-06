@@ -59,33 +59,9 @@ module "api_gateway_ecs" {
 
   integrations = {
     "${var.api_gateway_config.ecs.routes.query_handler.method} ${format("/%s/", join("/", var.api_gateway_config.ecs.routes.query_handler.path_parts))}" = {
-      connection_type    = "VPC_LINK"
-      vpc_link           = "ecs"
-      integration_uri    = aws_lb_listener.query_handler.arn
+      integration_uri    = "http://${aws_lb.query_handler.dns_name}:${var.ecs_config.query_handler.container.port}/{proxy+}"
       integration_type   = "HTTP_PROXY"
       integration_method = "ANY"
     }
   }
-
-  vpc_links = {
-    ecs = {
-      name               = "${var.api_gateway_config.ecs.name}-vpc-link"
-      security_group_ids = [module.api_gateway_ecs_security_group.security_group_id]
-      subnet_ids         = module.vpc.private_subnets
-    }
-  }
-}
-
-module "api_gateway_ecs_security_group" {
-  source  = "terraform-aws-modules/security-group/aws"
-  version = "~> 4.0"
-
-  name        = "${var.api_gateway_config.ecs.name}-sg"
-  description = "API Gateway security group for ECS"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules       = ["http-80-tcp"]
-
-  egress_rules = ["all-all"]
 }

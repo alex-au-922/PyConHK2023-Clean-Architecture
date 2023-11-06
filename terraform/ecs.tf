@@ -34,7 +34,7 @@ resource "aws_lb" "query_handler" {
   load_balancer_type = "application"
   internal           = true
   security_groups    = [aws_security_group.query_handler.id]
-  subnets            = module.vpc.private_subnets
+  subnets            = module.vpc.public_subnets
   idle_timeout       = 300
 }
 
