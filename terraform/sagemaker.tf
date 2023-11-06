@@ -81,7 +81,7 @@ resource "aws_iam_role_policy_attachment" "sagemaker" {
 }
 
 resource "aws_sagemaker_model" "embedding_model" {
-  name               = var.sagemaker_config.embedding_model.name
+  name               = "${var.sagemaker_config.embedding_model.name}-${substr(uuid(), 0, 3)}"
   execution_role_arn = aws_iam_role.embedding_model.arn
 
   primary_container {
