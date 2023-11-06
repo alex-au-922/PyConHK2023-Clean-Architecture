@@ -169,6 +169,11 @@ module "data_embedding_handler_lambda" {
       actions   = ["secretsmanager:GetSecretValue"]
       resources = ["*"]
     },
+    sagemaker = {
+      effect    = "Allow",
+      actions   = ["sagemaker:InvokeEndpoint"]
+      resources = [aws_sagemaker_endpoint.embedding_model.arn]
+    }
   }
 
   event_source_mapping = {
@@ -256,6 +261,11 @@ module "query_handler_lambda" {
       actions   = ["secretsmanager:GetSecretValue"]
       resources = ["*"]
     },
+    sagemaker = {
+      effect    = "Allow",
+      actions   = ["sagemaker:InvokeEndpoint"]
+      resources = [aws_sagemaker_endpoint.embedding_model.arn]
+    }
   }
 
   allowed_triggers = {

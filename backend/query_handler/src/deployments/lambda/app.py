@@ -1,8 +1,6 @@
 from datetime import datetime
 import json
 from typing import Optional, cast
-from onnxruntime import InferenceSession
-from transformers import AutoTokenizer
 import boto3
 import json
 from aws_lambda_powertools.logging import Logger, correlation_paths, utils as log_utils
@@ -31,7 +29,6 @@ from adapters.query_similar_product_details.postgres import (
 )
 from .config import (
     PostgresConfig,
-    OpenSearchConfig,
     OnnxEmbedConfig,
     SearchSimilarProductsConfig,
     ProjectConfig,
@@ -67,14 +64,6 @@ def init_embed_raw_query_details_client() -> None:
     global embed_raw_query_details_client
     if embed_raw_query_details_client is not None:
         return
-    # inference_session = InferenceSession(
-    #     OnnxEmbedConfig.ONNX_MODEL_PATH, providers=["CPUExecutionProvider"]
-    # )
-    # tokenizer = AutoTokenizer.from_pretrained(OnnxEmbedConfig.TOKENIZER_PATH)
-    # embed_raw_query_details_client = OnnxEmbedRawQueryDetailsClient(
-    #     inference_session=inference_session,
-    #     tokenizer=tokenizer,
-    # )
 
     embed_raw_query_details_client = AWSSageMakerEmbedRawQueryDetailsClient(
         client_creator=lambda: boto3.client("sagemaker-runtime"),
