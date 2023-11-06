@@ -244,6 +244,7 @@ eventbridge_config = {
 api_gateway_config = {
   lambda = {
     name               = "pyconhk2023-api-gateway-lambda"
+    description        = "Lambda API Gateway for PyCon HK 2023"
     log_retention_days = 30
     access_log_format = {
       "requestId" : "$context.requestId",
@@ -271,6 +272,7 @@ api_gateway_config = {
   }
   ecs = {
     name               = "pyconhk2023-api-gateway-ecs"
+    description        = "ECS API Gateway for PyCon HK 2023"
     log_retention_days = 30
     access_log_format = {
       "requestId" : "$context.requestId",
