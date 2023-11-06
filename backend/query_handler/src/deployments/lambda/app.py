@@ -45,7 +45,7 @@ log_utils.copy_config_to_registered_loggers(
     ),
 )
 tracer = Tracer(service="query_handler")
-cors_config = CORSConfig(allow_origin="*", allow_headers=["*"], allow_methods=["*"])
+cors_config = CORSConfig(allow_origin="*", allow_headers=["*"], allow_credentials=True)
 app = APIGatewayHttpResolver(cors=cors_config)
 
 embed_raw_query_details_client: Optional[EmbedRawQueryDetailsUseCase] = None

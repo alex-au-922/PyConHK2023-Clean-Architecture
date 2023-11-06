@@ -29,7 +29,7 @@ const App = () => {
     try {
       const [lambdaAPIGatewayResponse, ecsClusterREsponse] = await Promise.all([
         fetch(
-          `${import.meta.env.VITE_API_GATEWAY_DOMAIN}/api/similar_products/`,
+          `${import.meta.env.VITE_API_GATEWAY_DOMAIN}/api/similar_products`,
           {
             method: "POST",
             body: JSON.stringify({
@@ -67,6 +67,9 @@ const App = () => {
       console.log(e);
     }
   };
+
+  console.log(lambdaSearchResults);
+  console.log(ecsSearchResults);
 
   return (
     <NavBar
