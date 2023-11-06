@@ -81,7 +81,7 @@ resource "aws_iam_role_policy_attachment" "sagemaker" {
 }
 
 resource "aws_sagemaker_model" "embedding_model" {
-  name               = "${var.sagemaker_config.embedding_model.name}-${substr(uuid(), 0, 3)}"
+  name               = "${var.sagemaker_config.embedding_model.name}-${data.aws_ecr_image.latest_embedding_model_docker_image.image_tags[0]}"
   execution_role_arn = aws_iam_role.embedding_model.arn
 
   primary_container {
@@ -99,7 +99,7 @@ resource "aws_sagemaker_model" "embedding_model" {
 }
 
 resource "aws_sagemaker_endpoint_configuration" "embedding_model" {
-  name = "${var.sagemaker_config.embedding_model.name}-endpoint-config-${substr(uuid(), 0, 3)}"
+  name = "${var.sagemaker_config.embedding_model.name}-conf-${data.aws_ecr_image.latest_embedding_model_docker_image.image_tags[0]}"
 
   production_variants {
     variant_name           = var.sagemaker_config.embedding_model.deployment.instance_variant.name
@@ -111,6 +111,6 @@ resource "aws_sagemaker_endpoint_configuration" "embedding_model" {
 }
 
 resource "aws_sagemaker_endpoint" "embedding_model" {
-  name                 = "${var.sagemaker_config.embedding_model.name}-sagemaker-endpoint-${substr(uuid(), 0, 3)}"
+  name                 = "${var.sagemaker_config.embedding_model.name}-sagemaker-endpoint"
   endpoint_config_name = aws_sagemaker_endpoint_configuration.embedding_model.name
 }
