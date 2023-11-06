@@ -1,19 +1,6 @@
 import NavBar from "./navBar";
 import { useState } from "react";
-
-type ProductDetails = {
-  product_id: string;
-  name: string;
-  main_category: string;
-  sub_category: string;
-  image_url: string;
-  ratings: number;
-  discounted_price: number;
-  actual_price: number;
-  modified_date: string;
-  created_date: string;
-  score: number;
-};
+import { ProductDetails } from "./types";
 
 const App = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -57,19 +44,26 @@ const App = () => {
         }),
       ]);
 
+      if (!lambdaAPIGatewayResponse.ok || !ecsClusterREsponse.ok) {
+        throw new Error(
+          `lambdaAPIGatewayResponse.ok: ${lambdaAPIGatewayResponse.ok}, ecsClusterREsponse.ok: ${ecsClusterREsponse.ok}`
+        );
+      }
+
       const lambdaAPIGatewayResponseJson =
         await lambdaAPIGatewayResponse.json();
       const ecsClusterResponseJson = await ecsClusterREsponse.json();
 
-      setLambdaSearchResults(lambdaAPIGatewayResponseJson);
-      setEcsSearchResults(ecsClusterResponseJson);
+      setLambdaSearchResults(
+        lambdaAPIGatewayResponseJson.data.similar_products as ProductDetails[]
+      );
+      setEcsSearchResults(
+        ecsClusterResponseJson.data.similar_products as ProductDetails[]
+      );
     } catch (e) {
       console.log(e);
     }
   };
-
-  console.log(lambdaSearchResults);
-  console.log(ecsSearchResults);
 
   return (
     <NavBar
