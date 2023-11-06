@@ -292,10 +292,8 @@ variable "api_gateway_config" {
       access_log_format  = map(string),
       routes = object({
         query_handler = object({
-          method                 = string
-          path_parts             = list(string)
-          payload_format_version = string
-          timeout                = number
+          method     = string
+          path_parts = list(string)
         })
       })
     })

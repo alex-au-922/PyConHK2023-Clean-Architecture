@@ -1,4 +1,5 @@
 import NavBar from "./navBar";
+import Display from "./display";
 import { useState } from "react";
 import { ProductDetails } from "./types";
 
@@ -66,11 +67,17 @@ const App = () => {
   };
 
   return (
-    <NavBar
-      searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-      onSearch={onSearch}
-    />
+    <>
+      <NavBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onSearch={onSearch}
+      />
+      <Display
+        lambdaSearchResults={lambdaSearchResults}
+        ecsSearchResults={ecsSearchResults}
+      />
+    </>
   );
 };
 
