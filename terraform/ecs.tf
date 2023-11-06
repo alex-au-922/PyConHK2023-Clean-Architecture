@@ -32,7 +32,7 @@ resource "aws_security_group" "query_handler" {
 resource "aws_lb" "query_handler" {
   name               = "${var.ecs_config.query_handler.name}-alb"
   load_balancer_type = "application"
-  internal           = false
+  internal           = true
   security_groups    = [aws_security_group.query_handler.id]
   subnets            = module.vpc.public_subnets
   idle_timeout       = 300
