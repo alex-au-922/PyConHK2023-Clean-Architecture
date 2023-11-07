@@ -106,17 +106,20 @@ class PostgresQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCase
         try:
             with self._get_conn() as conn, conn.cursor() as cursor:
                 try:
+                    # embedding <#> vector is the inner product between the two vectors
                     stmt = """
                         SELECT
                             product_id,
                             (embedding <#> %(embedding)s::vector) * -1 AS score
                         FROM {table_name}
-                            WHERE (embedding <#> %(embedding)s::vector) * -1 <= %(threshold)s
-                            ORDER BY (embedding <#> %(embedding)s::vector) * -1 DESC
+                            WHERE embedding <#> %(embedding)s::vector <= (%(threshold)s * -1)
+                            ORDER BY embedding <#> %(embedding)s::vector ASC
                         LIMIT %(top_k)s
                         """.format(
                         table_name=self._embedded_product_table_name,
                     )
+
+                    logging.info(f"{stmt = }")
                     cursor.execute(
                         stmt,
                         {
@@ -154,13 +157,14 @@ class PostgresQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCase
             try:
                 with self._get_conn() as conn, conn.cursor() as cursor:
                     try:
+                        # embedding <#> vector is the inner product between the two vectors
                         stmt = """
                             SELECT
                                 product_id,
                                 (embedding <#> %(embedding)s::vector) * -1 AS score
                             FROM {table_name}
-                                WHERE (embedding <#> %(embedding)s::vector) * -1 <= %(threshold)s
-                                ORDER BY (embedding <#> %(embedding)s::vector) * -1 DESC
+                                WHERE embedding <#> %(embedding)s::vector <= (%(threshold)s * -1)
+                                ORDER BY embedding <#> %(embedding)s::vector ASC
                             LIMIT %(top_k)s""".format(
                             table_name=self._embedded_product_table_name
                         )
