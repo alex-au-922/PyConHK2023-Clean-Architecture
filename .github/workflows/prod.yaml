@@ -447,6 +447,7 @@ jobs:
         id: setup-terraform
         uses: hashicorp/setup-terraform@v1
         with:
+          terraform_wrapper: false
           terraform_version: 1.6.1
       - name: Terraform Init
         id: init
@@ -469,9 +470,6 @@ jobs:
       needs.terraform-plan.result == 'success' &&
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     runs-on: ubuntu-latest
-    outputs:
-      api_gateway_lambda_endpoint: ${{ steps.terraform_outputs.outputs.TF_API_GATEWAY_LAMBDA_ENDPOINT }}
-      api_gateway_ecs_endpoint: ${{ steps.terraform_outputs.outputs.TF_API_GATEWAY_ECS_ENDPOINT }}
     steps:
       - name: Checkout
         id: checkout
@@ -495,6 +493,7 @@ jobs:
         id: setup-terraform
         uses: hashicorp/setup-terraform@v1
         with:
+          terraform_wrapper: false
           terraform_version: 1.6.1
       - name: Terraform Init
         id: init
@@ -509,11 +508,11 @@ jobs:
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
-      - name: Output Terraform Outputs
-        id: terraform_outputs
+      - name: Terraform Output
+        id: output
         run: |
-          echo "TF_API_GATEWAY_LAMBDA_ENDPOINT=$(terraform output api_gateway_lambda_endpoint)" >> $GITHUB_OUTPUT
-          echo "TF_API_GATEWAY_ECS_ENDPOINT=$(terraform output api_gateway_ecs_endpoint)" >> $GITHUB_OUTPUT
+          cd terraform
+          terraform output
   terraform-apply-dev:
     needs: [terraform-plan, create-model, pip-build-data-ingestion-handler]
     if: |
@@ -524,9 +523,6 @@ jobs:
     environment:
       name: prod
     runs-on: ubuntu-latest
-    outputs:
-      api_gateway_lambda_endpoint: ${{ steps.terraform_outputs.outputs.TF_API_GATEWAY_LAMBDA_ENDPOINT }}
-      api_gateway_ecs_endpoint: ${{ steps.terraform_outputs.outputs.TF_API_GATEWAY_ECS_ENDPOINT }}
     steps:
       - name: Checkout
         id: checkout
@@ -550,6 +546,7 @@ jobs:
         id: setup-terraform
         uses: hashicorp/setup-terraform@v1
         with:
+          terraform_wrapper: false
           terraform_version: 1.6.1
       - name: Terraform Init
         id: init
@@ -564,11 +561,11 @@ jobs:
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
-      - name: Output Terraform Outputs
-        id: terraform_outputs
+      - name: Terraform Output
+        id: output
         run: |
-          echo "TF_API_GATEWAY_LAMBDA_ENDPOINT=$(terraform output api_gateway_lambda_endpoint)" >> $GITHUB_OUTPUT
-          echo "TF_API_GATEWAY_ECS_ENDPOINT=$(terraform output api_gateway_ecs_endpoint)" >> $GITHUB_OUTPUT
+          cd terraform
+          terraform output
   ci_data_preparation:
     needs: [terraform-apply-main, terraform-apply-dev]
     if: |
