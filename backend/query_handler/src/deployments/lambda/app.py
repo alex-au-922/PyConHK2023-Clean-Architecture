@@ -183,9 +183,13 @@ def similar_products() -> Response:
                 ),
             )
 
-        similar_product_ids: list[str]
-        similar_product_scores: list[float]
-        similar_product_ids, similar_product_scores = zip(*similar_products_tuples)
+        similar_product_ids = [
+            similar_product_id for similar_product_id, _ in similar_products_tuples
+        ]
+        similar_product_scores = [
+            similar_product_score
+            for _, similar_product_score in similar_products_tuples
+        ]
 
         similar_product_details = cast(
             FetchRawProductDetailsUseCase, fetch_raw_product_details_client
@@ -204,9 +208,6 @@ def similar_products() -> Response:
             )
             if similar_product_detail is not None
         ]
-
-        logger.info(f"{valid_similar_product_details=}")
-        logger.info(f"{valid_similar_product_scores=}")
 
         return Response(
             status_code=SUCCESS_CODE,

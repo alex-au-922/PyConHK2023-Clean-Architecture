@@ -12,11 +12,11 @@ const NavBar = ({ searchQuery, setSearchQuery, onSearch }: NavBarProps) => {
           PyConHK 2023 Clean Architecture
         </div>
       </div>
-      <div className="flex-1 gap-2">
-        <div className="form-control">
+      <div className="flex-1 gap-2 mx-2">
+        <div className="form-control w-full">
           <input
             type="text"
-            placeholder="Search"
+            placeholder="Enter keywords to search"
             className="input input-bordered w-60 md:w-auto"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
