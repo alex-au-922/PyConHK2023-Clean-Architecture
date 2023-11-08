@@ -516,7 +516,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: frontend/pyconhk2023_query_handler_frontend/.env
-          key: ${{ runner.os }}-frontend-env-${{ hashFiles('terraform/**') }}
+          key: ${{ runner.os }}-frontend-env-${{ hashFiles('terraform/**.tf', 'terraform/**.tfvars') }}
       - name: Terraform Output
         id: tf-output
         run: |
@@ -583,7 +583,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: frontend/pyconhk2023_query_handler_frontend/.env
-          key: ${{ runner.os }}-frontend-env-${{ hashFiles('terraform/**') }}
+          key: ${{ runner.os }}-frontend-env-${{ hashFiles('terraform/**.tf', 'terraform/**.tfvars') }}
       - name: Terraform Output
         id: tf-output
         run: |
@@ -592,13 +592,8 @@ jobs:
           fi
           touch frontend/pyconhk2023_query_handler_frontend/.env
           cd terraform
-          echo "$(terraform output api_gateway_ecs_endpoint)" > ../frontend/pyconhk2023_query_handler_frontend/.env
-          echo "$(terraform output api_gateway_lambda_endpoint)" >> ../frontend/pyconhk2023_query_handler_frontend/.env
-      - name: Output artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: frontend-env
-          path: frontend/pyconhk2023_query_handler_frontend/.env
+          echo "VITE_ECS_API_GATEWAY_DOMAIN=$(terraform output api_gateway_ecs_endpoint)" > ../frontend/pyconhk2023_query_handler_frontend/.env
+          echo "VITE_LAMBDA_API_GATEWAY_DOMAIN=$(terraform output api_gateway_lambda_endpoint)" >> ../frontend/pyconhk2023_query_handler_frontend/.env
   ci_data_preparation:
     needs: [terraform-apply-main, terraform-apply-dev]
     if: |
