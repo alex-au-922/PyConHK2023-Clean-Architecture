@@ -469,6 +469,9 @@ jobs:
       github.ref == 'refs/heads/main' &&
       needs.terraform-plan.result == 'success' &&
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
+    outputs:
+      api_gateway_ecs_endpoint: ${{ steps.apply.outputs.api_gateway_ecs_endpoint }}
+      api_gateway_lambda_endpoint: ${{ steps.apply.outputs.api_gateway_lambda_endpoint }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -512,8 +515,8 @@ jobs:
         id: output
         run: |
           cd terraform
-          terraform output api_gateway_ecs_endpoint
-          terraform output api_gateway_lambda_endpoint
+          echo "TF_API_GATEWAY_ECS_ENDPOINT=$(terraform output api_gateway_ecs_endpoint)" >> $GITHUB_OUTPUT
+          echo "TF_API_GATEWAY_LAMBDA_ENDPOINT=$(terraform output api_gateway_lambda_endpoint)" >> $GITHUB_OUTPUT
   terraform-apply-dev:
     needs: [terraform-plan, create-model, pip-build-data-ingestion-handler]
     if: |
@@ -523,6 +526,9 @@ jobs:
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     environment:
       name: prod
+    outputs:
+      api_gateway_ecs_endpoint: ${{ steps.apply.outputs.api_gateway_ecs_endpoint }}
+      api_gateway_lambda_endpoint: ${{ steps.apply.outputs.api_gateway_lambda_endpoint }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -566,8 +572,8 @@ jobs:
         id: output
         run: |
           cd terraform
-          terraform output api_gateway_ecs_endpoint
-          terraform output api_gateway_lambda_endpoint
+          echo "TF_API_GATEWAY_ECS_ENDPOINT=$(terraform output api_gateway_ecs_endpoint)" >> $GITHUB_OUTPUT
+          echo "TF_API_GATEWAY_LAMBDA_ENDPOINT=$(terraform output api_gateway_lambda_endpoint)" >> $GITHUB_OUTPUT
   ci_data_preparation:
     needs: [terraform-apply-main, terraform-apply-dev]
     if: |
@@ -625,6 +631,7 @@ jobs:
             export VITE_API_GATEWAY_LAMBDA_ENDPOINT=${{ needs.terraform-apply-dev.outputs.api_gateway_lambda_endpoint }}
             export VITE_API_GATEWAY_ECS_ENDPOINT=${{ needs.terraform-apply-dev.outputs.api_gateway_ecs_endpoint }}
           fi
+          touch pyconhk2023_query_handler_frontend/.env
           echo "VITE_API_GATEWAY_LAMBDA_ENDPOINT=${VITE_API_GATEWAY_LAMBDA_ENDPOINT}" > pyconhk2023_query_handler_frontend/.env
           echo "VITE_API_GATEWAY_ECS_ENDPOINT=${VITE_API_GATEWAY_ECS_ENDPOINT}" >> pyconhk2023_query_handler_frontend/.env
           cat pyconhk2023_query_handler_frontend/.env
