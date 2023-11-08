@@ -512,7 +512,8 @@ jobs:
         id: output
         run: |
           cd terraform
-          terraform output
+          terraform output api_gateway_ecs_endpoint
+          terraform output api_gateway_lambda_endpoint
   terraform-apply-dev:
     needs: [terraform-plan, create-model, pip-build-data-ingestion-handler]
     if: |
@@ -565,7 +566,8 @@ jobs:
         id: output
         run: |
           cd terraform
-          terraform output
+          terraform output api_gateway_ecs_endpoint
+          terraform output api_gateway_lambda_endpoint
   ci_data_preparation:
     needs: [terraform-apply-main, terraform-apply-dev]
     if: |
