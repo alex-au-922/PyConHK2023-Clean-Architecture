@@ -615,39 +615,38 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
-          role-session-name: ${{ github.actor }}
-          aws-region: ${{ secrets.AWS_REGION }}
-      - name: Setup Npm
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
       - name: Retrieve terraform dev apply artifacts
         if: needs.terraform-apply-dev.result == 'success'
         uses: actions/download-artifact@v2
         with:
           name: frontend-env
           path: frontend/pyconhk2023_query_handler_frontend
-      - name: Retrieve terraform main apply artifacts
-        if: needs.terraform-apply-main.result == 'success'
-        uses: actions/download-artifact@v2
+      - name: Configure frontend cache
+        id: cache
+        uses: actions/cache@v3
         with:
-          name: frontend-env
-          path: frontend/pyconhk2023_query_handler_frontend
-      - name: List the directory to debug
-        run: |
-          touch frontend/pyconhk2023_query_handler_frontend/.env
-          ls -al frontend/pyconhk2023_query_handler_frontend
-          cat frontend/pyconhk2023_query_handler_frontend/.env
+          path: frontend/pyconhk2023_query_handler_frontend/
+          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pyconhk2023_query_handler_frontend/**') }}
+      - name: Configure AWS credentials
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Setup Npm
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
       - name: Build Query Handler Frontend
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cd frontend/pyconhk2023_query_handler_frontend
 
           npm install
           npm run build
       - name: Push Data to S3
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           aws s3 sync frontend/pyconhk2023_query_handler_frontend/dist/ s3://alexau-pyconhk2023-frontend/ --delete
