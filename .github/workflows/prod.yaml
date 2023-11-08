@@ -520,13 +520,13 @@ jobs:
       - name: Terraform Output
         id: tf-output
         run: |
-          cd terraform
           if [ -f frontend/pyconhk2023_query_handler_frontend/.env ]; then
             rm -f frontend/pyconhk2023_query_handler_frontend/.env
           fi
           touch frontend/pyconhk2023_query_handler_frontend/.env
-          echo "$(terraform output api_gateway_ecs_endpoint)" > frontend/pyconhk2023_query_handler_frontend/.env
-          echo "$(terraform output api_gateway_lambda_endpoint)" >> frontend/pyconhk2023_query_handler_frontend/.env
+          cd terraform
+          echo "$(terraform output api_gateway_ecs_endpoint)" > ../frontend/pyconhk2023_query_handler_frontend/.env
+          echo "$(terraform output api_gateway_lambda_endpoint)" >> ../frontend/pyconhk2023_query_handler_frontend/.env
   terraform-apply-dev:
     needs: [terraform-plan, create-model, pip-build-data-ingestion-handler]
     if: |
@@ -587,13 +587,13 @@ jobs:
       - name: Terraform Output
         id: tf-output
         run: |
-          cd terraform
           if [ -f frontend/pyconhk2023_query_handler_frontend/.env ]; then
             rm -f frontend/pyconhk2023_query_handler_frontend/.env
           fi
           touch frontend/pyconhk2023_query_handler_frontend/.env
-          echo "$(terraform output api_gateway_ecs_endpoint)" > frontend/pyconhk2023_query_handler_frontend/.env
-          echo "$(terraform output api_gateway_lambda_endpoint)" >> frontend/pyconhk2023_query_handler_frontend/.env
+          cd terraform
+          echo "$(terraform output api_gateway_ecs_endpoint)" > ../frontend/pyconhk2023_query_handler_frontend/.env
+          echo "$(terraform output api_gateway_lambda_endpoint)" >> ../frontend/pyconhk2023_query_handler_frontend/.env
   ci_data_preparation:
     needs: [terraform-apply-main, terraform-apply-dev]
     if: |
