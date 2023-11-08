@@ -650,4 +650,4 @@ jobs:
           npm run build
       - name: Push Data to S3
         run: |
-          aws s3 sync frontend/pyconhk2023_query_handler_frontend/dist/ s3://alexau-pyconhk2023-frontend/ --recursive
+          aws s3 sync frontend/pyconhk2023_query_handler_frontend/dist/ s3://alexau-pyconhk2023-frontend/ --delete
