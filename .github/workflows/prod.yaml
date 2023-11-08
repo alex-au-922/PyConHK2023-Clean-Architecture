@@ -594,6 +594,11 @@ jobs:
           cd terraform
           echo "$(terraform output api_gateway_ecs_endpoint)" > ../frontend/pyconhk2023_query_handler_frontend/.env
           echo "$(terraform output api_gateway_lambda_endpoint)" >> ../frontend/pyconhk2023_query_handler_frontend/.env
+      - name: Output artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: frontend-env
+          path: frontend/pyconhk2023_query_handler_frontend/.env
   ci_data_preparation:
     needs: [terraform-apply-main, terraform-apply-dev]
     if: |
@@ -656,6 +661,7 @@ jobs:
         if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
         run: |
           cd frontend/pyconhk2023_query_handler_frontend
+
           npm install
           npm run build
       - name: Push Data to S3
