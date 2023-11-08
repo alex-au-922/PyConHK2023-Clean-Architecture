@@ -631,10 +631,10 @@ jobs:
             export VITE_API_GATEWAY_LAMBDA_ENDPOINT=${{ needs.terraform-apply-dev.outputs.api_gateway_lambda_endpoint }}
             export VITE_API_GATEWAY_ECS_ENDPOINT=${{ needs.terraform-apply-dev.outputs.api_gateway_ecs_endpoint }}
           fi
-          touch pyconhk2023_query_handler_frontend/.env
-          echo "VITE_API_GATEWAY_LAMBDA_ENDPOINT=${VITE_API_GATEWAY_LAMBDA_ENDPOINT}" > pyconhk2023_query_handler_frontend/.env
-          echo "VITE_API_GATEWAY_ECS_ENDPOINT=${VITE_API_GATEWAY_ECS_ENDPOINT}" >> pyconhk2023_query_handler_frontend/.env
-          cat pyconhk2023_query_handler_frontend/.env
+          touch frontend/pyconhk2023_query_handler_frontend/.env
+          echo "VITE_API_GATEWAY_LAMBDA_ENDPOINT=${VITE_API_GATEWAY_LAMBDA_ENDPOINT}" > frontend/pyconhk2023_query_handler_frontend/.env
+          echo "VITE_API_GATEWAY_ECS_ENDPOINT=${VITE_API_GATEWAY_ECS_ENDPOINT}" >> frontend/pyconhk2023_query_handler_frontend/.env
+          cat frontend/pyconhk2023_query_handler_frontend/.env
       - name: Build Query Handler Frontend
         if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
         run: |
