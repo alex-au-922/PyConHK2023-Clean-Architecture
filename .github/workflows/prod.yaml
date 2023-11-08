@@ -470,8 +470,8 @@ jobs:
       needs.terraform-plan.result == 'success' &&
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     outputs:
-      api_gateway_ecs_endpoint: ${{ steps.apply.outputs.TF_API_GATEWAY_ECS_ENDPOINT }}
-      api_gateway_lambda_endpoint: ${{ steps.apply.outputs.TF_API_GATEWAY_LAMBDA_ENDPOINT }}
+      api_gateway_ecs_endpoint: ${{ steps.apply.output.TF_API_GATEWAY_ECS_ENDPOINT }}
+      api_gateway_lambda_endpoint: ${{ steps.apply.output.TF_API_GATEWAY_LAMBDA_ENDPOINT }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -527,8 +527,8 @@ jobs:
     environment:
       name: prod
     outputs:
-      api_gateway_ecs_endpoint: ${{ steps.apply.outputs.TF_API_GATEWAY_ECS_ENDPOINT }}
-      api_gateway_lambda_endpoint: ${{ steps.apply.outputs.TF_API_GATEWAY_LAMBDA_ENDPOINT }}
+      api_gateway_ecs_endpoint: ${{ steps.apply.output.TF_API_GATEWAY_ECS_ENDPOINT }}
+      api_gateway_lambda_endpoint: ${{ steps.apply.output.TF_API_GATEWAY_LAMBDA_ENDPOINT }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
