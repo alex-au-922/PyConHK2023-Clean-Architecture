@@ -82,7 +82,7 @@ class AWSSageMakerEmbedRawQueryDetailsClient(EmbedRawQueryDetailsUseCase):
                     .read()
                     .decode("utf-8")
                 )["result"]
-
+                print(f"{embedding = }")
                 logging.info(f"{embedding = }")
 
                 return EmbeddedQueryDetails(
