@@ -510,13 +510,7 @@ jobs:
           terraform apply -auto-approve
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
-          TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
-      - name: Terraform Output
-        id: output
-        run: |
-          cd terraform
-          echo "TF_API_GATEWAY_ECS_ENDPOINT=$(terraform output api_gateway_ecs_endpoint)" >> $GITHUB_OUTPUT
-          echo "TF_API_GATEWAY_LAMBDA_ENDPOINT=$(terraform output api_gateway_lambda_endpoint)" >> $GITHUB_OUTPUT
+          TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}      
       - name: Create Frontend Env Cache
         id: create-frontend-env-cache
         uses: actions/cache@v3
@@ -527,7 +521,9 @@ jobs:
         id: tf-output
         run: |
           cd terraform
-          rm -f frontend/pyconhk2023_query_handler_frontend/.env
+          if [ -f frontend/pyconhk2023_query_handler_frontend/.env ]; then
+            rm -f frontend/pyconhk2023_query_handler_frontend/.env
+          fi
           echo "$(terraform output api_gateway_ecs_endpoint)" > frontend/pyconhk2023_query_handler_frontend/.env
           echo "$(terraform output api_gateway_lambda_endpoint)" >> frontend/pyconhk2023_query_handler_frontend/.env
   terraform-apply-dev:
@@ -591,7 +587,9 @@ jobs:
         id: tf-output
         run: |
           cd terraform
-          rm -f frontend/pyconhk2023_query_handler_frontend/.env
+          if [ -f frontend/pyconhk2023_query_handler_frontend/.env ]; then
+            rm -f frontend/pyconhk2023_query_handler_frontend/.env
+          fi
           echo "$(terraform output api_gateway_ecs_endpoint)" > frontend/pyconhk2023_query_handler_frontend/.env
           echo "$(terraform output api_gateway_lambda_endpoint)" >> frontend/pyconhk2023_query_handler_frontend/.env
   ci_data_preparation:
