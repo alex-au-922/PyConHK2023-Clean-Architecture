@@ -517,6 +517,18 @@ jobs:
           cd terraform
           echo "TF_API_GATEWAY_ECS_ENDPOINT=$(terraform output api_gateway_ecs_endpoint)" >> $GITHUB_OUTPUT
           echo "TF_API_GATEWAY_LAMBDA_ENDPOINT=$(terraform output api_gateway_lambda_endpoint)" >> $GITHUB_OUTPUT
+      - name: Terraform Output
+        id: tf-output
+        run: |
+          cd terraform
+          unlink frontend/pyconhk2023_query_handler_frontend/.env
+          echo "$(terraform output api_gateway_ecs_endpoint)" > frontend/pyconhk2023_query_handler_frontend/.env
+          echo "$(terraform output api_gateway_lambda_endpoint)" >> frontend/pyconhk2023_query_handler_frontend/.env
+      - name: Output Env Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend_env
+          path: frontend/pyconhk2023_query_handler_frontend/.env
   terraform-apply-dev:
     needs: [terraform-plan, create-model, pip-build-data-ingestion-handler]
     if: |
@@ -527,8 +539,8 @@ jobs:
     environment:
       name: prod
     outputs:
-      api_gateway_ecs_endpoint: ${{ steps.output.outputs.TF_API_GATEWAY_ECS_ENDPOINT }}
-      api_gateway_lambda_endpoint: ${{ steps.output.outputs.TF_API_GATEWAY_LAMBDA_ENDPOINT }}
+      api_gateway_ecs_endpoint: "${{ steps.tf-output.outputs.TF_API_GATEWAY_ECS_ENDPOINT }}"
+      api_gateway_lambda_endpoint: ${{ steps.tf-output.outputs.TF_API_GATEWAY_LAMBDA_ENDPOINT }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -569,15 +581,17 @@ jobs:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
       - name: Terraform Output
-        id: output
+        id: tf-output
         run: |
           cd terraform
-          echo "TF_API_GATEWAY_ECS_ENDPOINT=$(terraform output api_gateway_ecs_endpoint)" >> $GITHUB_OUTPUT
-          echo "TF_API_GATEWAY_LAMBDA_ENDPOINT=$(terraform output api_gateway_lambda_endpoint)" >> $GITHUB_OUTPUT
-      - name: Check Output
-        run: |
-          echo ${{ steps.output.outputs.TF_API_GATEWAY_ECS_ENDPOINT }}
-          echo ${{ steps.output.outputs.TF_API_GATEWAY_LAMBDA_ENDPOINT }}
+          unlink frontend/pyconhk2023_query_handler_frontend/.env
+          echo "$(terraform output api_gateway_ecs_endpoint)" > frontend/pyconhk2023_query_handler_frontend/.env
+          echo "$(terraform output api_gateway_lambda_endpoint)" >> frontend/pyconhk2023_query_handler_frontend/.env
+      - name: Output Env Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend_env
+          path: frontend/pyconhk2023_query_handler_frontend/.env
   ci_data_preparation:
     needs: [terraform-apply-main, terraform-apply-dev]
     if: |
@@ -607,13 +621,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      # - name: Create Query Handler Frontend Build File Cache
-      #   id: create-query-handler-frontend-build-file-cache
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: |
-      #       frontend/pyconhk2023_query_handler_frontend/**
-      #     key: ${{ runner.os }}-frontend-${{ hashFiles('**/frontend/pyconhk2023_query_handler_frontend/**') }}
       - name: Configure AWS credentials
         if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
         uses: aws-actions/configure-aws-credentials@v4
@@ -626,23 +633,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-      - name: Output variables
-        run:
-          echo ${{ needs.terraform-apply-main.outputs.api_gateway_lambda_endpoint }}
-          echo ${{ needs.terraform-apply-main.outputs.api_gateway_ecs_endpoint }}
-          echo ${{ needs.terraform-apply-dev.outputs.api_gateway_lambda_endpoint }}
-          echo ${{ needs.terraform-apply-dev.outputs.api_gateway_ecs_endpoint }}
-      - name: Export vite env
+      - name: Retrieve env artifact from dev
+        if: needs.terraform-apply-dev.result == 'success'
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend_env
+          path: frontend/pyconhk2023_query_handler_frontend
+      - name: Retrieve env artifact from main
+        if: needs.terraform-apply-main.result == 'success'
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend_env
+          path: frontend/pyconhk2023_query_handler_frontend
+      - name: List the directory to debug
         run: |
-          if [ ${{ needs.terraform-apply-main.outputs.api_gateway_lambda_endpoint }} ]; then
-            export VITE_API_GATEWAY_LAMBDA_ENDPOINT=${{ needs.terraform-apply-main.outputs.api_gateway_lambda_endpoint }}
-            export VITE_API_GATEWAY_ECS_ENDPOINT=${{ needs.terraform-apply-main.outputs.api_gateway_ecs_endpoint }}
-          else
-            export VITE_API_GATEWAY_LAMBDA_ENDPOINT=${{ needs.terraform-apply-dev.outputs.api_gateway_lambda_endpoint }}
-            export VITE_API_GATEWAY_ECS_ENDPOINT=${{ needs.terraform-apply-dev.outputs.api_gateway_ecs_endpoint }}
-          fi
-          echo "VITE_API_GATEWAY_LAMBDA_ENDPOINT=${VITE_API_GATEWAY_LAMBDA_ENDPOINT}" > frontend/pyconhk2023_query_handler_frontend/.env
-          echo "VITE_API_GATEWAY_ECS_ENDPOINT=${VITE_API_GATEWAY_ECS_ENDPOINT}" >> frontend/pyconhk2023_query_handler_frontend/.env
+          touch frontend/pyconhk2023_query_handler_frontend/.env
+          ls -al frontend/pyconhk2023_query_handler_frontend
           cat frontend/pyconhk2023_query_handler_frontend/.env
       - name: Build Query Handler Frontend
         if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
