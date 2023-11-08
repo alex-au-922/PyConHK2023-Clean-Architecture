@@ -603,13 +603,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Create Query Handler Frontend Build File Cache
-        id: create-query-handler-frontend-build-file-cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            frontend/pyconhk2023_query_handler_frontend/**
-          key: ${{ runner.os }}-frontend-${{ hashFiles('**/frontend/pyconhk2023_query_handler_frontend/**') }}
+      # - name: Create Query Handler Frontend Build File Cache
+      #   id: create-query-handler-frontend-build-file-cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: |
+      #       frontend/pyconhk2023_query_handler_frontend/**
+      #     key: ${{ runner.os }}-frontend-${{ hashFiles('**/frontend/pyconhk2023_query_handler_frontend/**') }}
       - name: Configure AWS credentials
         if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
         uses: aws-actions/configure-aws-credentials@v4
@@ -622,6 +622,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+      - name: Output variables
+        run:
+          echo ${{ needs.terraform-apply-main.outputs.api_gateway_lambda_endpoint }}
+          echo ${{ needs.terraform-apply-main.outputs.api_gateway_ecs_endpoint }}
+          echo ${{ needs.terraform-apply-dev.outputs.api_gateway_lambda_endpoint }}
+          echo ${{ needs.terraform-apply-dev.outputs.api_gateway_ecs_endpoint }}
       - name: Export vite env
         run: |
           if [ ${{ needs.terraform-apply-main.outputs.api_gateway_lambda_endpoint }} ]; then
@@ -631,7 +637,6 @@ jobs:
             export VITE_API_GATEWAY_LAMBDA_ENDPOINT=${{ needs.terraform-apply-dev.outputs.api_gateway_lambda_endpoint }}
             export VITE_API_GATEWAY_ECS_ENDPOINT=${{ needs.terraform-apply-dev.outputs.api_gateway_ecs_endpoint }}
           fi
-          touch frontend/pyconhk2023_query_handler_frontend/.env
           echo "VITE_API_GATEWAY_LAMBDA_ENDPOINT=${VITE_API_GATEWAY_LAMBDA_ENDPOINT}" > frontend/pyconhk2023_query_handler_frontend/.env
           echo "VITE_API_GATEWAY_ECS_ENDPOINT=${VITE_API_GATEWAY_ECS_ENDPOINT}" >> frontend/pyconhk2023_query_handler_frontend/.env
           cat frontend/pyconhk2023_query_handler_frontend/.env
