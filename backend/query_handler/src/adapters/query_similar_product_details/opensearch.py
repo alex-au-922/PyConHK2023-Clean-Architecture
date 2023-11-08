@@ -118,7 +118,8 @@ class OpenSearchQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCa
             )
 
             return [
-                (hit["_source"]["product_id"], hit["_score"])
+                # 2 - 2 * hit["_score"] is the cosine similarity according to opensearch
+                (hit["_source"]["product_id"], 2 - 2 * hit["_score"])
                 for hit in result["hits"]["hits"]
             ]
         except Exception as e:

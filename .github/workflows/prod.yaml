@@ -469,9 +469,6 @@ jobs:
       github.ref == 'refs/heads/main' &&
       needs.terraform-plan.result == 'success' &&
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
-    outputs:
-      api_gateway_ecs_endpoint: ${{ steps.output.outputs.TF_API_GATEWAY_ECS_ENDPOINT }}
-      api_gateway_lambda_endpoint: ${{ steps.output.outputs.TF_API_GATEWAY_LAMBDA_ENDPOINT }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -510,7 +507,7 @@ jobs:
           terraform apply -auto-approve
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
-          TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}      
+          TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
       - name: Terraform Output
         id: tf-output
         run: |
@@ -535,9 +532,6 @@ jobs:
       (needs.create-model.result == 'success' || needs.create-model.result == 'skipped')
     environment:
       name: prod
-    outputs:
-      api_gateway_ecs_endpoint: "${{ steps.tf-output.outputs.TF_API_GATEWAY_ECS_ENDPOINT }}"
-      api_gateway_lambda_endpoint: ${{ steps.tf-output.outputs.TF_API_GATEWAY_LAMBDA_ENDPOINT }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -622,14 +616,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Configure AWS credentials
-        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Setup Npm
-        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -651,13 +643,11 @@ jobs:
           ls -al frontend/pyconhk2023_query_handler_frontend
           cat frontend/pyconhk2023_query_handler_frontend/.env
       - name: Build Query Handler Frontend
-        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
         run: |
           cd frontend/pyconhk2023_query_handler_frontend
 
           npm install
           npm run build
       - name: Push Data to S3
-        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
         run: |
-          aws s3 cp frontend/pyconhk2023_query_handler_frontend/dist/ s3://alexau-pyconhk2023-frontend/ --recursive
+          aws s3 sync frontend/pyconhk2023_query_handler_frontend/dist/ s3://alexau-pyconhk2023-frontend/ --recursive
