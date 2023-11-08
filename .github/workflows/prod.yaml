@@ -574,6 +574,10 @@ jobs:
           cd terraform
           echo "TF_API_GATEWAY_ECS_ENDPOINT=$(terraform output api_gateway_ecs_endpoint)" >> $GITHUB_OUTPUT
           echo "TF_API_GATEWAY_LAMBDA_ENDPOINT=$(terraform output api_gateway_lambda_endpoint)" >> $GITHUB_OUTPUT
+      - name: Check Output
+        run: |
+          echo ${{ steps.output.outputs.TF_API_GATEWAY_ECS_ENDPOINT }}
+          echo ${{ steps.output.outputs.TF_API_GATEWAY_LAMBDA_ENDPOINT }}
   ci_data_preparation:
     needs: [terraform-apply-main, terraform-apply-dev]
     if: |
