@@ -517,18 +517,19 @@ jobs:
           cd terraform
           echo "TF_API_GATEWAY_ECS_ENDPOINT=$(terraform output api_gateway_ecs_endpoint)" >> $GITHUB_OUTPUT
           echo "TF_API_GATEWAY_LAMBDA_ENDPOINT=$(terraform output api_gateway_lambda_endpoint)" >> $GITHUB_OUTPUT
+      - name: Create Frontend Env Cache
+        id: create-frontend-env-cache
+        uses: actions/cache@v3
+        with:
+          path: frontend/pyconhk2023_query_handler_frontend/.env
+          key: ${{ runner.os }}-frontend-env-${{ hashFiles('terraform/**') }}
       - name: Terraform Output
         id: tf-output
         run: |
           cd terraform
-          unlink frontend/pyconhk2023_query_handler_frontend/.env
+          rm -f frontend/pyconhk2023_query_handler_frontend/.env
           echo "$(terraform output api_gateway_ecs_endpoint)" > frontend/pyconhk2023_query_handler_frontend/.env
           echo "$(terraform output api_gateway_lambda_endpoint)" >> frontend/pyconhk2023_query_handler_frontend/.env
-      - name: Output Env Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: frontend_env
-          path: frontend/pyconhk2023_query_handler_frontend/.env
   terraform-apply-dev:
     needs: [terraform-plan, create-model, pip-build-data-ingestion-handler]
     if: |
@@ -580,6 +581,12 @@ jobs:
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
+      - name: Create Frontend Env Cache
+        id: create-frontend-env-cache
+        uses: actions/cache@v3
+        with:
+          path: frontend/pyconhk2023_query_handler_frontend/.env
+          key: ${{ runner.os }}-frontend-env-${{ hashFiles('terraform/**') }}
       - name: Terraform Output
         id: tf-output
         run: |
@@ -587,11 +594,6 @@ jobs:
           rm -f frontend/pyconhk2023_query_handler_frontend/.env
           echo "$(terraform output api_gateway_ecs_endpoint)" > frontend/pyconhk2023_query_handler_frontend/.env
           echo "$(terraform output api_gateway_lambda_endpoint)" >> frontend/pyconhk2023_query_handler_frontend/.env
-      - name: Output Env Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: frontend_env
-          path: frontend/pyconhk2023_query_handler_frontend/.env
   ci_data_preparation:
     needs: [terraform-apply-main, terraform-apply-dev]
     if: |
@@ -633,18 +635,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-      - name: Retrieve env artifact from dev
+      - name: Retrieve frontend env cache from dev
         if: needs.terraform-apply-dev.result == 'success'
-        uses: actions/download-artifact@v3
+        uses: actions/cache@v3
         with:
-          name: frontend_env
-          path: frontend/pyconhk2023_query_handler_frontend
-      - name: Retrieve env artifact from main
+          path: frontend/pyconhk2023_query_handler_frontend/.env
+          key: ${{ runner.os }}-frontend-env-${{ hashFiles('terraform/**') }}
+      - name: Retrieve frontend env cache from main
         if: needs.terraform-apply-main.result == 'success'
-        uses: actions/download-artifact@v3
+        uses: actions/cache@v3
         with:
-          name: frontend_env
-          path: frontend/pyconhk2023_query_handler_frontend
+          path: frontend/pyconhk2023_query_handler_frontend/.env
+          key: ${{ runner.os }}-frontend-env-${{ hashFiles('terraform/**') }}
       - name: List the directory to debug
         run: |
           touch frontend/pyconhk2023_query_handler_frontend/.env
