@@ -75,6 +75,8 @@ def similar_products(
                 ),
             )
 
+        logging.info(f"{similar_products_tuples = }")
+
         similar_product_ids = [product_id for product_id, _ in similar_products_tuples]
         similar_product_scores = [score for _, score in similar_products_tuples]
 

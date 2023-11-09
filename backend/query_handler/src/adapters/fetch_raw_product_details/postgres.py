@@ -143,11 +143,12 @@ class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
                                 modified_date,
                                 created_date
                             FROM {table_name}
-                                WHERE product_id = ANY(%s)""".format(
+                                WHERE product_id = %s""".format(
                             table_name=self._raw_product_table_name
                         )
-                        cursor.execute(stmt, (list(product_ids_batch),))
+                        cursor.executemany(stmt, product_ids_batch)
                         result = cursor.fetchall()
+
                         raw_product_details.extend(
                             [
                                 self._sql_tuple_to_raw_product_details(row)

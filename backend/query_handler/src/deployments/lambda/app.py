@@ -168,6 +168,8 @@ def similar_products() -> Response:
             embedded_query_details, query_body.get("threshold"), query_body.get("limit")
         )
 
+        logger.info(f"{similar_products_tuples = }")
+
         if similar_products_tuples is None:
             return Response(
                 status_code=INTERNAL_SERVER_ERROR_CODE,
