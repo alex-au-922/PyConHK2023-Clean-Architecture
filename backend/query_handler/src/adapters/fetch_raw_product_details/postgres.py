@@ -143,12 +143,12 @@ class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
                                 modified_date,
                                 created_date
                             FROM {table_name}
-                                WHERE product_id = %s""".format(
+                                WHERE product_id = ANY(%s)""".format(
                             table_name=self._raw_product_table_name
                         )
-                        cursor.executemany(stmt, [
-                            (product_id,) for product_id in product_ids_batch
-                        ])
+                        cursor.execute(
+                            stmt, ([product_id for product_id, _ in product_ids_batch],)
+                        )
                         result = cursor.fetchall()
 
                         raw_product_details_map: dict[str, RawProductDetails] = {
