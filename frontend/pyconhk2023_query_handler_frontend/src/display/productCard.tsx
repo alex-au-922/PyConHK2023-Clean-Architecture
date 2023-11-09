@@ -47,6 +47,9 @@ const ProductCard = ({ product, source }: ProductCardProps) => {
           )}
           <div>{source}</div>
         </div>
+        <div className="badge badge-neutral text-xs">
+          {product.score.toFixed(2)}
+        </div>
       </div>
     </div>
   );

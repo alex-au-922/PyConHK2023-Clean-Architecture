@@ -11,6 +11,8 @@ type ErrorType = {
 
 const App = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchLimit, setSearchLimit] = useState<number>(50);
+  const [searchThreshold, setSearchThreshold] = useState<number>(0.3);
   const [error, setError] = useState<ErrorType>({
     title: "",
     message: "",
@@ -45,8 +47,8 @@ const App = () => {
             method: "POST",
             body: JSON.stringify({
               query: searchQuery,
-              limit: 50,
-              threshold: 0.3,
+              limit: searchLimit,
+              threshold: searchThreshold,
             }),
             headers: {
               "Content-Type": "application/json",
@@ -59,8 +61,8 @@ const App = () => {
             method: "POST",
             body: JSON.stringify({
               query: searchQuery,
-              limit: 50,
-              threshold: 0.3,
+              limit: searchLimit,
+              threshold: searchThreshold,
             }),
             headers: {
               "Content-Type": "application/json",
@@ -111,22 +113,13 @@ const App = () => {
           </div>
         </div>
       </dialog>
-      {/* <dialog id="request_error_modal" className="modal">
-        <div className="modal-box">
-          <h3 className="font-bold text-lg">Empty Input</h3>
-          <p className="py-4">
-            Please enter a keyword to search for similar products.
-          </p>
-          <div className="modal-action">
-            <form method="dialog">
-              <button className="btn">Close</button>
-            </form>
-          </div>
-        </div>
-      </dialog> */}
       <NavBar
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        searchLimit={searchLimit}
+        setSearchLimit={setSearchLimit}
+        searchThreshold={searchThreshold}
+        setSearchThreshold={setSearchThreshold}
         onSearch={onSearch}
       />
       <Display

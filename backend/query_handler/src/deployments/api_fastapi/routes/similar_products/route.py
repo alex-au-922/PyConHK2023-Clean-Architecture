@@ -2,7 +2,7 @@ from datetime import datetime
 from fastapi import APIRouter, status, Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from ...utils.api_response import ApiResponse, ApiResponseError
+from ...utils.api_response import ApiResponseError
 from .api_schema import DEFAULT_STATUS_CODE, DESCRIPTION, ResponseClass, RESPONSES
 from .api_models import SimilarProductsRequestModel
 from usecases import (
@@ -75,9 +75,8 @@ def similar_products(
                 ),
             )
 
-        similar_product_ids: list[str]
-        similar_product_scores: list[float]
-        similar_product_ids, similar_product_scores = zip(*similar_products_tuples)
+        similar_product_ids = [product_id for product_id, _ in similar_products_tuples]
+        similar_product_scores = [score for _, score in similar_products_tuples]
 
         similar_product_details = cast(
             FetchRawProductDetailsUseCase,

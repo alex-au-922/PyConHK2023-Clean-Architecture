@@ -121,8 +121,8 @@ class OpenSearchQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCa
 
             return [
                 #! Check https://opensearch.org/docs/latest/search-plugins/knn/approximate-knn/ for the score calculation
-                #! 2 - 2 * hit["_score"] is the cosine similarity according to opensearch
-                (hit["_source"]["product_id"], 2 - 2 * hit["_score"])
+                #! 3 - 2 * hit["_score"] is the cosine similarity according to opensearch
+                (hit["_source"]["product_id"], 3 - 2 * hit["_score"])
                 for hit in result["hits"]["hits"]
             ]
         except Exception as e:
