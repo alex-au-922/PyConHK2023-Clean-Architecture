@@ -2,11 +2,12 @@ import { ProductDetails } from "../types";
 import { useMediaQuery } from "usehooks-ts";
 
 interface ProductCardProps {
+  order: number;
   product: ProductDetails;
   source: string;
 }
 
-const ProductCard = ({ product, source }: ProductCardProps) => {
+const ProductCard = ({ product, source, order }: ProductCardProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isVerySmallMobile = useMediaQuery("(max-width: 320px)");
 
@@ -45,7 +46,7 @@ const ProductCard = ({ product, source }: ProductCardProps) => {
         }`}
       >
         <h2 className={`card-title text-base ${isMobile && "line-clamp-3"}`}>
-          {product.name}
+          {order}. {product.name}
         </h2>
         <div>
           <label className="text-sm">Categories</label>

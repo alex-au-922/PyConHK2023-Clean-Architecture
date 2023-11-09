@@ -39,9 +39,10 @@ const MobileDisplay = ({
       </div>
       {activeTab === "Lambda Search Results" && (
         <div>
-          {lambdaSearchResults.map((product) => (
+          {lambdaSearchResults.map((product, index) => (
             <ProductCard
               key={product.product_id}
+              order={index + 1}
               product={product}
               source={"lambda"}
             />
@@ -50,9 +51,10 @@ const MobileDisplay = ({
       )}
       {activeTab === "ECS Search Results" && (
         <div>
-          {ecsSearchResults.map((product) => (
+          {ecsSearchResults.map((product, index) => (
             <ProductCard
               key={product.product_id}
+              order={index + 1}
               product={product}
               source={"ecs"}
             />
@@ -74,9 +76,10 @@ const ComputerDisplay = ({
           Lambda Search Result
         </h2>
         <div>
-          {lambdaSearchResults.map((product) => (
+          {lambdaSearchResults.map((product, index) => (
             <ProductCard
               key={product.product_id}
+              order={index + 1}
               product={product}
               source={"lambda"}
             />
@@ -88,9 +91,10 @@ const ComputerDisplay = ({
           ECS Search Result
         </h2>
         <div>
-          {ecsSearchResults.map((product) => (
+          {ecsSearchResults.map((product, index) => (
             <ProductCard
               key={product.product_id}
+              order={index + 1}
               product={product}
               source={"ecs"}
             />
