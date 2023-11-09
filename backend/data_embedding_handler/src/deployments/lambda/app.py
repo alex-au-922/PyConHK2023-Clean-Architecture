@@ -6,10 +6,10 @@ from usecases import (
     EmbedRawProductDetailsUseCase,
 )
 
-from adapters.embed_raw_product_details.onnx import OnnxEmbedRawProductDetailsClient
-# from adapters.embed_raw_product_details.aws_sagemaker import (
-#     AWSSageMakerEmbedRawProductDetailsClient,
-# )
+# from adapters.embed_raw_product_details.onnx import OnnxEmbedRawProductDetailsClient
+from adapters.embed_raw_product_details.aws_sagemaker import (
+    AWSSageMakerEmbedRawProductDetailsClient,
+)
 from adapters.fetch_raw_product_details.postgres import (
     PostgresFetchRawProductDetailsClient,
 )
@@ -67,20 +67,20 @@ def init_embed_raw_product_details_client() -> None:
     if embed_raw_product_details_client is not None:
         return
 
-    inference_session = InferenceSession(
-        OnnxEmbedConfig.ONNX_MODEL_PATH, providers=["CPUExecutionProvider"]
-    )
-    tokenizer = AutoTokenizer.from_pretrained(OnnxEmbedConfig.TOKENIZER_PATH)
-    embed_raw_product_details_client = OnnxEmbedRawProductDetailsClient(
-        inference_session=inference_session,
-        tokenizer=tokenizer,
-    )
-
-    # embed_raw_product_details_client = AWSSageMakerEmbedRawProductDetailsClient(
-    #     client_creator=lambda: boto3.client("sagemaker-runtime"),
-    #     endpoint_name=AWSSageMakerEmbedConfig.AWS_SAGEMAKER_ENDPOINT_NAME,
-    #     embed_batch_size=AWSSageMakerEmbedConfig.EMBED_BATCH_SIZE,
+    # inference_session = InferenceSession(
+    #     OnnxEmbedConfig.ONNX_MODEL_PATH, providers=["CPUExecutionProvider"]
     # )
+    # tokenizer = AutoTokenizer.from_pretrained(OnnxEmbedConfig.TOKENIZER_PATH)
+    # embed_raw_product_details_client = OnnxEmbedRawProductDetailsClient(
+    #     inference_session=inference_session,
+    #     tokenizer=tokenizer,
+    # )
+
+    embed_raw_product_details_client = AWSSageMakerEmbedRawProductDetailsClient(
+        client_creator=lambda: boto3.client("sagemaker-runtime"),
+        endpoint_name=AWSSageMakerEmbedConfig.AWS_SAGEMAKER_ENDPOINT_NAME,
+        embed_batch_size=AWSSageMakerEmbedConfig.EMBED_BATCH_SIZE,
+    )
 
 
 def init_fetch_raw_product_details_client() -> None:
