@@ -18,7 +18,7 @@ const ProductCard = ({ product, source, order }: ProductCardProps) => {
   return (
     <div
       className={`card card-bordered bg-white card-side my-[1rem] p-2 w-full grid grid-cols-4 ${
-        isMobile ? (isVerySmallMobile ? "h-120" : "h-80") : "h-72"
+        isMobile ? (isVerySmallMobile ? "h-120" : "h-80") : "h-80"
       }`}
     >
       <figure
