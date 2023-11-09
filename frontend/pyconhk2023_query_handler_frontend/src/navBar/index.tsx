@@ -50,7 +50,7 @@ const MobileNavBar = ({
               <input
                 type="text"
                 placeholder={
-                  isVerySmallMobile ? "Keywords" : "Enter keywords to search"
+                  isVerySmallMobile ? "Keywords" : "Enter keywords"
                 }
                 className="input w-full"
                 value={searchQuery}
@@ -96,8 +96,8 @@ const ComputerNavBar = ({
       <div className="input-group flex-1">
         <input
           type="text"
-          placeholder="Enter keywords to search"
-          className="input w-full"
+          placeholder="Enter keywords"
+          className="input w-full dark:bg-slate-800"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -125,7 +125,7 @@ const ComputerNavBar = ({
 
 const NavBar = ({ searchQuery, setSearchQuery, onSearch }: NavBarProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
-
+  
   return isMobile ? (
     <MobileNavBar
       searchQuery={searchQuery}
