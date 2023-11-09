@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from usecases import QuerySimilarProductDetailsUseCase
 from entities import EmbeddedQueryDetails
@@ -147,7 +148,7 @@ class PostgresQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCase
         embedded_query_details_list: Sequence[EmbeddedQueryDetails],
         threshold: Optional[float],
         top_k: Optional[int],
-    ) -> Optional[list[tuple[str, float]]]:
+    ) -> list[Optional[list[tuple[str, float]]]]:
         """Fetch a batch of product details from the database"""
 
         similar_products_results: list[Optional[list[tuple[str, float]]]] = []
@@ -155,50 +156,18 @@ class PostgresQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCase
             embedded_query_details_list, self._fetch_batch_size
         ):
             try:
-                with self._get_conn() as conn, conn.cursor() as cursor:
-                    try:
-                        # embedding <#> vector is the inner product between the two vectors
-                        stmt = """
-                            SELECT
-                                product_id,
-                                (embedding <#> %(embedding)s::vector) * -1 AS score
-                            FROM {table_name}
-                                WHERE embedding <#> %(embedding)s::vector <= (%(threshold)s * -1)
-                                ORDER BY embedding <#> %(embedding)s::vector ASC
-                            LIMIT %(top_k)s""".format(
-                            table_name=self._embedded_product_table_name
+                with ThreadPoolExecutor() as executor:
+                    similar_products_results.extend(
+                        executor.map(
+                            self._query_single,
+                            embedded_query_details_batch,
+                            [self._get_threshold(threshold)] * len(embedded_query_details_batch),
+                            [self._get_top_k(top_k)] * len(embedded_query_details_batch),
                         )
-                        cursor.executemany(
-                            stmt,
-                            [
-                                {
-                                    "embedding": embedded_query_details.embedding,
-                                    "top_k": self._get_top_k(top_k),
-                                    "threshold": self._get_threshold(threshold),
-                                }
-                                for embedded_query_details in embedded_query_details_batch
-                            ],
-                        )
-                        result = cursor.fetchall()
-                        similar_products_results.extend(
-                            [
-                                [
-                                    (product_id, float(score))
-                                    for product_id, score in result_batch
-                                ]
-                                for result_batch in result
-                            ]
-                        )
-                    except Exception as e:
-                        logging.exception(e)
-                        logging.error("Error fetching product details from Postgres!")
-                        conn.rollback()
-                        similar_products_results.extend(
-                            [None] * len(embedded_query_details_batch)
-                        )
+                    )
             except Exception as e:
                 logging.exception(e)
-                logging.error("Error getting Postgres connection!")
+                logging.error("Error fetching product details from Postgres!")
                 similar_products_results.extend(
                     [None] * len(embedded_query_details_batch)
                 )

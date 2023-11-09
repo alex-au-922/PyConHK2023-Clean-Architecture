@@ -147,7 +147,7 @@ class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
                             table_name=self._raw_product_table_name
                         )
                         cursor.execute(
-                            stmt, ([product_id for product_id, _ in product_ids_batch],)
+                            stmt, (product_ids_batch,)
                         )
                         result = cursor.fetchall()
 
