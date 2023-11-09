@@ -197,6 +197,8 @@ def similar_products() -> Response:
             FetchRawProductDetailsUseCase, fetch_raw_product_details_client
         ).fetch(similar_product_ids)
 
+        logger.info(f"{similar_product_details = }")
+
         valid_similar_product_details = [
             similar_product_detail
             for similar_product_detail in similar_product_details

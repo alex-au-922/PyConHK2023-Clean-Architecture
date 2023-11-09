@@ -61,6 +61,8 @@ def similar_products(
             request_model.limit,
         )
 
+        logging.info(f"{similar_products_tuples = }")
+
         if similar_products_tuples is None:
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -75,8 +77,6 @@ def similar_products(
                 ),
             )
 
-        logging.info(f"{similar_products_tuples = }")
-
         similar_product_ids = [product_id for product_id, _ in similar_products_tuples]
         similar_product_scores = [score for _, score in similar_products_tuples]
 
@@ -84,6 +84,8 @@ def similar_products(
             FetchRawProductDetailsUseCase,
             request.app.state.fetch_raw_product_details_client,
         ).fetch(similar_product_ids)
+
+        logging.info(f"{similar_product_details = }")
 
         if similar_product_details is None:
             return JSONResponse(
