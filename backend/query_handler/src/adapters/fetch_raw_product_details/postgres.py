@@ -146,14 +146,12 @@ class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
                                 WHERE product_id = ANY(%s)""".format(
                             table_name=self._raw_product_table_name
                         )
-                        cursor.execute(
-                            stmt, (product_ids_batch,)
-                        )
+                        cursor.execute(stmt, (product_ids_batch,))
                         result = cursor.fetchall()
 
                         raw_product_details_map: dict[str, RawProductDetails] = {
-                            product_id: self._sql_tuple_to_raw_product_details(row)
-                            for product_id, row in zip(product_ids_batch, result)
+                            row[0]: self._sql_tuple_to_raw_product_details(row)
+                            for row in result
                             if row is not None
                         }
 
