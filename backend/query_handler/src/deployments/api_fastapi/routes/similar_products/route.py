@@ -85,7 +85,7 @@ def similar_products(
             request.app.state.fetch_raw_product_details_client,
         ).fetch(similar_product_ids)
 
-        logging.info(f"{similar_product_details = }")
+        logging.info(f"similar_product_details_ids = {[product.product_id if product is not None else None for product in similar_product_details]}")
 
         if similar_product_details is None:
             return JSONResponse(
