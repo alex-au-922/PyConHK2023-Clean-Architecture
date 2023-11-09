@@ -15,7 +15,7 @@ module "api_gateway_lambda" {
   cors_configuration = {
     allow_headers = ["Content-Type", "X-Amz-Date", "Authorization", "X-Api-Key", "X-Amz-Security-Token"]
     allow_methods = ["POST", "GET", "OPTIONS"]
-    allow_origins = ["*"]
+    allow_origins = ["https://${aws_cloudfront_distribution.frontend_distribution.domain_name}"]
   }
 
   # Access logs
@@ -48,7 +48,7 @@ module "api_gateway_ecs" {
   cors_configuration = {
     allow_headers = ["Content-Type", "X-Amz-Date", "Authorization", "X-Api-Key", "X-Amz-Security-Token"]
     allow_methods = ["POST", "GET", "OPTIONS"]
-    allow_origins = ["*"]
+    allow_origins = ["https://${aws_cloudfront_distribution.frontend_distribution.domain_name}"]
   }
 
   create_api_domain_name = false
