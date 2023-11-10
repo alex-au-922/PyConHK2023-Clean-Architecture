@@ -27,7 +27,7 @@ logging.getLogger("uvicorn.access").handlers = logging.root.handlers
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         app.state.inference_session = InferenceSession(
-            "./model", providers=["CUDAExecutionProvider"]
+            "./model", providers=["CPUExecutionProvider"]
         )
         app.state.tokenizer = AutoTokenizer.from_pretrained("./tokenizer")
         yield
