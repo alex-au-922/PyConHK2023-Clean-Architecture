@@ -2,6 +2,28 @@
 
 This is the code repository for all the frontend, backend and CI/CD code used for deployment
 
+# Table of Contents
+* [How to get started](#how-to-get-started)
+    * [GitHub Secrets](#github-secrets)
+* [Code Repository Structure](#code-repository-structure)
+    * [Artifacts](#artifacts)
+        * [Sentence Bert Onnx Transform Script (artifacts/sentence_bert_onnx_transform)](#sentence-bert-onnx-transform-script-artifactssentence_bert_onnx_transform)
+    * [Backend](#backend)
+        * [Data Ingestion Handler (backend/data_ingestion_handler)](#data-ingestion-handler-backenddata_ingestion_handler)
+        * [Data Embedding Handler (backend/data_embedding_handler)](#data-embedding-handler-backenddata_embedding_handler)
+        * [Query Handler (backend/query_handler)](#query-handler-backendquery_handler)
+    * [Data (data)](#data-data)
+    * [Docs (docs)](#docs-docs)
+    * [Frontend (frontend/pyconhk2023_query_handler_frontend)](#frontend-frontendpyconhk2023_query_handler_frontend)
+    * [SageMaker Endpoint (sagemaker/embedding_model)](#sagemaker-endpoint-sagemakerembedding_model)
+    * [Scripts (scripts)](#scripts-scripts)
+    * [Terraform (terraform)](#terraform-terraform)
+* [Resources Diagram](#resources-diagram)
+* [Architectural Diagram](#architectural-diagram)
+    * [Data Ingestion Pipeline](#data-ingestion-pipeline)
+    * [Query Pipeline](#query-pipeline)
+* [Related Resources from PyCon HK 2023](#related-resources-from-pycon-hk-2023)
+
 ## How to get started
 
 You may fork this repository and reference it in your own repository. You may also use this repository as a template. Feel free to use it as you wish.
