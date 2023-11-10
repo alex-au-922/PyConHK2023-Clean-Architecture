@@ -522,7 +522,7 @@ jobs:
       - name: Output Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: frontend-env
+          name: frontend-env-main
           path: frontend/pyconhk2023_query_handler_frontend/.env
   terraform-apply-dev:
     needs: [terraform-plan, create-model, pip-build-data-ingestion-handler]
@@ -585,7 +585,7 @@ jobs:
       - name: Output Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: frontend-env
+          name: frontend-env-dev
           path: frontend/pyconhk2023_query_handler_frontend/.env
   ci_data_preparation:
     needs: [terraform-apply-main, terraform-apply-dev]
@@ -620,20 +620,14 @@ jobs:
         if: needs.terraform-apply-dev.result == 'success'
         uses: actions/download-artifact@v2
         with:
-          name: frontend-env
+          name: frontend-env-dev
           path: frontend/pyconhk2023_query_handler_frontend
-      - name: Retrieve terraform dev apply artifacts
+      - name: Retrieve terraform main apply artifacts
         if: needs.terraform-apply-main.result == 'success'
         uses: actions/download-artifact@v2
         with:
-          name: frontend-env
+          name: frontend-env-main
           path: frontend/pyconhk2023_query_handler_frontend
-      - name: Configure frontend cache
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: frontend/pyconhk2023_query_handler_frontend/
-          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pyconhk2023_query_handler_frontend/**', 'terraform/**.tf') }}
       - name: Configure AWS credentials
         if: steps.cache.outputs.cache-hit != 'true'
         uses: aws-actions/configure-aws-credentials@v4
