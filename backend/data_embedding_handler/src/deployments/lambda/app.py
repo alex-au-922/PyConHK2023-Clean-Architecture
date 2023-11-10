@@ -6,10 +6,11 @@ from usecases import (
     EmbedRawProductDetailsUseCase,
 )
 
-# from adapters.embed_raw_product_details.onnx import OnnxEmbedRawProductDetailsClient
-from adapters.embed_raw_product_details.aws_sagemaker import (
-    AWSSageMakerEmbedRawProductDetailsClient,
-)
+from adapters.embed_raw_product_details.onnx import OnnxEmbedRawProductDetailsClient
+
+# from adapters.embed_raw_product_details.aws_sagemaker import (
+#     AWSSageMakerEmbedRawProductDetailsClient,
+# )
 from adapters.fetch_raw_product_details.postgres import (
     PostgresFetchRawProductDetailsClient,
 )
@@ -67,20 +68,23 @@ def init_embed_raw_product_details_client() -> None:
     if embed_raw_product_details_client is not None:
         return
 
-    # inference_session = InferenceSession(
-    #     OnnxEmbedConfig.ONNX_MODEL_PATH, providers=["CPUExecutionProvider"]
-    # )
-    # tokenizer = AutoTokenizer.from_pretrained(OnnxEmbedConfig.TOKENIZER_PATH)
-    # embed_raw_product_details_client = OnnxEmbedRawProductDetailsClient(
-    #     inference_session=inference_session,
-    #     tokenizer=tokenizer,
+    inference_session = InferenceSession(
+        OnnxEmbedConfig.ONNX_MODEL_PATH, providers=["CPUExecutionProvider"]
+    )
+    tokenizer = AutoTokenizer.from_pretrained(OnnxEmbedConfig.TOKENIZER_PATH)
+    embed_raw_product_details_client = OnnxEmbedRawProductDetailsClient(
+        inference_session=inference_session,
+        tokenizer=tokenizer,
+    )
+    logger.info(f"Initialized Onnx Client!")
+
+    # embed_raw_product_details_client = AWSSageMakerEmbedRawProductDetailsClient(
+    #     client_creator=lambda: boto3.client("sagemaker-runtime"),
+    #     endpoint_name=AWSSageMakerEmbedConfig.AWS_SAGEMAKER_ENDPOINT_NAME,
+    #     embed_batch_size=AWSSageMakerEmbedConfig.EMBED_BATCH_SIZE,
     # )
 
-    embed_raw_product_details_client = AWSSageMakerEmbedRawProductDetailsClient(
-        client_creator=lambda: boto3.client("sagemaker-runtime"),
-        endpoint_name=AWSSageMakerEmbedConfig.AWS_SAGEMAKER_ENDPOINT_NAME,
-        embed_batch_size=AWSSageMakerEmbedConfig.EMBED_BATCH_SIZE,
-    )
+    # logger.info(f"Initialized sagemaker client!")
 
 
 def init_fetch_raw_product_details_client() -> None:
@@ -154,6 +158,8 @@ def init_opensearch_upsert_embedded_product_details_client() -> None:
 def pipeline_embed_product(product_id: str, product_modified_date: datetime) -> bool:
     """Pipeline for fetching, embeding, and upserting a single product details"""
 
+    logger.info(f"Embedding product {product_id}...")
+
     raw_product_details = cast(
         FetchRawProductDetailsUseCase, fetch_raw_product_details_client
     ).fetch(product_id)
@@ -201,6 +207,10 @@ def pipeline_embed_products(
     product_id_modified_date_pairs: list[tuple[str, datetime]]
 ) -> list[bool]:
     """Pipeline for fetching, embeding, and upserting a batch of product details"""
+
+    logger.info(
+        f"Embedding {len(product_id_modified_date_pairs)} products {product_id_modified_date_pairs}..."
+    )
 
     successes: list[bool] = [True] * len(product_id_modified_date_pairs)
 
@@ -340,6 +350,15 @@ def pipeline_embed_products(
     if upsert_failed_products_ids:
         logger.error(
             f"Failed to upsert embedded product details for products {upsert_failed_products_ids}!"
+        )
+
+    if (
+        not invalid_raw_products_ids
+        and not failed_embed_raw_products_ids
+        and not upsert_failed_products_ids
+    ):
+        logger.info(
+            f"Successfully upserted embedded product details for products {product_ids}!"
         )
 
     return successes

@@ -77,12 +77,12 @@ module "data_ingestion_handler_lambda" {
     },
   }
 
-  allowed_triggers = {
-    eventbridge = {
-      principal  = "events.amazonaws.com"
-      source_arn = aws_cloudwatch_event_rule.data_ingestion_lambda_trigger.arn
-    }
-  }
+  # allowed_triggers = {
+  #   eventbridge = {
+  #     principal  = "events.amazonaws.com"
+  #     source_arn = aws_cloudwatch_event_rule.data_ingestion_lambda_trigger.arn
+  #   }
+  # }
 
   vpc_subnet_ids         = var.lambda_config.data_ingestion_handler.in_vpc ? module.vpc.private_subnets : []
   vpc_security_group_ids = var.lambda_config.data_ingestion_handler.in_vpc ? [aws_security_group.lambda_security_group.id] : []

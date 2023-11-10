@@ -332,8 +332,8 @@ ecs_config = {
         "80",
       ]
       autoscaling = {
-        min = 1
-        max = 2
+        min = 3
+        max = 6
       }
     }
   }
@@ -343,7 +343,7 @@ sagemaker_config = {
   embedding_model = {
     name = "pyconhk2023-data-embedding-sagemaker"
     deployment = {
-      instance_type  = "ml.m5.xlarge"
+      instance_type  = "ml.g4dn.2xlarge"
       instance_count = 1
       instance_variant = {
         weight = 1
