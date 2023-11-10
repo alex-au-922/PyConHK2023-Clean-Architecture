@@ -25,7 +25,9 @@ const MobileNavBar = ({
   const isVerySmallMobile = useMediaQuery("(max-width: 320px)");
 
   const limitScale = 10;
-  const limitRanges = Array.from(Array(6).keys()).map((i) => i * limitScale);
+  const limitRanges = Array.from(Array(5).keys()).map(
+    (i) => (i + 1) * limitScale
+  );
   const thresholdScale = 0.05;
   const thresholdRanges = Array.from(Array(6).keys())
     .map((i) => i * thresholdScale * 4)
@@ -135,10 +137,7 @@ const MobileNavBar = ({
             value={searchThreshold}
             className="range"
             step={thresholdScale}
-            onChange={(e) => {
-              console.log(e.target.value);
-              setSearchThreshold(parseFloat(e.target.value));
-            }}
+            onChange={(e) => setSearchThreshold(parseFloat(e.target.value))}
           />
           <div className="w-full flex justify-between text-xs px-2">
             {thresholdRanges.map((thresholdRange) => (
