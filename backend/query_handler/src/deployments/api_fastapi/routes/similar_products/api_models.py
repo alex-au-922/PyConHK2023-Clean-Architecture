@@ -9,15 +9,15 @@ class SimilarProductsRequestModel(BaseModel):
     threshold: Optional[float] = None
 
     @field_validator("limit")
-    def limit_must_be_positive(cls, v):
-        if v <= 0:
-            raise ValueError("limit must be positive")
+    def limit_must_be_non_negative(cls, v):
+        if v < 0:
+            raise ValueError("limit must be non-negative!")
         return v
 
     @field_validator("threshold")
     def threshold_must_within_range(cls, v):
         if v < -1 or v > 1:
-            raise ValueError("threshold must be between -1 and 1")
+            raise ValueError("threshold must be between -1 and 1!")
         return v
 
 

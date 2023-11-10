@@ -2,7 +2,7 @@ from datetime import datetime
 from fastapi import APIRouter, status, Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from ...utils.api_response import ApiResponse, ApiResponseError
+from ...utils.api_response import ApiResponseError
 from .api_schema import DEFAULT_STATUS_CODE, DESCRIPTION, ResponseClass, RESPONSES
 from .api_models import SimilarProductsRequestModel
 from usecases import (
@@ -18,7 +18,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/",
+    "/similar_products",
     status_code=DEFAULT_STATUS_CODE,
     description=DESCRIPTION,
     responses=RESPONSES,
@@ -61,6 +61,8 @@ def similar_products(
             request_model.limit,
         )
 
+        logging.info(f"{similar_products_tuples = }")
+
         if similar_products_tuples is None:
             return JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -75,14 +77,15 @@ def similar_products(
                 ),
             )
 
-        similar_product_ids: list[str]
-        similar_product_scores: list[float]
-        similar_product_ids, similar_product_scores = zip(*similar_products_tuples)
+        similar_product_ids = [product_id for product_id, _ in similar_products_tuples]
+        similar_product_scores = [score for _, score in similar_products_tuples]
 
         similar_product_details = cast(
             FetchRawProductDetailsUseCase,
             request.app.state.fetch_raw_product_details_client,
         ).fetch(similar_product_ids)
+
+        logging.info(f"similar_product_details_ids = {[product.product_id if product is not None else None for product in similar_product_details]}")
 
         if similar_product_details is None:
             return JSONResponse(

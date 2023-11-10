@@ -347,7 +347,7 @@ def pipeline_embed_products(
 
 @logger.inject_lambda_context(log_event=ProjectConfig.LOG_SOURCE_EVENT)
 @event_source(data_class=SQSEvent)
-def handler(event: SQSEvent, context: LambdaContext) -> dict:
+def handler(event: SQSEvent, context: LambdaContext) -> None:
     init_embed_raw_product_details_client()
     init_fetch_raw_product_details_client()
     init_postgres_upsert_embedded_product_details_client()

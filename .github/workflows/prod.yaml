@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 env:
   MODEL_NAME: sentence-transformers/all-MiniLM-L6-v2
 permissions:
@@ -42,9 +43,8 @@ jobs:
         id: install_dependencies
         run: |
           git clone https://github.com/jkehler/awslambda-psycopg2.git
-          cp -r awslambda-psycopg2/psycopg2-3.9 backend/data_ingestion_handler/src/psycopg2-3.9
-          mkdir -p backend/data_ingestion_handler/src/psycopg2
-          mv backend/data_ingestion_handler/src/psycopg2-3.9/_psycopg.cpython-39-x86_64-linux-gnu.so backend/data_ingestion_handler/src/psycopg2/_psycopg.so
+          mv awslambda-psycopg2/psycopg2-3.9 backend/data_ingestion_handler/src/psycopg2
+          mv backend/data_ingestion_handler/src/psycopg2/_psycopg.cpython-39-x86_64-linux-gnu.so backend/data_ingestion_handler/src/psycopg2/_psycopg.so
           cd backend/data_ingestion_handler
           python -m pip install -r requirements.txt -t python
           zip -r pyconhk2023-data-ingestion-handler-layer.zip python
@@ -448,6 +448,7 @@ jobs:
         id: setup-terraform
         uses: hashicorp/setup-terraform@v1
         with:
+          terraform_wrapper: false
           terraform_version: 1.6.1
       - name: Terraform Init
         id: init
@@ -493,6 +494,7 @@ jobs:
         id: setup-terraform
         uses: hashicorp/setup-terraform@v1
         with:
+          terraform_wrapper: false
           terraform_version: 1.6.1
       - name: Terraform Init
         id: init
@@ -507,6 +509,21 @@ jobs:
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
+      - name: Terraform Output
+        id: tf-output
+        run: |
+          if [ -f frontend/pyconhk2023_query_handler_frontend/.env ]; then
+            rm -f frontend/pyconhk2023_query_handler_frontend/.env
+          fi
+          touch frontend/pyconhk2023_query_handler_frontend/.env
+          cd terraform
+          echo "$(terraform output api_gateway_ecs_endpoint)" > ../frontend/pyconhk2023_query_handler_frontend/.env
+          echo "$(terraform output api_gateway_lambda_endpoint)" >> ../frontend/pyconhk2023_query_handler_frontend/.env
+      - name: Output Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: frontend-env
+          path: frontend/pyconhk2023_query_handler_frontend/.env
   terraform-apply-dev:
     needs: [terraform-plan, create-model, pip-build-data-ingestion-handler]
     if: |
@@ -540,6 +557,7 @@ jobs:
         id: setup-terraform
         uses: hashicorp/setup-terraform@v1
         with:
+          terraform_wrapper: false
           terraform_version: 1.6.1
       - name: Terraform Init
         id: init
@@ -554,6 +572,21 @@ jobs:
         env:
           TF_VAR_allowed_cidrs_string: ${{ secrets.allowed_cidrs }}
           TF_VAR_ssh_public_key: ${{ secrets.bastion_ssh_public_key }}
+      - name: Terraform Output
+        id: tf-output
+        run: |
+          if [ -f frontend/pyconhk2023_query_handler_frontend/.env ]; then
+            rm -f frontend/pyconhk2023_query_handler_frontend/.env
+          fi
+          touch frontend/pyconhk2023_query_handler_frontend/.env
+          cd terraform
+          echo "VITE_ECS_API_GATEWAY_DOMAIN=$(terraform output api_gateway_ecs_endpoint)" > ../frontend/pyconhk2023_query_handler_frontend/.env
+          echo "VITE_LAMBDA_API_GATEWAY_DOMAIN=$(terraform output api_gateway_lambda_endpoint)" >> ../frontend/pyconhk2023_query_handler_frontend/.env
+      - name: Output Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: frontend-env
+          path: frontend/pyconhk2023_query_handler_frontend/.env
   ci_data_preparation:
     needs: [terraform-apply-main, terraform-apply-dev]
     if: |
@@ -583,34 +616,38 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Create Query Handler Frontend Build File Cache
-        id: create-query-handler-frontend-build-file-cache
+      - name: Retrieve terraform dev apply artifacts
+        if: needs.terraform-apply-dev.result == 'success'
+        uses: actions/download-artifact@v2
+        with:
+          name: frontend-env
+          path: frontend/pyconhk2023_query_handler_frontend
+      - name: Configure frontend cache
+        id: cache
         uses: actions/cache@v3
         with:
-          path: |
-            frontend/pyconhk2023_query_handler_frontend/public
-            frontend/pyconhk2023_query_handler_frontend/src
-            frontend/pyconhk2023_query_handler_frontend/package.json
-          key: ${{ runner.os }}-frontend-${{ hashFiles('**/frontend/pyconhk2023_query_handler_frontend/**') }}
+          path: frontend/pyconhk2023_query_handler_frontend/
+          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pyconhk2023_query_handler_frontend/**', 'terraform/**.tf') }}
       - name: Configure AWS credentials
-        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.CICD_ASSUME_ROLE_ARN }}
           role-session-name: ${{ github.actor }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Setup Npm
-        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 18
       - name: Build Query Handler Frontend
-        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cd frontend/pyconhk2023_query_handler_frontend
+
           npm install
           npm run build
       - name: Push Data to S3
-        if: steps.create-query-handler-frontend-build-file-cache.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          aws s3 cp frontend/pyconhk2023_query_handler_frontend/dist/ s3://alexau-pyconhk2023-frontend/ --recursive
+          aws s3 sync frontend/pyconhk2023_query_handler_frontend/dist/ s3://alexau-pyconhk2023-frontend/ --delete

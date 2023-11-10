@@ -32,7 +32,7 @@ resource "aws_security_group" "query_handler" {
 resource "aws_lb" "query_handler" {
   name               = "${var.ecs_config.query_handler.name}-alb"
   load_balancer_type = "application"
-  internal           = false
+  internal           = true
   security_groups    = [aws_security_group.query_handler.id]
   subnets            = module.vpc.public_subnets
   idle_timeout       = 300
@@ -61,7 +61,7 @@ resource "aws_lb_target_group" "query_handler" {
     interval            = var.ecs_config.query_handler.container.health_check.interval
     protocol            = "HTTP"
     matcher             = var.ecs_config.query_handler.container.health_check.matcher
-    path                = format("/%s/", join("/", var.ecs_config.query_handler.container.health_check.path_parts))
+    path                = format("/%s", join("/", var.ecs_config.query_handler.container.health_check.path_parts))
   }
 
   lifecycle {

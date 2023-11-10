@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 @router.get(
-    "/",
+    "/health_status",
     status_code=DEFAULT_STATUS_CODE,
     description=DESCRIPTION,
     responses=RESPONSES,

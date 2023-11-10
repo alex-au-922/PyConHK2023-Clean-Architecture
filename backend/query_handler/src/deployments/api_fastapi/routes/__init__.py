@@ -15,13 +15,11 @@ router = APIRouter()
 
 router.include_router(
     health_status_router,
-    prefix="/health_status",
     tags=["health_status"],
 )
 
 router.include_router(
     similar_products_router,
-    prefix="/similar_products",
     tags=["similar_products"],
 )
 

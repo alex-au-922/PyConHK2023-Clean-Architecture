@@ -108,7 +108,9 @@ class OpenSearchQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCa
                         }
                     }
                 },
-                "min_score": self._get_threshold(threshold),
+                #! Check https://opensearch.org/docs/latest/search-plugins/knn/approximate-knn/ for the score calculation
+                #! For the min_score, we have to convert from cosine similarity to the formula below
+                "min_score": (1 + self._get_threshold(threshold)) / 2,
             }
 
             result = self._client.search(
@@ -118,7 +120,9 @@ class OpenSearchQuerySimilarProductDetailsClient(QuerySimilarProductDetailsUseCa
             )
 
             return [
-                (hit["_source"]["product_id"], hit["_score"])
+                #! Check https://opensearch.org/docs/latest/search-plugins/knn/approximate-knn/ for the score calculation
+                #! 3 - 2 * hit["_score"] is the cosine similarity according to opensearch
+                (hit["_source"]["product_id"], 2 * hit["_score"] - 1)
                 for hit in result["hits"]["hits"]
             ]
         except Exception as e:

@@ -76,12 +76,12 @@ class AWSSageMakerEmbedRawProductDetailsClient(EmbedRawProductDetailsUseCase):
             with self._get_client() as client:
                 embedding: list[float] = json.loads(
                     client.invoke_endpoint(
-                        EndpointName="text-embeddings",
+                        EndpointName=self._endpoint_name,
                         Body=json.dumps({"text": raw_product_details.name.lower()}),
                     )["Body"]
                     .read()
                     .decode("utf-8")
-                )
+                )["result"]
 
                 return EmbeddedProductDetails(
                     product_id=raw_product_details.product_id,

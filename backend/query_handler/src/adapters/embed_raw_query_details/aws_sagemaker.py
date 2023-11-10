@@ -76,12 +76,14 @@ class AWSSageMakerEmbedRawQueryDetailsClient(EmbedRawQueryDetailsUseCase):
             with self._get_client() as client:
                 embedding: list[float] = json.loads(
                     client.invoke_endpoint(
-                        EndpointName="text-embeddings",
+                        EndpointName=self._endpoint_name,
                         Body=json.dumps({"text": raw_query_details.query.lower()}),
                     )["Body"]
                     .read()
                     .decode("utf-8")
                 )["result"]
+                print(f"{embedding = }")
+                logging.info(f"{embedding = }")
 
                 return EmbeddedQueryDetails(
                     embedding=embedding,

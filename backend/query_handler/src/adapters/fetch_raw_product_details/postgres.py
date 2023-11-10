@@ -146,14 +146,19 @@ class PostgresFetchRawProductDetailsClient(FetchRawProductDetailsUseCase):
                                 WHERE product_id = ANY(%s)""".format(
                             table_name=self._raw_product_table_name
                         )
-                        cursor.execute(stmt, (list(product_ids_batch),))
+                        cursor.execute(stmt, (product_ids_batch,))
                         result = cursor.fetchall()
+
+                        raw_product_details_map: dict[str, RawProductDetails] = {
+                            row[0]: self._sql_tuple_to_raw_product_details(row)
+                            for row in result
+                            if row is not None
+                        }
+
                         raw_product_details.extend(
                             [
-                                self._sql_tuple_to_raw_product_details(row)
-                                if row is not None
-                                else None
-                                for row in result
+                                raw_product_details_map.get(product_id, None)
+                                for product_id in product_ids_batch
                             ]
                         )
                     except Exception as e:

@@ -6,3 +6,4 @@ notebooks
 venv
 node_modules
 build
+.env

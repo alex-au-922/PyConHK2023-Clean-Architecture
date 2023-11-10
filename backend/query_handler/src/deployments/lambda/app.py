@@ -1,8 +1,6 @@
 from datetime import datetime
 import json
 from typing import Optional, cast
-from onnxruntime import InferenceSession
-from transformers import AutoTokenizer
 import boto3
 import json
 from aws_lambda_powertools.logging import Logger, correlation_paths, utils as log_utils
@@ -12,6 +10,7 @@ from aws_lambda_powertools.event_handler import (
     APIGatewayHttpResolver,
     Response,
     content_types,
+    CORSConfig,
 )
 
 from entities import RawQueryDetails
@@ -31,7 +30,6 @@ from adapters.query_similar_product_details.postgres import (
 )
 from .config import (
     PostgresConfig,
-    OpenSearchConfig,
     OnnxEmbedConfig,
     SearchSimilarProductsConfig,
     ProjectConfig,
@@ -47,7 +45,8 @@ log_utils.copy_config_to_registered_loggers(
     ),
 )
 tracer = Tracer(service="query_handler")
-app = APIGatewayHttpResolver()
+cors_config = CORSConfig(allow_origin="*", allow_headers=["*"], allow_credentials=True)
+app = APIGatewayHttpResolver(cors=cors_config)
 
 embed_raw_query_details_client: Optional[EmbedRawQueryDetailsUseCase] = None
 fetch_raw_product_details_client: Optional[FetchRawProductDetailsUseCase] = None
@@ -67,14 +66,6 @@ def init_embed_raw_query_details_client() -> None:
     global embed_raw_query_details_client
     if embed_raw_query_details_client is not None:
         return
-    # inference_session = InferenceSession(
-    #     OnnxEmbedConfig.ONNX_MODEL_PATH, providers=["CPUExecutionProvider"]
-    # )
-    # tokenizer = AutoTokenizer.from_pretrained(OnnxEmbedConfig.TOKENIZER_PATH)
-    # embed_raw_query_details_client = OnnxEmbedRawQueryDetailsClient(
-    #     inference_session=inference_session,
-    #     tokenizer=tokenizer,
-    # )
 
     embed_raw_query_details_client = AWSSageMakerEmbedRawQueryDetailsClient(
         client_creator=lambda: boto3.client("sagemaker-runtime"),
@@ -177,6 +168,8 @@ def similar_products() -> Response:
             embedded_query_details, query_body.get("threshold"), query_body.get("limit")
         )
 
+        logger.info(f"{similar_products_tuples = }")
+
         if similar_products_tuples is None:
             return Response(
                 status_code=INTERNAL_SERVER_ERROR_CODE,
@@ -192,13 +185,19 @@ def similar_products() -> Response:
                 ),
             )
 
-        similar_product_ids: list[str]
-        similar_product_scores: list[float]
-        similar_product_ids, similar_product_scores = zip(*similar_products_tuples)
+        similar_product_ids = [
+            similar_product_id for similar_product_id, _ in similar_products_tuples
+        ]
+        similar_product_scores = [
+            similar_product_score
+            for _, similar_product_score in similar_products_tuples
+        ]
 
         similar_product_details = cast(
             FetchRawProductDetailsUseCase, fetch_raw_product_details_client
         ).fetch(similar_product_ids)
+
+        logger.info(f"similar_product_details_ids = {[product.product_id if product is not None else None for product in similar_product_details]}")
 
         valid_similar_product_details = [
             similar_product_detail
@@ -213,9 +212,6 @@ def similar_products() -> Response:
             )
             if similar_product_detail is not None
         ]
-
-        logger.info(f"{valid_similar_product_details=}")
-        logger.info(f"{valid_similar_product_scores=}")
 
         return Response(
             status_code=SUCCESS_CODE,

@@ -195,10 +195,10 @@ lambda_config = {
   data_embedding_handler = {
     name        = "pyconhk2023-data-embedding-handler"
     description = "Data Embedding handler for PyCon HK 2023"
-    # memory_size                    = 2048
-    memory_size                    = 128
+    memory_size = 2048
+    # memory_size                    = 128
     timeout                        = 5 * 60 # 5 minutes
-    reserved_concurrent_executions = -1
+    reserved_concurrent_executions = 10
     runtime                        = "python3.10"
     package_type                   = "Image"
     image_config_command           = ["deployments.lambda.app.handler"]
@@ -242,34 +242,58 @@ eventbridge_config = {
 }
 
 api_gateway_config = {
-  name               = "pyconhk2023-api-gateway"
-  log_retention_days = 30
-  cors = {
-    allow_origins = ["*"]
-    allow_headers = ["*"]
-    allow_methods = ["*"]
-  }
-  access_log_format = {
-    "requestId" : "$context.requestId",
-    "extendedRequestId" : "$context.extendedRequestId",
-    "ip" : "$context.identity.sourceIp",
-    "caller" : "$context.identity.caller",
-    "user" : "$context.identity.user",
-    "requestTime" : "$context.requestTime",
-    "httpMethod" : "$context.httpMethod",
-    "resourcePath" : "$context.resourcePath",
-    "status" : "$context.status",
-    "protocol" : "$context.protocol",
-    "responseLength" : "$context.responseLength",
-    "integrationError" : "$context.integrationErrorMessage"
-  },
+  lambda = {
+    name               = "pyconhk2023-api-gateway-lambda"
+    description        = "Lambda API Gateway for PyCon HK 2023"
+    log_retention_days = 30
+    access_log_format = {
+      "requestId" : "$context.requestId",
+      "extendedRequestId" : "$context.extendedRequestId",
+      "ip" : "$context.identity.sourceIp",
+      "caller" : "$context.identity.caller",
+      "user" : "$context.identity.user",
+      "requestTime" : "$context.requestTime",
+      "httpMethod" : "$context.httpMethod",
+      "resourcePath" : "$context.resourcePath",
+      "status" : "$context.status",
+      "protocol" : "$context.protocol",
+      "responseLength" : "$context.responseLength",
+      "integrationError" : "$context.integrationErrorMessage"
+    },
 
-  routes = {
-    query_handler = {
-      method                 = "POST"
-      path_parts             = ["api", "similar_products"]
-      payload_format_version = "2.0"
-      timeout                = 29
+    routes = {
+      query_handler = {
+        method                 = "POST"
+        path_parts             = ["api", "similar_products"]
+        payload_format_version = "2.0"
+        timeout                = 29
+      }
+    }
+  }
+  ecs = {
+    name               = "pyconhk2023-api-gateway-ecs"
+    description        = "ECS API Gateway for PyCon HK 2023"
+    log_retention_days = 30
+    access_log_format = {
+      "requestId" : "$context.requestId",
+      "extendedRequestId" : "$context.extendedRequestId",
+      "ip" : "$context.identity.sourceIp",
+      "caller" : "$context.identity.caller",
+      "user" : "$context.identity.user",
+      "requestTime" : "$context.requestTime",
+      "httpMethod" : "$context.httpMethod",
+      "resourcePath" : "$context.resourcePath",
+      "status" : "$context.status",
+      "protocol" : "$context.protocol",
+      "responseLength" : "$context.responseLength",
+      "integrationError" : "$context.integrationErrorMessage"
+    },
+
+    routes = {
+      query_handler = {
+        method     = "POST"
+        path_parts = ["api", "similar_products"]
+      }
     }
   }
 }
