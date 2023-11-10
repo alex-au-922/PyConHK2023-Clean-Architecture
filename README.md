@@ -28,6 +28,17 @@ This is the code repository for all the frontend, backend and CI/CD code used fo
 
 You may fork this repository and reference it in your own repository. You may also use this repository as a template. Feel free to use it as you wish.
 
+### What you need to do on AWS
+1. Create a new AWS account for **a developer role with proper permissions** (e.g. Developer User, Admin User, Developer role etc.)
+2. Create a CICD role with OIDC trust policy from this / your forked github repository. Add corresponding permissions to the role.
+3. Create ECR repositories for the following images (check section [Architectural Diagram](#architectural-diagram) for more information):
+    - `pyconhk2023-data-embedding-handler`: The lambda function that embed the data into text embedding.
+    - `pyconhk2023-data-embedding-sagemaker`: The AWS SageMaker endpoint that embed the data into text embedding.
+    - `pyconhk2023-query-handler-api-server`: The ECS image for the API server that handles the query from API Gateway.
+    - `pyconhk2023-query-handler-lambda`: The lambda function that handles the query from API Gateway.
+4. Create a new S3 bucket for storing the terraform state.
+5. Execute the pipeline.
+
 ### GitHub Secrets
 
 This repository defines several GitHub secrets that are required for the CI/CD pipeline to work. You should define them in your own repository, or you can change the corresponding `terraform/variable.tf` file to use your own variables.
@@ -366,14 +377,39 @@ For all the resources deployed, please refer to the [Resources Diagram](#resourc
 
 ![Data Ingestion Pipeline](docs/pyconhk2023_clean_architecture_aws_workflow_diagram_data_pipeline.png)
 
-### Query Pipeline
+This pipeline do the following steps:
+0. Data Ingestion Lambda fetch data from S3 (Not in the diagram) to simulate incoming data.
+1. Data Ingestion Lambda upsert the incoming data into Postgres DB (as transactional data).
+2. Data Ingestion Lambda send the product id to SQS queue.
+3. Data Embedding Lambda fetch the product id from SQS queue.
+4. Data Embedding Lambda fetch the product details from Postgres DB.
+5. Data Embedding Lambda embed the product details into text embedding.
+    - Option 1: Using AWS SageMaker Endpoint
+    - Option 2: Using onnxruntime with the pre-built embedding model
+6. Data Embedding Lambda upsert the embedded data into database.
+    - Option 1: Upsert to Postgres DB (with extension [pgvector](https://github.com/pgvector/pgvector))
+    - Option 2: Upsert to OpenSearch (with settings `index.knn = true`)
 
-![Query Pipeline](docs/pyconhk2023_clean_architecture_aws_workflow_diagram_data_retrieval.png)
+### User Query Flow
+
+![User Query Flow](docs/pyconhk2023_clean_architecture_aws_workflow_diagram_data_retrieval.png)
+
+This pipeline do the following steps:
+1. User send a text query from the frontend (served by S3 and CloudFront) to the backend.
+    - Option 1: Send to the API Gateway that triggers the **Lambda**
+    - Option 2: Send to the API Gateway that routes to the ALB, which triggers the **ECS** fastapi server
+2. The backend embed the text query into text embedding.
+    - Option 1: Using AWS SageMaker Endpoint
+    - Option 2: Using onnxruntime with the pre-built embedding model
+3. The backend query the database for the `K`-most similar products.
+    - Option 1: Query from Postgres DB (with extension [pgvector](https://github.com/pgvector/pgvector))
+    - Option 2: Query from OpenSearch (with settings `index.knn = true`)
+4. The backend fetch the product details from the database.
 
 ## Related Resources from PyCon HK 2023
 
 - [PyCon HK 2023 Proposal](https://pycon.hk/2023/as-soft-as-ever-changing-clean-architecture-in-python/)
 
-- [Powerpoint Slides](https://1drv.ms/ps!AuHrIoMSVvdAmiWS3CyuMhsRuznx?e=O6dUvP)
+- [Powerpoint Slides](https://1drv.ms/p/s!AuHrIoMSVvdAmiWS3CyuMhsRuznx?e=O6dUvP)
 
 - [Demo Page (Available Until 2023-11-13)](https://d35kt7gcj9v3gx.cloudfront.net)
