@@ -627,7 +627,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: frontend/pyconhk2023_query_handler_frontend/
-          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pyconhk2023_query_handler_frontend/**') }}
+          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/pyconhk2023_query_handler_frontend/**', 'terraform/**.tf') }}
       - name: Configure AWS credentials
         if: steps.cache.outputs.cache-hit != 'true'
         uses: aws-actions/configure-aws-credentials@v4

@@ -2,7 +2,7 @@
 
 This is the code repository for all the frontend, backend and CI/CD code used for deployment
 
-# Table of Contents
+## Table of Contents
 * [How to get started](#how-to-get-started)
     * [GitHub Secrets](#github-secrets)
 * [Code Repository Structure](#code-repository-structure)
