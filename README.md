@@ -371,6 +371,9 @@ For all the resources deployed, please refer to the [Resources Diagram](#resourc
 
 ## Resources Diagram
 
+![Resource Diagram](docs/pyconhk2023_clean_architecture_resource_diagram.png)
+
+
 ## Architectural Diagram
 
 ### Data Ingestion Pipeline
