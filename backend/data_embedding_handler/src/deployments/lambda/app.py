@@ -8,9 +8,9 @@ from usecases import (
 
 from adapters.embed_raw_product_details.onnx import OnnxEmbedRawProductDetailsClient
 
-from adapters.embed_raw_product_details.aws_sagemaker import (
-    AWSSageMakerEmbedRawProductDetailsClient,
-)
+# from adapters.embed_raw_product_details.aws_sagemaker import (
+#     AWSSageMakerEmbedRawProductDetailsClient,
+# )
 from adapters.fetch_raw_product_details.postgres import (
     PostgresFetchRawProductDetailsClient,
 )
