@@ -8,7 +8,6 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:
 env:
   MODEL_NAME: sentence-transformers/all-MiniLM-L6-v2
 permissions:
