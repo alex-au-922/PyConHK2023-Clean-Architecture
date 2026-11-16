@@ -413,6 +413,6 @@ This pipeline do the following steps:
 
 - [PyCon HK 2023 Proposal](https://pycon.hk/2023/as-soft-as-ever-changing-clean-architecture-in-python/)
 
-- [Powerpoint Slides](https://1drv.ms/p/s!AuHrIoMSVvdAmiWS3CyuMhsRuznx?e=O6dUvP)
+- [Download the original PowerPoint slides (42 slides)](https://github.com/alex-au-922/PyConHK2023-Clean-Architecture/releases/download/pyconhk-2023-slides/PyCon-HK-2023-Clean-Architecture-original.pptx)
 
 - [Demo Page (Available Until 2023-11-13)](https://d35kt7gcj9v3gx.cloudfront.net)
